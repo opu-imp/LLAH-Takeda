@@ -1,0 +1,1 @@
+Probably for ICDAR2011 and CBDAR2011

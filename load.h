@@ -1,0 +1,13 @@
+int LoadPointFile( char *fname, CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_reg_sizes, int **p_reg_nums, char ***p_dbcors );
+int LoadThinFile( char *fname, CvPoint ***p_reg_pss, CvSize **p_reg_sizes, int **p_reg_nums, char ***p_dbcors );
+int LoadQueryPointFile( char *fname, CvPoint **ps0, double **areas0 );
+void LoadDisc( strDisc *disc );
+void LoadRmRedund( void );
+void LoadHashCompressForCombine( char *fname, strHash **hash, int doc_num );
+void LoadHashCompressToStorage( strHash ***p_hash );
+void LoadConfig( void );
+int LoadDocNum( char *fname );
+void LoadConfigForCombine( char *fname );
+int LoadPointFile2( char *fname, char ***p_dbcors );
+int LoadThinFile2( char *fname, char ***p_dbcors );
+void LoadHashCompress( strHash ***hash );

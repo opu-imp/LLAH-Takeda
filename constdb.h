@@ -1,0 +1,11 @@
+void CreatePointFile( CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_reg_sizes, int **p_reg_nums, char ***p_dbcors );
+void MakeDiscFile( int doc_num, CvPoint **pss, int *nums, strDisc *disc );
+void ConstructHash( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors );
+void CombineDB( void );
+void CombinePointFile( void );
+void CombineThinFile( void );
+void CombineHash( void );
+void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors );
+void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors );
+void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors );
+void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors );
