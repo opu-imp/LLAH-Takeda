@@ -1,66 +1,60 @@
 #include <stdio.h>
 #include "def_general.h"
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 #include "procimg.h"
 #include "outputimg.h"
 
 
-int OutPutImage(IplImage *img)
-// 画像をファイルに保存する．ファイル名は自動的に連番になる
+int OutPutImage(cv::Mat img)
 {
 	static int n = 0;
 	char filename[1024];
 
 	sprintf(filename, "output%03d.jpg", n++);
 
-	cvSaveImage( filename, img );
+	cv::imwrite( filename, img );
 	return 0;
 }
 
-int SetPixU( IplImage *img, int x, int y, unsigned char *val )
-// imgの(x,y)にvalをセットする(unsigned)
+int SetPixU( cv::Mat &img, int x, int y, unsigned char *val )
 {
-	int i, ws, bpp;
+	int i, bpp;
 
-	if ( x < 0 || x >= img->width || y < 0 || y >= img->height )	return 0;	// 画像の範囲を超える
-	ws = img->widthStep;
-	bpp = (int)((img->depth & 0x0ff) / 8) * img->nChannels;	// ピクセルあたりのバイト数
+	if ( x < 0 || x >= img.cols || y < 0 || y >= img.rows )	return 0;
+	bpp = img.elemSize();
 	for ( i = 0; i < bpp; i++ )
-		img->imageData[ws*y + x*bpp + i] = val[i];
+		img.data[img.step[0]*y + x*bpp + i] = val[i];
 	return 1;
 }
 
-int GetPixU( IplImage *img, int x, int y, unsigned char *val )
-// imgの(x,y)をvalにセットする(unsigned)
+int GetPixU( cv::Mat &img, int x, int y, unsigned char *val )
 {
-	int i, ws, bpp;
+	int i, bpp;
 
-	if ( x < 0 || x >= img->width || y < 0 || y >= img->height )	return 0;	// 画像の範囲を超える
-	ws = img->widthStep;
-	bpp = (int)((img->depth & 0x0ff) / 8) * img->nChannels;	// ピクセルあたりのバイト数
+	if ( x < 0 || x >= img.cols || y < 0 || y >= img.rows )	return 0;
+	bpp = img.elemSize();
 	for ( i = 0; i < bpp; i++ )
-		val[i] = img->imageData[ws*y + x*bpp + i];
+		val[i] = img.data[img.step[0]*y + x*bpp + i];
 	return 1;
 }
 
-IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *ps, int num )
-// 特徴点画像の作成（入力画像はグレイスケール）
+cv::Mat MakeFeaturePointImage( cv::Mat orig, cv::Mat connected, cv::Point *ps, int num )
 {
 	int i, j, p, con_flag = 0;
-	IplImage *fp_img, *fp;
+	cv::Mat fp_img, fp;
 	unsigned char val[4];
-	cvNot( connected, connected );
-	fp_img = cvCreateImage( cvGetSize( orig ), IPL_DEPTH_8U, 3 );
-	fp = cvCreateImage( cvGetSize( orig ), IPL_DEPTH_8U, 3 );
-	cvZero( fp_img );
-	cvNot( fp_img, fp_img );
-	if ( fp_img == NULL )	return NULL;
-	for ( j = 0; j < orig->height; j++ ) {
-		for ( i = 0; i < orig->width; i++ ) {
+	cv::bitwise_not( connected, connected );
+	fp_img = cv::Mat(orig.size(), CV_8UC3);
+	fp = cv::Mat(orig.size(), CV_8UC3);
+	fp_img.setTo(0);
+	cv::bitwise_not( fp_img, fp_img );
+	if ( fp_img.empty() )	return cv::Mat();
+	for ( j = 0; j < orig.rows; j++ ) {
+		for ( i = 0; i < orig.cols; i++ ) {
 			con_flag = 0;
 			GetPixU( connected, i, j, val );
 			if ( val[0] != 255 ) {
@@ -88,12 +82,9 @@ IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *p
 	}
 
 	for ( p = 0; p < num; p++ ) {
-		cvCircle( fp_img, ps[p], 4, cRed, CV_FILLED, CV_AA, 0 );
-//		cvCircle( fp_img, ps[p], 4, cWhite, CV_FILLED, CV_AA, 0 );
-		//cvCircle( fp, ps[p], 5, cWhite, CV_FILLED, CV_AA, 0 );
+		cv::circle( fp_img, ps[p], 4, cRed, cv::FILLED, cv::LINE_AA, 0 );
 	}
-	cvNot( fp, fp );
-	//OutPutImage(fp);
+	cv::bitwise_not( fp, fp );
 
 	return fp_img;
 }
@@ -106,10 +97,9 @@ IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *p
 #define	kDrawCorPtRad	(4)
 #define	kDrawCorLineThick	(4)
 
-void DrawCor( CvPoint *ps, int num, CvSize img_size, int res, CvPoint *corps, int cornum, CvSize corsize, int pcor[][2], int pcornum )
+void DrawCor( cv::Point *ps, int num, cv::Size img_size, int res, cv::Point *corps, int cornum, cv::Size corsize, int pcor[][2], int pcornum )
 {
 	int i, width_all, height_all;
-	IplImage *img;
 
 	img_size.height = 4368;
 	img_size.width = 2912;
@@ -118,34 +108,22 @@ void DrawCor( CvPoint *ps, int num, CvSize img_size, int res, CvPoint *corps, in
 	
 	width_all = kDrawCorHMargin * 2 + kDrawCorSpace + img_size.width + (int)(corsize.width * kDrawCorScale);
 	height_all = kDrawCorVMargin * 2 + std::max( img_size.height, (int)(corsize.height * kDrawCorScale) );
-//	printf( "%d,%d\n", width_all, height_all );
-	img = cvCreateImage( cvSize( width_all, height_all ), IPL_DEPTH_8U, 3 );
-	cvSet( img, cWhite, NULL );	// 白で塗りつぶす
+	cv::Mat img( cv::Size( width_all, height_all ), CV_8UC3 );
+	img.setTo( cWhite );
 
-	// 検索質問の枠を描画
-	cvRectangle( img, cvPoint( kDrawCorHMargin, kDrawCorVMargin ), \
-		cvPoint( kDrawCorHMargin + img_size.width, kDrawCorVMargin + img_size.height ), \
-		cBlack, kDrawCorRectThick, CV_AA, 0 );
+	cv::rectangle( img, cv::Point( kDrawCorHMargin, kDrawCorVMargin ), \
+		cv::Point( kDrawCorHMargin + img_size.width, kDrawCorVMargin + img_size.height ), \
+		cBlack, kDrawCorRectThick, cv::LINE_AA, 0 );
 	
-	// 検索質問の特徴点の描画
 	for ( i = 0; i < num; i++ ) {
-		cvCircle( img, cvPoint( kDrawCorHMargin + ps[i].x, kDrawCorVMargin + ps[i].y ), kDrawCorPtRad, cBlack, -1, CV_AA, 0 );
+		cv::circle( img, cv::Point( kDrawCorHMargin + ps[i].x, kDrawCorVMargin + ps[i].y ), kDrawCorPtRad, cBlack, -1, cv::LINE_AA, 0 );
 	}
-	// 登録画像の枠を描画
-	cvRectangle( img, cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace, kDrawCorVMargin), \
-		cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corsize.width * kDrawCorScale), kDrawCorVMargin + (int)(corsize.height * kDrawCorScale) ), \
-		cBlack, kDrawCorRectThick, CV_AA, 0 );
-	// 登録画像の特徴点の描画
+	cv::rectangle( img, cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace, kDrawCorVMargin), \
+		cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corsize.width * kDrawCorScale), kDrawCorVMargin + (int)(corsize.height * kDrawCorScale) ), \
+		cBlack, kDrawCorRectThick, cv::LINE_AA, 0 );
 	for ( i = 0; i < cornum; i++ ) {
-		cvCircle( img, cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[i].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[i].y * kDrawCorScale) ), \
-		kDrawCorPtRad, cBlack, -1, CV_AA, 0 );
+		cv::circle( img, cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[i].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[i].y * kDrawCorScale) ), \
+		kDrawCorPtRad, cBlack, -1, cv::LINE_AA, 0 );
 	}
-	// 対応関係の描画
-	//for ( i = 0; i < pcornum; i++ ) {
-	//	cvLine( img, cvPoint( kDrawCorHMargin + ps[pcor[i][0]].x, kDrawCorVMargin + ps[pcor[i][0]].y ), 
-	//	cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[pcor[i][1]].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[pcor[i][1]].y * kDrawCorScale) ), 
-	//	cRed, kDrawCorLineThick, CV_AA, 0 );
-	//}
 	OutPutImage( img );
-	cvReleaseImage( &img );
 }

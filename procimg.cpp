@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc_c.h>
-#include <opencv2/highgui/highgui_c.h>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
 
@@ -26,294 +26,156 @@
 
 using namespace std;
 
-IplImage *GetConnectedImage( char *fname )
-// 結合画像生成
+cv::Mat GetConnectedImage( char *fname )
 {
 	int i, chsize;
 	double d00, max_hist;
-	IplImage *src, *bin, *inv, *smt;
-	CvSize img_size;
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = 0, *con0;
-	CvMoments mom;
+	cv::Mat src, bin, inv, smt;
+	cv::Size img_size;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::Moments mom;
 	strHist hist;
 
-	// 文書画像読み込み
-	if ( (src = cvLoadImage(fname, 0)) == NULL ) {
+	src = cv::imread(fname, cv::IMREAD_GRAYSCALE);
+	if ( src.empty() ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
-		return NULL;
+		return cv::Mat();
 	}
-	// 画像サイズ取得
-	img_size = cvGetSize( src );
-	// 画像バッファ
-	bin = cvCreateImage( img_size, 8, 1 );
-	inv = cvCreateImage( img_size, 8, 1 );
-	smt = cvCreateImage( img_size, 8, 1 );
-	cvZero( bin );
-	cvZero( inv );
-	cvZero( smt );
+	img_size = src.size();
+	bin = cv::Mat::zeros( img_size, CV_8UC1 );
+	inv = cv::Mat::zeros( img_size, CV_8UC1 );
+	smt = cv::Mat::zeros( img_size, CV_8UC1 );
 
 	if ( eEntireMode == RETRIEVE_MODE || eEntireMode == MAKE_QUERY_DAT_MODE ) {
-		// 適応二値化（1回目）
-		cvAdaptiveThreshold( src, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, eBlockSize, eC );
-		cvNot( bin, inv );
+		cv::adaptiveThreshold( src, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
+		cv::bitwise_not( bin, inv );
 
-		//OutPutImage( inv );
+		cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-		// 輪郭抽出（ノイズ除去のため）
-		cvFindContours( inv, storage, &contours, sizeof(CvContour),
-			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
-	
-		// 輪郭描画（ノイズ除去のため）
-		for ( con0 = contours; con0 != 0; con0 = con0->h_next ) {
-			cvMoments( con0, &mom, 1 );
-			d00 = cvGetSpatialMoment( &mom, 0, 0 );
-			if ( d00 < 10 )	continue;	// ノイズ（小さい連結成分）の除去
-#ifdef	WIN32
-			cvDrawContours(smt, con0, cWhite, cWhite, -1, CV_FILLED, 8, cvPoint(0,0) );	// replace CV_FILLED with 1 to see the outlines 
-#else
-			cvDrawContours( smt, con0, cWhite, cWhite, -1, CV_FILLED, 8 );
-#endif
+		for ( size_t ci = 0; ci < contours.size(); ci++ ) {
+			mom = cv::moments( contours[ci] );
+			d00 = mom.m00;
+			if ( d00 < 10 )	continue;
+			cv::drawContours( smt, contours, (int)ci, cWhite, cv::FILLED, 8 );
 		}
-		if ( contours != NULL )	cvClearSeq( contours );
-		cvNot( smt, bin );
-		//cvNot( bin, inv );
+		cv::bitwise_not( smt, bin );
 
-//		// 文字の大きさを調べる
-//		cvFindContours( inv, storage, &contours, sizeof(CvContour),
-//			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );	// 連結成分を抽出する
-//	
-//		//std::vector<int> area;
-//		//CvBox2D  rect;
-//		for( i = 0, con0 = contours; con0 != 0 ; con0 = con0->h_next )
-//		{
-//			cvMoments(con0, &mom, 1);
-//			d00 = cvGetSpatialMoment( &mom, 0, 0 );
-//			if ( d00 <= 0.5 ) continue;	// 小さすぎる連結成分は除外
-//			//rect = cvMinAreaRect2(con0, NULL);
-//			//area.push_back(std::max(rect.size.height, rect.size.width));
-//			Add2Hist( &hist, sqrt(d00) );
-//		}
-//		//std::sort(area.begin(), area.end());
-//		//int med = 0;
-//		//if ( area.size() % 2 == 0 ) {
-//		//	med = area[(area.size()-1)/2];
-//		//}
-//		//else {
-//		//	med = area[(area.size()/2)-1] + area[(area.size()/2)] / 2.0;
-//		//}
-//		//int odd = med % 2;
-//		//med += odd;
-//		//med /= 2;
-//		//med += med % 2 + 1;
-//		//chsize += (chsize + 1) % 2;
-//		//chsize = (int)(max_hist * 1.5);	// 12/21変更　高解像度カメラを用いた拡大撮影での結果を精査して
-//		//chsize += (chsize + 1) % 2;	// 08/05/30変更　MIRU08再実験のため戻す．精度向上
-//		//printf( "med : %d\n", med );
-//		chsize += (chsize + 1) % 2;
-//		//chsize = (int)(max_hist * 1.5);	// 12/21変更　高解像度カメラを用いた拡大撮影での結果を精査して
-//		//chsize += (chsize + 1) % 2;	// 08/05/30変更　MIRU08再実験のため戻す．精度向上
+		cv::GaussianBlur( bin, smt, cv::Size(eMask, 1), 0 );
 
-		// 平滑化
-		cvSmooth( bin, smt, CV_GAUSSIAN, eMask, 0, 0, 0 );
-
-		// 適応二値化（2回目）
-		cvAdaptiveThreshold( smt, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, eBlockSize, eC );
-		cvNot( bin, inv );
-		cvClearSeq( contours );
-		cvReleaseMemStorage( &storage );
-	} else {	// ハッシュ構築モード（電子文書）：閾値固定モード
-//		cvThreshold( src, bin, 250, 255, CV_THRESH_BINARY );
-//		cvNot( bin, inv );
-//
-//		//OutPutImage( inv );
-//
-//		// 輪郭抽出（ノイズ除去のため）
-//		cvFindContours( inv, storage, &contours, sizeof(CvContour),
-//			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
-//	
-//		// 輪郭描画（ノイズ除去のため）
-//		int count=0;
-//		for ( con0 = contours; con0 != 0; con0 = con0->h_next ) {
-//			cvMoments( con0, &mom, 1 );
-//			d00 = cvGetSpatialMoment( &mom, 0, 0 );
-//			if ( d00 < 10 )	continue;	// ノイズ（小さい連結成分）の除去
-//#ifdef	WIN32
-//			cvDrawContours(smt, con0, cWhite, cWhite, -1, CV_FILLED, 8, cvPoint(0,0) );	// replace CV_FILLED with 1 to see the outlines 
-//#else
-//			cvDrawContours( smt, con0, cWhite, cWhite, -1, CV_FILLED, 8 );
-//#endif
-//			count++;
-//		}
-//		cout << count << endl;
-//		if ( contours != NULL )	cvClearSeq( contours );
-//		cvNot( smt, bin );
-
-
-		cvSmooth( src, smt, CV_GAUSSIAN, 15, 0, 0, 0 );	// OpenCV 1.0
-		//OutPutImage( smt );
-		//cvThreshold( smt, bin, 250, 255, CV_THRESH_BINARY );
-		cvAdaptiveThreshold( smt, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, eBlockSize, eC );
-		//OutPutImage( bin );
-		cvNot( bin, inv );
+		cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
+		cv::bitwise_not( bin, inv );
+	} else {
+		cv::GaussianBlur( src, smt, cv::Size(15, 1), 0 );
+		cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
+		cv::bitwise_not( bin, inv );
 	}
-	// あとしまつ
-	cvReleaseImage( &src );
-	cvReleaseImage( &bin );
-	cvReleaseImage( &smt );
 
-	//OutPutImage( inv );
 	return inv;
 }
 
-IplImage *GetConnectedImageForSmartphone( IplImage *img )
-// 結合画像生成
+cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
 {
-//	int i;//, chsize;
-	double d00;//, max_hist;
-	IplImage *bin, *inv, *smt;
-	CvSize img_size;
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = 0, *con0;
-	CvMoments mom;
+	double d00;
+	cv::Mat bin, inv, smt;
+	cv::Size img_size;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::Moments mom;
 	strHist hist;
 	int i=0, chsize=0;
 
-	// 画像サイズ取得
-	img_size = cvGetSize( img );
-	// 画像バッファ
-	bin = cvCreateImage( img_size, 8, 1 );
-	inv = cvCreateImage( img_size, 8, 1 );
-	smt = cvCreateImage( img_size, 8, 1 );
-	cvZero( bin );
-	cvZero( inv );
-	cvZero( smt );
+	img_size = img.size();
+	bin = cv::Mat::zeros( img_size, CV_8UC1 );
+	inv = cv::Mat::zeros( img_size, CV_8UC1 );
+	smt = cv::Mat::zeros( img_size, CV_8UC1 );
 
-	// 適応二値化（1回目）
-	cvAdaptiveThreshold( img, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 101, 10 );
-	cvNot( bin, inv );
+	cv::adaptiveThreshold( img, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 101, 10 );
+	cv::bitwise_not( bin, inv );
 
-	// 輪郭抽出（ノイズ除去のため）
-	cvFindContours( inv, storage, &contours, sizeof(CvContour),
-		CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
+	cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// 輪郭描画（ノイズ除去のため）
-	for ( con0 = contours; con0 != 0; con0 = con0->h_next ) {
-		cvMoments( con0, &mom, 1 );
-		d00 = cvGetSpatialMoment( &mom, 0, 0 );
-		if ( d00 < 10 )	continue;	// ノイズ（小さい連結成分）の除去
-#ifdef	WIN32
-		cvDrawContours(smt, con0, cWhite, cWhite, -1, CV_FILLED, 8, cvPoint(0,0) );	// replace CV_FILLED with 1 to see the outlines 
-#else
-		cvDrawContours( smt, con0, cWhite, cWhite, -1, CV_FILLED, 8 );
-#endif
+	for ( size_t ci = 0; ci < contours.size(); ci++ ) {
+		mom = cv::moments( contours[ci] );
+		d00 = mom.m00;
+		if ( d00 < 10 )	continue;
+		cv::drawContours( smt, contours, (int)ci, cWhite, cv::FILLED, 8 );
 	}
-	if ( contours != NULL )	cvClearSeq( contours );
-	cvNot( smt, bin );
-	cvNot( bin, inv );
+	cv::bitwise_not( smt, bin );
+	cv::bitwise_not( bin, inv );
 
-	// 文字の大きさを調べる
-	cvFindContours( inv, storage, &contours, sizeof(CvContour),
-		CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );	// 連結成分を抽出する
+	// Find contours again for histogram
+	contours.clear();
+	hierarchy.clear();
+	cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// 連結成分を描画・重心を計算
 	InitHist( &hist, 1000, 0, 1000 );
-	for( i = 0, con0 = contours; con0 != 0 ; con0 = con0->h_next )
+	for( size_t ci = 0; ci < contours.size(); ci++ )
 	{
-		cvMoments(con0, &mom, 1);
-		d00 = cvGetSpatialMoment( &mom, 0, 0 );
-		if ( d00 <= 0.5 ) continue;	// 小さすぎる連結成分は除外
+		mom = cv::moments( contours[ci] );
+		d00 = mom.m00;
+		if ( d00 <= 0.5 ) continue;
 		Add2Hist( &hist, sqrt(d00) );
 	}
 
 	chsize = (int)GetMaxBin(&hist);
-	//printf( "chsize : %d\n", chsize );
 	ReleaseHist( &hist );
 	chsize = chsize * 2 + 1;
-	//chsize += (chsize + 1) % 2;
-	//chsize = (int)(max_hist * 1.5);	// 12/21変更　高解像度カメラを用いた拡大撮影での結果を精査して
-	//chsize += (chsize + 1) % 2;	// 08/05/30変更　MIRU08再実験のため戻す．精度向上
 
-	// 平滑化
-	cvSmooth( bin, smt, CV_GAUSSIAN, 1, 0, 0, 0 );
-	//cvSmooth( bin, smt, CV_GAUSSIAN, chsize, 0, 0, 0 );
+	cv::GaussianBlur( bin, smt, cv::Size(1, 1), 0 );
 
-	// 適応二値化（2回目）
-	cvAdaptiveThreshold( smt, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 101, 10 );
-	cvNot( bin, inv );
-	cvClearSeq( contours );
-	cvReleaseMemStorage( &storage );
+	cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 101, 10 );
+	cv::bitwise_not( bin, inv );
 
-	// あとしまつ
-	cvReleaseImage( &img );
-	cvReleaseImage( &bin );
-	cvReleaseImage( &smt );
-
-	//OutPutImage( inv );
 	return inv;
 }
 
-int MakeFeaturePoint( IplImage *img, CvPoint **ps0, double **areas0, CvSize *size0 )
-	// 特徴点抽出・連結成分の面積計算
+int MakeFeaturePoint( cv::Mat img, cv::Point **ps0, double **areas0, cv::Size *size0 )
 {
 	int i, num;
 	double d00;
 	double *areas = NULL;
-	CvPoint *ps;
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = 0, *con0;
-	CvMoments mom;
+	cv::Point *ps;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::Moments mom;
 #ifdef DRAW_FP
-	IplImage *fp;
+	cv::Mat fp;
 #endif
 
-	// 画像サイズの取得
-	*size0 = cvGetSize( img );
+	*size0 = img.size();
 #ifdef DRAW_FP
-	fp = cvCreateImage( *size0, 8, 3 );
+	fp = cv::Mat::zeros( *size0, CV_8UC3 );
 #endif
 
-	// 輪郭抽出
-	cvFindContours( img, storage, &contours, sizeof(CvContour), 
-		CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0) );
+	cv::findContours( img, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// 特徴点候補数のカウント
-	for ( i = 0, con0 = contours; con0 != 0; con0 = con0->h_next, i++ );
-	//printf("%d\n", i);
-	num = ( i >= kMaxPointNum ) ? kMaxPointNum - 1 : i;	// ゴミ等で連結成分が多すぎるとき（本来は大きさを調べたりすべき）
+	num = ( (int)contours.size() >= kMaxPointNum ) ? kMaxPointNum - 1 : (int)contours.size();
 	if ( num <= 0 )	return 0;
 
-	// 配列の確保
-	ps = (CvPoint *)calloc( num, sizeof(CvPoint) );
+	ps = (cv::Point *)calloc( num, sizeof(cv::Point) );
 	areas = (double *)calloc( num, sizeof(double) );
 
-	// 特徴点抽出・面積計算
-	for ( i = 0, con0 = contours; con0 != 0 && i < num ; con0 = con0->h_next ) {
-		cvMoments( con0, &mom, 1 );
-		d00 = cvGetSpatialMoment( &mom, 0, 0 );
-		if ( d00 < 5 )	continue;	// 小さい連結成分の除去
-		ps[i].x = (int)(cvGetSpatialMoment( &mom, 1, 0 ) / d00 );
-		ps[i].y = (int)(cvGetSpatialMoment( &mom, 0, 1 ) / d00 );
+	i = 0;
+	for ( size_t ci = 0; ci < contours.size() && i < num ; ci++ ) {
+		mom = cv::moments( contours[ci] );
+		d00 = mom.m00;
+		if ( d00 < 5 )	continue;
+		ps[i].x = (int)(mom.m10 / d00 );
+		ps[i].y = (int)(mom.m01 / d00 );
 		areas[i] = d00;
 #ifdef DRAW_FP
-		cvCircle( fp, ps[i], 4, cWhite, -1, 1, 0 );
+		cv::circle( fp, ps[i], 4, cWhite, -1, 1, 0 );
 #endif
 		i++;
 	}
 
 #ifdef DRAW_FP
-	cvNot( fp, fp );
+	cv::bitwise_not( fp, fp );
 	OutPutImage( fp );
-	cvReleaseImage( &fp );
 #endif
-	// 正確な特徴点数に更新
 	num = i;
 
-	// あとしまつ
-	cvClearSeq( contours );
-	cvReleaseMemStorage( &storage );
-
-	// ポインタ渡し
 	*ps0 = ps;
 	*areas0 = areas;
 
