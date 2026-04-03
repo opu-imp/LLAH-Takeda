@@ -151,13 +151,6 @@ int main( int argc, char **argv )
 		//for ( i = 0; i < 1; i++ ) {
 		for ( eMultiNum = 1; eMultiNum < 17; eMultiNum+=2 ) {
 			argi = args;
-			//printf("collision : %d\n", eMaxHashCollision);
-			//total_time = 0;
-			//total_diff = 0;
-			//total_top = 0;
-			//suc_que = 0;
-			//total_que = 0;
-			//sum = 0;
 			fnum = 0;
 			mnum = 0;
 			dnum = 0;
