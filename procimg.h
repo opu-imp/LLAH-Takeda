@@ -1,3 +1,3 @@
-IplImage *GetConnectedImage( char *fname );
-int MakeFeaturePoint( IplImage *img, CvPoint **ps0, double **areas0, CvSize *size0 );
-IplImage *GetConnectedImageForSmartphone( IplImage *img );
+cv::Mat GetConnectedImage( char *fname );
+int MakeFeaturePoint( cv::Mat img, cv::Point **ps0, double **areas0, cv::Size *size0 );
+cv::Mat GetConnectedImageForSmartphone( cv::Mat img );

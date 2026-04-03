@@ -13,11 +13,11 @@
 #define	SOCKET	int
 #endif
 
-#define	kFileNameLen	(64)	/* ƒtƒ@ƒCƒ‹–¼‚ÌÅ‘å’· */
-#define	kMaxPathLen		(128)	/* ƒpƒX‚Ì•¶š—ñ‚ÌÅ‘å’· */
-#define	kMaxLineLen		(1024)	/* fgets‚Å“Ç‚İ‚Şê‡‚Ìƒoƒbƒtƒ@ƒTƒCƒY */
-#define	kDiscLineLen	(1024)	/* fgets‚Å“Ç‚İ‚Şê‡‚Ìƒoƒbƒtƒ@ƒTƒCƒY */
-#define kBuffSize		(1024)	/* TCP/IP’ÊM‚Å‚Ìƒoƒbƒtƒ@ƒTƒCƒY */
+#define	kFileNameLen	(64)	/* ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ÌÅ‘å’· */
+#define	kMaxPathLen		(128)	/* ï¿½pï¿½Xï¿½Ì•ï¿½ï¿½ï¿½ï¿½ï¿½ÌÅ‘å’· */
+#define	kMaxLineLen		(1024)	/* fgetsï¿½Å“Ç‚İï¿½ï¿½Şê‡ï¿½Ìƒoï¿½bï¿½tï¿½@ï¿½Tï¿½Cï¿½Y */
+#define	kDiscLineLen	(1024)	/* fgetsï¿½Å“Ç‚İï¿½ï¿½Şê‡ï¿½Ìƒoï¿½bï¿½tï¿½@ï¿½Tï¿½Cï¿½Y */
+#define kBuffSize		(1024)	/* TCP/IPï¿½ÊMï¿½Å‚Ìƒoï¿½bï¿½tï¿½@ï¿½Tï¿½Cï¿½Y */
 
 #define PI (3.14159265358979323846L)
 
@@ -30,16 +30,16 @@
 #endif
 #endif
 
-// ƒlƒbƒgƒ[ƒNŠÖ˜A
+// ï¿½lï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½Nï¿½Ö˜A
 #define	kIniFileName	"server.ini"
 #define	kDefaultTCPPort		(12345)
-#define	kDefaultProtocol	(2)	/* 1‚ÍTCPC2‚ÍUDP */
+#define	kDefaultProtocol	(2)	/* 1ï¿½ï¿½TCPï¿½C2ï¿½ï¿½UDP */
 #define	kDefaultPointPort	(65431)
 #define	kDefaultResultPort	(65432)
 #define	kDefaultClientName	"localhost"
 #define	kDefaultServerName	"localhost"
 
-// ƒtƒ@ƒCƒ‹ƒI[ƒvƒ“ŠÖ˜A
+// ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Iï¿½[ï¿½vï¿½ï¿½ï¿½Ö˜A
 #define	kDfltDataDir	"./"
 #define	kDfltSrcDir	"./"
 #define	kDfltSrcSuffix	"jpg"
@@ -55,31 +55,31 @@
 #define	kDfltGroup3Num	(4)
 #define	kDfltDiscNum	(15)
 
-// —£U‰»
+// ï¿½ï¿½ï¿½Uï¿½ï¿½
 #define	kDfltDocNumForMakeDisc	(10)
 
-// ”ä—á’è”
+// ï¿½ï¿½ï¿½è”
 #define	kDfltPropMakeNum	(10)
 
-// ˆê”Ê
+// ï¿½ï¿½ï¿½
 #define	kConfigVerStr	"<config.dat 2.0>"
 
-// ƒnƒbƒVƒ…‚Ì\’z
-#define	kMaxHashCollision	(10)	// Å‘åÕ“Ë”
-#define	kMaxDocNum	(1024*1024*128)	/* “o˜^‚Å‚«‚éÅ‘åƒhƒLƒ…ƒƒ“ƒg” */
-#define	kMaxPointNum	(2500)	/* “_‚ÌÅ‘å” */
-//#define	kHashSize	(1024*1024*1024*2-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
-//#define	kHashSize	(1024*1024*1024-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
-//#define	kHashSize	(1024*1024*8-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
-#define	kHashSize	(1024*1024*128-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½Ì\ï¿½z
+#define	kMaxHashCollision	(10)	// ï¿½Å‘ï¿½Õ“Ëï¿½
+#define	kMaxDocNum	(1024*1024*128)	/* ï¿½oï¿½^ï¿½Å‚ï¿½ï¿½ï¿½Å‘ï¿½hï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½ */
+#define	kMaxPointNum	(2500)	/* ï¿½_ï¿½ÌÅ‘å” */
+//#define	kHashSize	(1024*1024*1024*2-1)	/* ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½Ì‘å‚«ï¿½ï¿½ */
+//#define	kHashSize	(1024*1024*1024-1)	/* ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½Ì‘å‚«ï¿½ï¿½ */
+//#define	kHashSize	(1024*1024*8-1)	/* ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½Ì‘å‚«ï¿½ï¿½ */
+#define	kHashSize	(1024*1024*128-1)	/* ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½Ì‘å‚«ï¿½ï¿½ */
 #define	kBlockSize	(1000000)
 //#define	kBlockSize	(1024)
 
-// ‘S‘Ì‚Ìƒ‚[ƒh
-#define	RETRIEVE_MODE		(0)		// ’ÊíŒŸõƒ‚[ƒh
-#define	CONST_HASH_MODE		(1)		// ƒnƒbƒVƒ…\’zƒ‚[ƒh
-#define CONST_HASH_PF_MODE	(2)		// “_ƒtƒ@ƒCƒ‹‚©‚ç‚ÌƒnƒbƒVƒ…\’zƒ‚[ƒh
-#define	USBCAM_SERVER_MODE	(3)		// ƒŠƒAƒ‹ƒ^ƒCƒ€ŒŸõƒ‚[ƒh
+// ï¿½Sï¿½Ì‚Ìƒï¿½ï¿½[ï¿½h
+#define	RETRIEVE_MODE		(0)		// ï¿½ÊíŒŸï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h
+#define	CONST_HASH_MODE		(1)		// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½\ï¿½zï¿½ï¿½ï¿½[ï¿½h
+#define CONST_HASH_PF_MODE	(2)		// ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒnï¿½bï¿½Vï¿½ï¿½ï¿½\ï¿½zï¿½ï¿½ï¿½[ï¿½h
+#define	USBCAM_SERVER_MODE	(3)		// ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½^ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h
 #define COMBINE_PF_MODE		(4)		// 
 #define COMBINE_DB_MODE		(5)
 #define COMBINE_HASH_MODE	(6)
@@ -88,35 +88,38 @@
 #define CONST_POINT_MODE	(9)
 #define COMPRESS_PF_MODE	(10)
 
-// ƒpƒX‘€ì
+// ãƒ‘ã‚¹åŒºåˆ‡ã‚Š
 #define kDelimiterChar '/'
 
-// ƒJƒ‰[
-#define	cWhite	CV_RGB( 255,255,255 )
-#define	cBlack	CV_RGB( 0,0,0 )
-#define	cRed	CV_RGB( 255,0,0 )
-#define	cGreen	CV_RGB( 0,255,0 )
-#define	cBlue	CV_RGB( 0,0,255 )
-#define	cRandom	CV_RGB( rand()%256, rand()%256, rand()%256 )
+// OpenCV (for types used in headers)
+#include <opencv2/core.hpp>
 
-// ˜A‘±’l‚ÌƒAƒtƒBƒ“•s•Ï—Ê‚ğ—£U’l‚É•ÏŠ·‚·‚é‚½‚ß‚Ì\‘¢‘Ì
+// ã‚«ãƒ©ãƒ¼
+#define	cWhite	cv::Scalar( 255,255,255 )
+#define	cBlack	cv::Scalar( 0,0,0 )
+#define	cRed	cv::Scalar( 0,0,255 )
+#define	cGreen	cv::Scalar( 0,255,0 )
+#define	cBlue	cv::Scalar( 255,0,0 )
+#define	cRandom	cv::Scalar( rand()%256, rand()%256, rand()%256 )
+
+// ï¿½Aï¿½ï¿½ï¿½lï¿½ÌƒAï¿½tï¿½Bï¿½ï¿½ï¿½sï¿½Ï—Ê‚ğ—£Uï¿½lï¿½É•ÏŠï¿½ï¿½ï¿½ï¿½é‚½ï¿½ß‚Ì\ï¿½ï¿½ï¿½ï¿½
 typedef struct _strDisc {
-	double min;	// Å¬’l
-	double max;	// Å‘å’l
-	int num;	// —£U‰»ƒŒƒxƒ‹
-	int res;	// dat‚ÌŒÂ”
-	int *dat;	// —£U’l‚ğ“ü‚ê‚é”z—ñ
+	double min;	// ï¿½Åï¿½ï¿½l
+	double max;	// ï¿½Å‘ï¿½l
+	int num;	// ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½
+	int res;	// datï¿½ÌŒÂï¿½
+	int *dat;	// ï¿½ï¿½ï¿½Uï¿½lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½zï¿½ï¿½
 } strDisc;
 
-//ƒAƒtƒBƒ“•s•Ï—Ê‚ÌƒqƒXƒgƒOƒ‰ƒ€\’z—p‚Ì\‘¢‘Ì
+//ï¿½Aï¿½tï¿½Bï¿½ï¿½ï¿½sï¿½Ï—Ê‚Ìƒqï¿½Xï¿½gï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½\ï¿½zï¿½pï¿½Ì\ï¿½ï¿½ï¿½ï¿½
 typedef struct _strHist {
-	int size;	// bin‚Ì”
-	int *bin;	// ƒf[ƒ^
-	double min;	// ƒf[ƒ^‚ÌÅ¬’l
-	double max;	// ƒf[ƒ^‚ÌÅ‘å’lDmin‚Æmax‚Å“ü‚ébin‚ğŒˆ‚ß‚é
+	int size;	// binï¿½Ìï¿½
+	int *bin;	// ï¿½fï¿½[ï¿½^
+	double min;	// ï¿½fï¿½[ï¿½^ï¿½ÌÅï¿½ï¿½l
+	double max;	// ï¿½fï¿½[ï¿½^ï¿½ÌÅ‘ï¿½lï¿½Dminï¿½ï¿½maxï¿½Å“ï¿½ï¿½ï¿½binï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½
 } strHist;
 
-typedef unsigned char strHash; // ”z—ñ‚ÅƒnƒbƒVƒ…\¬
+typedef unsigned char strHash; // ï¿½zï¿½ï¿½Åƒnï¿½bï¿½Vï¿½ï¿½ï¿½\ï¿½ï¿½
 
 typedef struct _strProjParam {
 	double a1;

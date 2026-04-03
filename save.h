@@ -1,12 +1,12 @@
-void SavePointFile( int doc_num, char **dbcors, int *nums, CvPoint **pss, double **areass, CvSize *sizes );
-void SaveThinFile( int doc_num, int **thinids, CvPoint **pss, int *thin_nums, CvSize *sizes, char **dbcors );
-void SaveThinFileForCombine( int doc_num, CvPoint **pss, CvSize *sizes, int *thin_nums, char **dbcors );
+void SavePointFile( int doc_num, char **dbcors, int *nums, cv::Point **pss, double **areass, cv::Size *sizes );
+void SaveThinFile( int doc_num, int **thinids, cv::Point **pss, int *thin_nums, cv::Size *sizes, char **dbcors );
+void SaveThinFileForCombine( int doc_num, cv::Point **pss, cv::Size *sizes, int *thin_nums, char **dbcors );
 void SaveDisc( strDisc *disc );
 void SaveHash( strHash **hash );
 void SaveHashCompress( strHash **hash );
 void SaveConfig( void );
-void SavePointFileText( int doc_num, char **dbcors, int *nums, CvPoint **pss, double **areass, CvSize *sizes );
+void SavePointFileText( int doc_num, char **dbcors, int *nums, cv::Point **pss, double **areass, cv::Size *sizes );
 void SaveHashText( strHash **hash );
 void SavePointFile2( int doc_num, char **dbcors );
 void SaveThinFile2( int doc_num, char **dbcors );
-int SaveQueryPointFile( char *fname, int num, CvPoint *ps, double *areas );
+int SaveQueryPointFile( char *fname, int num, cv::Point *ps, double *areas );
