@@ -6,13 +6,13 @@
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
 
@@ -22,14 +22,14 @@
 
 extern strHash cut;
 
-void SavePointFile( int doc_num, char **dbcors, int *nums, CvPoint **pss, double **areass, CvSize *sizes )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğ•Û‘¶
+void SavePointFile( int doc_num, char **dbcors, int *nums, cv::Point **pss, double **areass, cv::Size *sizes )
+// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, ePointFileName );
-	StartWriteBlock( fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -47,13 +47,13 @@ void SavePointFile( int doc_num, char **dbcors, int *nums, CvPoint **pss, double
 }
 
 void SavePointFile2( int doc_num, char **dbcors )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğ•Û‘¶
+// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, "point_comp.dat" );
-	StartWriteBlock( fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -62,8 +62,8 @@ void SavePointFile2( int doc_num, char **dbcors )
 	FinishWriteBlock();
 }
 
-void SavePointFileText( int doc_num, char **dbcors, int *nums, CvPoint **pss, double **areass, CvSize *sizes )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğ•Û‘¶
+void SavePointFileText( int doc_num, char **dbcors, int *nums, cv::Point **pss, double **areass, cv::Size *sizes )
+// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, j;
 	char fname[kMaxPathLen];
@@ -73,28 +73,28 @@ void SavePointFileText( int doc_num, char **dbcors, int *nums, CvPoint **pss, do
 	if ( (fp = fopen( fname, "w" )) == NULL ) {
 		fprintf( stderr, "error : %s cannot be opened\n", fname );
 	}
-	// ƒtƒ@ƒCƒ‹”‚Ìo—Í
+	// ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ìoï¿½ï¿½
 	fprintf( fp, "%d\n", eDbDocs );
 
 	for ( i = 0; i < doc_num; i++ ) {
-		fprintf( fp, "%s\n", dbcors[i] );	// Œ³‰æ‘œƒtƒ@ƒCƒ‹–¼‚Ìo—Í
+		fprintf( fp, "%s\n", dbcors[i] );	// ï¿½ï¿½ï¿½æ‘œï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½Ìoï¿½ï¿½
 		fprintf( fp, "%d,%d\n", sizes[i].width, sizes[i].height );
-		fprintf( fp, "%d\n", nums[i] );	// “Á’¥“_”‚ğo—Í
+		fprintf( fp, "%d\n", nums[i] );	// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½ï¿½
 		for ( j = 0; j < nums[i]; j++ ) {
-			fprintf( fp, "%d,%d,%lf\n", pss[i][j].x, pss[i][j].y, areass[i][j] );	// “Á’¥“_‚ÌÀ•WE˜AŒ‹¬•ª‚Ì–ÊÏ‚ğo—Í
+			fprintf( fp, "%d,%d,%lf\n", pss[i][j].x, pss[i][j].y, areass[i][j] );	// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½Ìï¿½ï¿½Wï¿½Eï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì–ÊÏ‚ï¿½ï¿½oï¿½ï¿½
 		}
 	}
 	fclose( fp );
 }
 
-void SaveThinFile( int doc_num, int **thinids, CvPoint **pss, int *thin_nums, CvSize *sizes, char **dbcors )
-// ƒTƒ“ƒvƒŠƒ“ƒOŒã‚Ì“Á’¥“_”‚ğ•Û‘¶
+void SaveThinFile( int doc_num, int **thinids, cv::Point **pss, int *thin_nums, cv::Size *sizes, char **dbcors )
+// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, eThinFileName );
-	StartWriteBlock( fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -112,13 +112,13 @@ void SaveThinFile( int doc_num, int **thinids, CvPoint **pss, int *thin_nums, Cv
 
 
 void SaveThinFile2( int doc_num, char **dbcors )
-// ƒTƒ“ƒvƒŠƒ“ƒOŒã‚Ì“Á’¥“_”‚ğ•Û‘¶
+// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, "thin_comp.dat" );
-	StartWriteBlock( fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -127,14 +127,14 @@ void SaveThinFile2( int doc_num, char **dbcors )
 	FinishWriteBlock();
 }
 
-void SaveThinFileForCombine( int doc_num, CvPoint **pss, CvSize *sizes, int *thin_nums, char **dbcors )
-// ƒTƒ“ƒvƒŠƒ“ƒOŒã‚Ì“Á’¥“_”‚ğ•Û‘¶
+void SaveThinFileForCombine( int doc_num, cv::Point **pss, cv::Size *sizes, int *thin_nums, char **dbcors )
+// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, j;
 	char pthin_fname[kMaxPathLen];
 
 	sprintf( pthin_fname, "%s%s", eDataDir, eThinFileName );
-	StartWriteBlock( pthin_fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( pthin_fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -151,7 +151,7 @@ void SaveThinFileForCombine( int doc_num, CvPoint **pss, CvSize *sizes, int *thi
 }
 
 void SaveDisc( strDisc *disc )
-// —£U‰»ƒtƒ@ƒCƒ‹‚ğ•Û‘¶
+// ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	char fname[kMaxPathLen];
 	int i;
@@ -170,7 +170,7 @@ void SaveDisc( strDisc *disc )
 
 	fclose(fp);
 
-	// ƒoƒCƒiƒŠ”Å
+	// ï¿½oï¿½Cï¿½iï¿½ï¿½ï¿½ï¿½
 	//sprintf( fname, "%s%s", eDataDir, eDiscFileName );
 	//StartWriteBlock( fname, kBlockSize );
 	//WriteBlock( (unsigned char *)&disc->min, sizeof(double) );
@@ -182,19 +182,19 @@ void SaveDisc( strDisc *disc )
 }
 
 void SaveHash( strHash **hash )
-// ƒnƒbƒVƒ…‚ğƒZ[ƒu‚·‚é
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½
 {
 	unsigned int i;
 	char fname[kMaxPathLen];
 	int len_list=0;
 	eHashStorageNum = 0;
 
-	// ƒŠƒXƒg1‚Â•ª‚Ì’·‚³
+	// ï¿½ï¿½ï¿½Xï¿½g1ï¿½Â•ï¿½ï¿½Ì’ï¿½ï¿½ï¿½
 	if ( eCompressHash )	len_list = eHComp2DatByte;
 	else					len_list = eFByte;
 
 	sprintf( fname, "%s%s", eDataDir, eHashFileName );
-	StartWriteBlock( fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 	for ( i = 0; i < eHashSize; i++ ) {
 		if( hash[i] != NULL && hash[i] != &cut ) {
 			printf("%d\n", i);
@@ -207,7 +207,7 @@ void SaveHash( strHash **hash )
 }
 
 void SaveHashText( strHash **hash )
-// ƒnƒbƒVƒ…‚ğƒZ[ƒu‚·‚é
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½
 {
 	unsigned int i;
 	char fname[kMaxPathLen];
@@ -219,7 +219,7 @@ void SaveHashText( strHash **hash )
 	short point;
 	unsigned char quotient;
 
-	// ƒŠƒXƒg1‚Â•ª‚Ì’·‚³
+	// ï¿½ï¿½ï¿½Xï¿½g1ï¿½Â•ï¿½ï¿½Ì’ï¿½ï¿½ï¿½
 	if ( eCompressHash )	len_list = eHComp2DatByte;
 	else					len_list = eFByte;
 
@@ -245,7 +245,7 @@ void SaveHashText( strHash **hash )
 }
 
 void SaveHashCompress( strHash **hash )
-// ƒnƒbƒVƒ…‚ğƒZ[ƒu‚·‚é
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½[ï¿½uï¿½ï¿½ï¿½ï¿½
 {
 	unsigned int i;
 	char fname[kMaxPathLen];
@@ -253,7 +253,7 @@ void SaveHashCompress( strHash **hash )
 	eHashStorageNum = 0;
 
 	sprintf( fname, "%s%s", eDataDir, eHashFileName );
-	StartWriteBlock( fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 	for ( i = 0; i < eHashSize; i++ ) {
 		if( hash[i] == NULL ) {
 
@@ -267,19 +267,19 @@ void SaveHashCompress( strHash **hash )
 }
 
 void SaveConfig( void )
-// İ’èƒtƒ@ƒCƒ‹‚ğ•Û‘¶
+// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	char fname[kMaxPathLen];
 	FILE *fp;
 
-	// config.dat‚ÌƒpƒX‚ğì¬
+	// config.datï¿½Ìƒpï¿½Xï¿½ï¿½ï¿½ì¬
 	sprintf( fname, "%s%s", eDataDir, eConfigFileName );
 	if ( ( fp = fopen( fname, "w" ) ) == NULL ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
 	}
 	
-	// config.dat‚Ìƒo[ƒWƒ‡ƒ“
+	// config.datï¿½Ìƒoï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½
 	fprintf( fp, "%s\n", kConfigVerStr );
 	// n
 	fprintf( fp, "%c %d\n", 'n', eGroup1Num );
@@ -289,22 +289,22 @@ void SaveConfig( void )
 	fprintf( fp, "%c %d\n", 'd', eDiscNum );
 	// prop
 	fprintf( fp, "%c %lf\n", 'p', eProp );
-	// ƒnƒbƒVƒ…ƒTƒCƒY
+	// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½Tï¿½Cï¿½Y
 	fprintf( fp, "%c %llu %lld\n", 'H', eHashSize, eHashStorageNum );
-	// ƒnƒbƒVƒ…ˆ³kƒ‚[ƒh‚È‚çƒrƒbƒg”‚È‚Ç
+	// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½kï¿½ï¿½ï¿½[ï¿½hï¿½È‚ï¿½rï¿½bï¿½gï¿½ï¿½ï¿½È‚ï¿½
 	if ( eCompressHash )	fprintf( fp, "%c %d %d %d %d\n", 'z', eDocBit, ePointBit, eQuotBit, eHComp2DatByte );
-	// “Á’¥“_ŠÔˆø‚«
+	// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½Ôˆï¿½ï¿½ï¿½
 	if ( eThinPs )	fprintf( fp, "%c\n", 't' );
-	// ’†S“_—˜—p
+	// ï¿½ï¿½ï¿½Sï¿½_ï¿½ï¿½ï¿½p
 	if ( eRmRedund )	fprintf( fp, "%c\n", 'r' );
-	// –ÊÏ”ä“Á’¥—Ê
+	// ï¿½ÊÏ”ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if ( eUseArea )	fprintf( fp, "%c\n", 'a' );
 
 	fclose( fp );
 }
 
-int SaveQueryPointFile( char *fname, int num, CvPoint *ps, double *areas )
-// ƒTƒ“ƒvƒŠƒ“ƒOŒã‚Ì“Á’¥“_”‚ğ•Û‘¶
+int SaveQueryPointFile( char *fname, int num, cv::Point *ps, double *areas )
+// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½Ì“ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Û‘ï¿½
 {
 	int i, ret;
 	char base[kMaxPathLen];
@@ -316,7 +316,7 @@ int SaveQueryPointFile( char *fname, int num, CvPoint *ps, double *areas )
 	sprintf( dat_fname, "%s%s.%s", eDataDir, base, "dat" );
 	//puts(dat_fname);
 
-	StartWriteBlock( dat_fname, kBlockSize );	// ŒöŠJ‚ÉŒü‚¯‚Ä‰ü•Ï
+	StartWriteBlock( dat_fname, kBlockSize );	// ï¿½ï¿½ï¿½Jï¿½ÉŒï¿½ï¿½ï¿½ï¿½Ä‰ï¿½ï¿½ï¿½
 
 	WriteBlock( (unsigned char *)&num, sizeof(int) );
 	for ( i = 0; i < num; i++ ) {

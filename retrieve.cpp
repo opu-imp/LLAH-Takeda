@@ -5,13 +5,13 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_core231d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
 #else
-#pragma comment( lib, "opencv_core231.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
 #endif
 #endif
 
@@ -34,9 +34,9 @@ int dnum=0;
 using namespace std;
 
 int VoteDirectlyByHL( strHash *hl, int *score, int p, unsigned char quotient )
-// ƒnƒbƒVƒ…ƒŠƒXƒg‚©‚ç’¼‚Évote‚·‚é
-// ¡‰ñvote‚µ‚½’†‚ÅÅ‘å‚Ì‚à‚Ì‚ğ•Ô‚·
-// “Á’¥—Ê‚Ì”äŠr‚ğC¤‚Ì”äŠr‚É•ÏX
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½ç’¼ï¿½ï¿½voteï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½voteï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅÅ‘ï¿½Ì‚ï¿½ï¿½Ì‚ï¿½Ô‚ï¿½
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ê‚Ì”ï¿½rï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Ì”ï¿½rï¿½É•ÏX
 {
 	int i;
 	static int max_vote = -1;
@@ -50,17 +50,17 @@ int VoteDirectlyByHL( strHash *hl, int *score, int p, unsigned char quotient )
 			hpoint		= *( ( short *			)( hl + 1 + i * 7 + 4	) );
 			hquotient	= *( ( unsigned char *	)( hl + 1 + i * 7 + 6	) );
 
-			if ( //flag1[hdoc] == 0 && /* ‘Î‰“_ƒtƒ‰ƒOƒ`ƒFƒbƒN */ 
+			if ( //flag1[hdoc] == 0 && /* ï¿½Î‰ï¿½ï¿½_ï¿½tï¿½ï¿½ï¿½Oï¿½`ï¿½Fï¿½bï¿½N */ 
 				 //flag2[hdoc][hpoint] == 0 && 
-				 ( memcmp(&hquotient, &quotient, 1) == 0 ) /* ¤‚Ì”äŠr */ ) {
-				score[hdoc]++;	// “Š•[
+				 ( memcmp(&hquotient, &quotient, 1) == 0 ) /* ï¿½ï¿½ï¿½Ì”ï¿½r */ ) {
+				score[hdoc]++;	// ï¿½ï¿½ï¿½[
 				if ( score[hdoc] > max_vote ) {
-					max_vote = score[hdoc];	// Å‘å‚È‚çXV
+					max_vote = score[hdoc];	// ï¿½Å‘ï¿½È‚ï¿½Xï¿½V
 					max_doc = hdoc;
 				}
 
-				//flag1[hdoc] = 1;	// hp->doc‚Í“Š•[Ï‚İ
-				//flag2[hdoc][hpoint] = 1;	// hp-doc‚Ìhp->point‚Í“Š•[Ï‚İ
+				//flag1[hdoc] = 1;	// hp->docï¿½Í“ï¿½ï¿½[ï¿½Ï‚ï¿½
+				//flag2[hdoc][hpoint] = 1;	// hp-docï¿½ï¿½hp->pointï¿½Í“ï¿½ï¿½[ï¿½Ï‚ï¿½
 				//flag1_clear[flag1_num++] = hdoc;
 				//flag2_dclear[flag2_num] = hdoc;
 				//flag2_pclear[flag2_num] = hpoint;
@@ -78,9 +78,9 @@ int VoteDirectlyByHL( strHash *hl, int *score, int p, unsigned char quotient )
 }
 
 int VoteDirectlyByHL2( strHash *hl, int *score, int p, unsigned char quotient )
-// ƒnƒbƒVƒ…ƒŠƒXƒg‚©‚ç’¼‚Évote‚·‚é
-// ¡‰ñvote‚µ‚½’†‚ÅÅ‘å‚Ì‚à‚Ì‚ğ•Ô‚·
-// “Á’¥—Ê‚Ì”äŠr‚ğC¤‚Ì”äŠr‚É•ÏX
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½ç’¼ï¿½ï¿½voteï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½voteï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅÅ‘ï¿½Ì‚ï¿½ï¿½Ì‚ï¿½Ô‚ï¿½
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ê‚Ì”ï¿½rï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Ì”ï¿½rï¿½É•ÏX
 {
 	int i;
 	static int max_vote = -1;
@@ -101,16 +101,16 @@ int VoteDirectlyByHL2( strHash *hl, int *score, int p, unsigned char quotient )
 				 //flag2[pdoc][ppoint] == 0 &&
 				 //pdoc != 0 &&
 				 ( memcmp(&pquotient, &quotient, 1) == 0 )) {
-				score[pdoc]++;	// “Š•[
+				score[pdoc]++;	// ï¿½ï¿½ï¿½[
 				vote.push_back(pdoc);
 
 				if ( score[pdoc] > max_vote ) {
-					max_vote = score[pdoc];	// Å‘å‚È‚çXV
+					max_vote = score[pdoc];	// ï¿½Å‘ï¿½È‚ï¿½Xï¿½V
 					max_doc = pdoc;
 				}
 
-				//flag1[pdoc] = 1;	// hp->doc‚Í“Š•[Ï‚İ
-				//flag2[pdoc][ppoint] = 1;	// hp-doc‚Ìhp->point‚Í“Š•[Ï‚İ
+				//flag1[pdoc] = 1;	// hp->docï¿½Í“ï¿½ï¿½[ï¿½Ï‚ï¿½
+				//flag2[pdoc][ppoint] = 1;	// hp-docï¿½ï¿½hp->pointï¿½Í“ï¿½ï¿½[ï¿½Ï‚ï¿½
 				//flag1_clear[flag1_num++] = pdoc;
 				//flag2_dclear[flag2_num] = pdoc;
 				//flag2_pclear[flag2_num] = ppoint;
@@ -127,9 +127,9 @@ int VoteDirectlyByHL2( strHash *hl, int *score, int p, unsigned char quotient )
 	return max_vote;
 }
 
-void CalcScoreRotateOnce( CvPoint *ps, double *areas, int num, int *score, strDisc *disc, strHash **hash )
-// ƒAƒtƒBƒ“•s•Ï—Ê‚ğå¬•ª“¾“_‚É•ÏŠ·‚µ‚ÄƒnƒbƒVƒ…‚É“o˜^‚·‚é
-// ‰ñ“]•s•Ï”Å
+void CalcScoreRotateOnce( cv::Point *ps, double *areas, int num, int *score, strDisc *disc, strHash **hash )
+// ï¿½Aï¿½tï¿½Bï¿½ï¿½ï¿½sï¿½Ï—Ê‚ï¿½ï¿½å¬ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½É•ÏŠï¿½ï¿½ï¿½ï¿½Äƒnï¿½bï¿½Vï¿½ï¿½ï¿½É“oï¿½^ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½]ï¿½sï¿½Ï”ï¿½
 {
 	char **hindex = NULL, *hindex_area = NULL, *inv_array = NULL, *vec_flag=NULL, *sum=NULL;
 	int i, j, k, l, m, st, row, max_vote = 0;
@@ -138,7 +138,7 @@ void CalcScoreRotateOnce( CvPoint *ps, double *areas, int num, int *score, strDi
 	unsigned char quotient;
 	double cr;
 
-	// ”z—ñ‚ÌŠm•Û
+	// ï¿½zï¿½ï¿½ÌŠmï¿½ï¿½
 	idx = (int *)calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = (int *)calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = (int *)calloc( eGroup2Num-1, sizeof(int) );
@@ -156,29 +156,29 @@ void CalcScoreRotateOnce( CvPoint *ps, double *areas, int num, int *score, strDi
 
 	for ( i = 0; i < num; i++ ) {	// for all points
 		//ClearFlag1();
-		// ‹ß–T“X‚ğŒv‰ñ‚è‚É®—ñ
+		// ï¿½ß–Tï¿½Xï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Éï¿½ï¿½ï¿½
 		CalcOrderCWN( i, ps, idx, eGroup1Num );
 
 		for ( j = 0; j < eNumCom1-1; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m“_‚Ì’Šo
-			/************** ŠJn“_‚Ì’Tõ **************************************************/
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// mï¿½_ï¿½Ì’ï¿½ï¿½o
+			/************** ï¿½Jï¿½nï¿½_ï¿½Ì’Tï¿½ï¿½ **************************************************/
 			
-			// •s•Ï—Ê‚ÌŒvZ
+			// ï¿½sï¿½Ï—Ê‚ÌŒvï¿½Z
 			for ( st = 0; st < eGroup2Num-1; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%(eGroup2Num-1))+1]], ps[idxcom1[((st+1)%(eGroup2Num-1))+1]], ps[idxcom1[((st+2)%(eGroup2Num-1))+1]]);
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// •s•Ï—Ê‚©‚çŠJn“_‚ğŒ©‚Â‚¯‚é
+			// ï¿½sï¿½Ï—Ê‚ï¿½ï¿½ï¿½Jï¿½nï¿½_ï¿½ï¿½ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½
 			st = FindStartPoint( inv_array, eGroup2Num-1 );
 
-			// st‚ğŠJn“_‚Æ‚µ‚Ä‰ñ“]‚³‚¹‚é
+			// stï¿½ï¿½ï¿½Jï¿½nï¿½_ï¿½Æ‚ï¿½ï¿½Ä‰ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			for ( k = 0; k < eGroup2Num-1; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < eGroup2Num-1; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%(eGroup2Num-1)];
-			/************** ’Tõ‚ÌI—¹ ****************************************************/
+			/************** ï¿½Tï¿½ï¿½ï¿½ÌIï¿½ï¿½ ****************************************************/
 
-			// ƒAƒtƒBƒ“•s•Ï—Ê‚ğ•W€‰»
+			// ï¿½Aï¿½tï¿½Bï¿½ï¿½ï¿½sï¿½Ï—Ê‚ï¿½Wï¿½ï¿½ï¿½ï¿½
 			for ( k = 0; k < eNumCom2; k++ ) {
 
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
@@ -255,21 +255,21 @@ void CalcScoreRotateOnce( CvPoint *ps, double *areas, int num, int *score, strDi
 	free( sum );
 }
 
-int Retrieve( CvPoint *ps, double *areas, int num, int *score, strDisc *disc, int *reg_nums, int *ret_time, strHash **hash )
-// ƒnƒbƒVƒ…‚©‚çŒŸõ‚·‚é
+int Retrieve( cv::Point *ps, double *areas, int num, int *score, strDisc *disc, int *reg_nums, int *ret_time, strHash **hash )
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½çŒŸï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 {
 	int i, max_doc = 0;
 	int  max_score = 0;
 	int start, end;
 
-	//// flag2‚Ì‰Šú‰»
+	//// flag2ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
 	//ClearFlag2();
-	//// “_‘Î‰ƒe[ƒuƒ‹‚Ìì¬
+	//// ï¿½_ï¿½Î‰ï¿½ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½Ìì¬
 	//ClearCorres();
 
-	// ŒŸõŠJn
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½n
 	start = GetProcTimeMicroSec();
-	// ŒŸõ
+	// ï¿½ï¿½ï¿½ï¿½
 	std::sort(vote.begin(), vote.end());
 	vote.erase( std::unique(vote.begin(), vote.end()), vote.end());
 	for ( int i = 0; i < vote.size(); i++ ) {
@@ -279,16 +279,16 @@ int Retrieve( CvPoint *ps, double *areas, int num, int *score, strDisc *disc, in
 
 	//memset( score, 0, sizeof( int ) * eDbDocs );
 	CalcScoreRotateOnce( ps, areas, num, score, disc, hash );
-	// ŒŸõI—¹
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½
 	end = GetProcTimeMicroSec();
 
 
 
-	// ŒŸõŠÔ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	*ret_time = end - start;
 	if ( !eExperimentMode )	printf( "retrieval time : %d[milisec]\n", *ret_time );
 	
-	// ƒ\[ƒg
+	// ï¿½\ï¿½[ï¿½g
 	for ( i = 0; i < eDbDocs; i++ ) {
 		if ( score[i] > max_score ) {
 			max_doc = i;
@@ -299,8 +299,8 @@ int Retrieve( CvPoint *ps, double *areas, int num, int *score, strDisc *disc, in
 	return max_doc;
 }
 
-int RetrieveCor( CvPoint *ps, double *areas, int num, int *score, int pcor[][2], int *pcornum0, strDisc *disc, int *reg_nums, strHash **hash )
-// ƒnƒbƒVƒ…‚©‚çŒŸõ‚·‚é
+int RetrieveCor( cv::Point *ps, double *areas, int num, int *score, int pcor[][2], int *pcornum0, strDisc *disc, int *reg_nums, strHash **hash )
+// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½çŒŸï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 {
 	int i, j, k, max_doc=0, flag;
 	int  max_score = 0;
@@ -308,15 +308,15 @@ int RetrieveCor( CvPoint *ps, double *areas, int num, int *score, int pcor[][2],
 	memset( corres[0], -1, sizeof(int)*corres_num );
 	corres_num = 0;
 
-	// ŒŸõ
+	// ï¿½ï¿½ï¿½ï¿½
 	CalcScoreRotateOnce( ps, areas, num, score, disc, hash );
 
-	// ƒXƒRƒA‚Ì³‹K‰»
+	// ï¿½Xï¿½Rï¿½Aï¿½Ìï¿½ï¿½Kï¿½ï¿½
 	for ( i = 0; i < eDbDocs; i++ )	{
-		score[i] = (int)((double)score[i] - (double)reg_nums[i] * eProp);	// CBDAR‚Å‚Ì•â³
+		score[i] = (int)((double)score[i] - (double)reg_nums[i] * eProp);	// CBDARï¿½Å‚Ì•â³
 	}
 
-	// ƒ\[ƒg
+	// ï¿½\ï¿½[ï¿½g
 	for ( i = 0; i < eDbDocs; i++ ) {
 		if ( score[i] > max_score ) {
 			max_doc = i;
@@ -344,7 +344,7 @@ int RetrieveCor( CvPoint *ps, double *areas, int num, int *score, int pcor[][2],
 }
 
 int IsSucceed( char *str1, char *str2 )
-// ÀŒ±ƒ‚[ƒh—pF¬Œ÷”»’è
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½pï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 {
 	char base1[kMaxPathLen], base2[kMaxPathLen];
 	
@@ -355,7 +355,7 @@ int IsSucceed( char *str1, char *str2 )
 }
 
 double Calc12Diff( int *score )
-// 1ˆÊ‚Æ2ˆÊ‚Ì·‚ğŒvZ
+// 1ï¿½Ê‚ï¿½2ï¿½Ê‚Ìï¿½ï¿½ï¿½ï¿½vï¿½Z
 {
 	int i;
 	int score_1st = 1, score_2nd = 1;

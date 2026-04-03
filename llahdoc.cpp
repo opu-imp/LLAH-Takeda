@@ -1,30 +1,30 @@
 #include "def_general.h"
 
 /* dcams.c */
-#define	GLOBAL_DEFINE	/* extern•Ï”‚É‚±‚±‚ÅÀ‘Ì‚ğ—^‚¦‚é */
+#define	GLOBAL_DEFINE	/* externï¿½Ïï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½Åï¿½ï¿½Ì‚ï¿½^ï¿½ï¿½ï¿½ï¿½ */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm>	// min,max—p
+#include <algorithm>	// min,maxï¿½p
 #include <math.h>
 #include <iostream>
 #include <vector>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
-// ƒlƒbƒgƒ[ƒN
+// ï¿½lï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½N
 #ifdef	WIN32
 #include <winsock2.h>	// socket
 #include "ws_cl.h"
@@ -70,16 +70,16 @@ int main( int argc, char **argv )
 	strHash **hash;
 	double **reg_areass=NULL, *areas=NULL;
 	double total_diff = 0.0L, total_top = 0.0L;
-	CvPoint **reg_pss=NULL, *ps=NULL;
-	CvSize *reg_sizes=NULL, size;
-	IplImage *img;
+	cv::Point **reg_pss=NULL, *ps=NULL;
+	cv::Size *reg_sizes=NULL, size;
+	cv::Mat img;
 	int *reg_nums=NULL;
 
 	int *index;
 	double *cr, a, x, fx;
 	char hindex;
 #ifdef CLRa
-	IplImage *con_img, *orig_img, *fp_img;
+	cv::Mat con_img, orig_img, fp_img;
 #endif
 #ifdef DRAW_COR_ALL
 	int pcornum=0;
@@ -89,30 +89,30 @@ int main( int argc, char **argv )
 	FILE *fp;
 	int random[1000];
 
-	// ŒŸõ¸”s•¶‘–¼‚ÌŠi”[
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌŠiï¿½[
 	vector<string> failure;
 
-	// ƒlƒbƒgƒ[ƒNiniƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+	// ï¿½lï¿½bï¿½gï¿½ï¿½ï¿½[ï¿½Niniï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ï¿½
 	ReadIniFile();
-	// ˆø”‰ğÍˆ—
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íï¿½ï¿½ï¿½
 	if ( ( argi = AnalyzeArgAndSetExtern( argc, argv ) ) < 0 )	return 1;
 	unsigned long long int count=0;
 	unsigned long long int value=0;
 	switch ( eEntireMode ) {
-		/******************* ’ÊíŒŸõƒ‚[ƒh *********************/
+		/******************* ï¿½ÊíŒŸï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h *********************/
 	case RETRIEVE_MODE:
 		fprintf( stderr, "Retrieval from static image\n");
-		// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+		// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
 		LoadConfig();
-		// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+		// ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
 		LoadDisc( &disc );
 
-		// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-		if ( eThinPs )	eDbDocs = LoadThinFile2( NULL, &dbcors );								// ƒTƒ“ƒvƒŠƒ“ƒO—L‚è
-		//if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ƒTƒ“ƒvƒŠƒ“ƒO—L‚è
-		else			eDbDocs = LoadPointFile2( NULL, &dbcors );	// ƒTƒ“ƒvƒŠƒ“ƒO–³‚µ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
+		if ( eThinPs )	eDbDocs = LoadThinFile2( NULL, &dbcors );								// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½Lï¿½ï¿½
+		//if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½Lï¿½ï¿½
+		else			eDbDocs = LoadPointFile2( NULL, &dbcors );	// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½
 
-		// ƒnƒbƒVƒ…‚Ì“Ç‚İ‚İ
+		// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
 		//LoadHashCompress( &hash );
 		LoadHashCompressToStorage( &hash );
 
@@ -129,24 +129,24 @@ int main( int argc, char **argv )
 		//fclose(fp);
 
 
-		//else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ƒTƒ“ƒvƒŠƒ“ƒO–³‚µ
+		//else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ï¿½Tï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½
 
 		CalculateAverageCollision(hash);
 		//RemoveListSameIndexAndQuotient(hash);
 		//CalculateAverageCollision(hash);
 
 
-		// ‹ß–T\‘¢•Û‘¶—pƒƒ‚ƒŠŠm•Û
+		// ï¿½ß–Tï¿½\ï¿½ï¿½ï¿½Û‘ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½ï¿½
 		SecureNears();
-		// “¾•[ƒe[ƒuƒ‹Šm•Û
+		// ï¿½ï¿½ï¿½[ï¿½eï¿½[ï¿½uï¿½ï¿½ï¿½mï¿½ï¿½
 		score = (int *)calloc(eDbDocs, sizeof(int));
-		// ‘g‚İ‡‚í‚¹‚Ìì¬
+		// ï¿½gï¿½İï¿½ï¿½í‚¹ï¿½Ìì¬
 		GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
 		if ( eRmRedund ) {
 			eNumCom2 = 17;
-			LoadRmRedund();	// “Á’¥‘I‘ğ—L
+			LoadRmRedund();	// ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½L
 		}
-		// ŒŸõŠJn
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½n
 		args = argi;
 		//for ( i = 0; i < 1; i++ ) {
 		for ( eMultiNum = 1; eMultiNum < 17; eMultiNum+=2 ) {
@@ -165,52 +165,52 @@ int main( int argc, char **argv )
 			for ( ; argi < argc; argi++ ) {
 				if ( !eExperimentMode ) 
 					fprintf( stdout, "%s\n", argv[argi] );
-				// “Á’¥“_‚Ì’Šo
+				// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½Ì’ï¿½ï¿½o
 				if ( IsDat( argv[argi] ) ) {
 					num = LoadQueryPointFile( argv[argi], &ps, &areas );
 				}
 				else {
-					// Œ‹‡‰æ‘œ‚Ì¶¬
+					// ï¿½ï¿½ï¿½ï¿½ï¿½æ‘œï¿½Ìï¿½ï¿½ï¿½
 					img = GetConnectedImage( argv[argi] );
-					if ( img == NULL )	continue;
-					// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+					if ( img.empty() )	continue;
+					// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½oï¿½Eï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì–ÊÏŒvï¿½Z
 					num = MakeFeaturePoint( img, &ps, &areas, &size );	
 #ifdef CLRa
-					con_img = cvCloneImage( img );
-					orig_img = cvLoadImage( argv[argi], 0 );
+					con_img = img.clone();
+					orig_img = cv::imread( argv[argi], cv::IMREAD_GRAYSCALE );
 					fp_img = MakeFeaturePointImage( orig_img, con_img, ps, num );
 					OutPutImage( fp_img );
-					cvReleaseImage( &orig_img );
-					cvReleaseImage( &con_img );
-					cvReleaseImage( &fp_img );
+					//cvReleaseImage( &orig_img );
+					//cvReleaseImage( &con_img );
+					//cvReleaseImage( &fp_img );
 #endif
-					cvReleaseImage( &img );
+					//cvReleaseImage( &img );
 				}
-				// ‹ß–T\‘¢‚Ì‰ğÍ
+				// ï¿½ß–Tï¿½\ï¿½ï¿½ï¿½Ì‰ï¿½ï¿½
 				MakeNearsFromCentres( ps, num );
 
 #ifdef DRAW_COR_ALL
-				//‘Î‰“_•`‰æ
+				//ï¿½Î‰ï¿½ï¿½_ï¿½`ï¿½ï¿½
 				res = RetrieveCor( ps, areas, num, score, pcor, &pcornum, &disc, reg_nums, hash );
 				//res = 596+808;
 				//res = 3198;
-				// size‚ª‚¨‚©‚µ‚¢
+				// sizeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				DrawCor( ps, num, reg_sizes[res], res, reg_pss[res], reg_nums[res], reg_sizes[res], pcor, pcornum );
 #else
-				// ŒŸõ
+				// ï¿½ï¿½ï¿½ï¿½
 				res = Retrieve( ps, areas, num, score, &disc, reg_nums, &ret_time, hash );
 				//printf("%d\n", res);
 #endif
-				// ŒŸõŒ‹‰Ê
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				if ( !eExperimentMode ) 
 					printf( "%s : %d\n\n", dbcors[res], score[res] );
-				// ‚ ‚Æ‚µ‚Ü‚Â
+				// ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ü‚ï¿½
 				free( ps );
 				free( areas );
 				ClearNears( num );
 
-				// ¸“xEˆ—ŠÔ‚Ìˆ—
-				if ( eExperimentMode ) {	// ÀŒ±ƒ‚[ƒh‚È‚ç¸“xŒv‘ª
+				// ï¿½ï¿½ï¿½xï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô‚Ìï¿½ï¿½ï¿½
+				if ( eExperimentMode ) {	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½È‚ç¸ï¿½xï¿½vï¿½ï¿½
 					total_que++;
 					if ( IsSucceed( argv[argi], dbcors[res] ) )	suc_que++;
 					else {
@@ -245,8 +245,8 @@ int main( int argc, char **argv )
 			//	}
 			//}
 			//printf("%lf\n", (double)value/(double)count);
-			// ÀŒ±Œ‹‰Ê
-			if ( eExperimentMode ) {	// ÀŒ±ƒ‚[ƒh‚È‚çŒ‹‰Êo—Í
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			if ( eExperimentMode ) {	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½È‚çŒ‹ï¿½Êoï¿½ï¿½
 				printf("Accuracy : %d/%d(%.2f)\n", suc_que, total_que, ((double)suc_que)/((double)total_que)*100.0 );
 				printf("Average Proc Time : %d micro sec\n", (int)(((double)total_time) / ((double)total_que)) );
 				printf("Average Top Vote : %.2f\n", (total_top / (double)total_que) );
@@ -263,8 +263,8 @@ int main( int argc, char **argv )
 		//ReleaseHash( hash );
 		ReleaseNears();
 
-		// ÀŒ±Œ‹‰Ê
-		if ( eExperimentMode ) {	// ÀŒ±ƒ‚[ƒh‚È‚çŒ‹‰Êo—Í
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		if ( eExperimentMode ) {	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½hï¿½È‚çŒ‹ï¿½Êoï¿½ï¿½
 			printf("Accuracy : %d/%d(%.2f)\n", suc_que, total_que, ((double)suc_que)/((double)total_que)*100.0 );
 			printf("Average Proc Time : %d micro sec\n", (int)(((double)total_time) / ((double)total_que)) );
 			printf("Average Top Vote : %.2f\n", (total_top / (double)total_que) );
@@ -273,36 +273,36 @@ int main( int argc, char **argv )
 		}
 
 		break;
-		/************************ USBƒJƒƒ‰ƒ‚[ƒh ************************/
+		/************************ USBï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h ************************/
 	case USBCAM_SERVER_MODE:
 		RetrieveUSBCamServer();
 		break;
-		//		/************************ ƒXƒ}[ƒgƒtƒHƒ“˜AŒgƒ‚[ƒh ************************/
+		//		/************************ ï¿½Xï¿½}ï¿½[ï¿½gï¿½tï¿½Hï¿½ï¿½ï¿½Aï¿½gï¿½ï¿½ï¿½[ï¿½h ************************/
 		//		case SMART_SERVER_MODE:
 		//			RetrieveSmartphoneServer();
 		//			break;
-		/********************** ƒnƒbƒVƒ…\’zƒ‚[ƒh **********************/
+		/********************** ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½\ï¿½zï¿½ï¿½ï¿½[ï¿½h **********************/
 	case CONST_HASH_MODE:
 		if ( !eExperimentMode )	fprintf( stderr, "Hash Constoraction\n" );
 
-		// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ìì¬
+		// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ìì¬
 		if ( !eExperimentMode )	fprintf( stderr, "Extracting Feature Points...\n" );
 		CreatePointFile( &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
 const_rest:
-		// ‹ß–T\‘¢Ši”[”z—ñ‚ÌŠm•Û
+		// ï¿½ß–Tï¿½\ï¿½ï¿½ï¿½iï¿½[ï¿½zï¿½ï¿½ÌŠmï¿½ï¿½
 		SecureNears();
 
 		if ( eLoadDiscHash ) {
-			// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+			// ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
 			if ( !eExperimentMode )	fprintf( stderr, "Load Disc File... \n" );
 			LoadDisc( &disc );
 		} else {
-			// —£U‰»ƒtƒ@ƒCƒ‹‚Ìì¬
+			// ï¿½ï¿½ï¿½Uï¿½ï¿½ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ìì¬
 			if ( !eExperimentMode )	fprintf( stderr, "Make Disc File... \n" );
 			MakeDiscFile( min( eDocNumForMakeDisc, eDbDocs ), reg_pss, reg_nums, &disc );
 		}
 
-		// ƒnƒbƒVƒ…‚Ì\’z
+		// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½Ì\ï¿½z
 		if ( !eExperimentMode )	fprintf( stderr, "Make Affine File... \n" );
 		//if ( eReHash )			ConstructHash3( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
 		if ( eReHash )			ConstructHash4( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
@@ -311,12 +311,12 @@ const_rest:
 		else					ConstructHash( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
 
 
-		// İ’èƒtƒ@ƒCƒ‹‚Ì•Û‘¶
+		// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì•Û‘ï¿½
 		if ( !eExperimentMode )	fprintf( stderr, "Save Config File...\n" );
 		SaveConfig();
 
 		break;
-		/******************* point.dat‚©‚ç‚ÌƒnƒbƒVƒ…\’zƒ‚[ƒh ************************/
+		/******************* point.datï¿½ï¿½ï¿½ï¿½Ìƒnï¿½bï¿½Vï¿½ï¿½ï¿½\ï¿½zï¿½ï¿½ï¿½[ï¿½h ************************/
 	case CONST_HASH_PF_MODE:
 		if ( !eExperimentMode ) fprintf( stderr, "Hash Construction using point.dat\n" );
 
@@ -334,31 +334,31 @@ const_rest:
 		goto const_rest;
 
 		break;
-		/******************* “Á’¥“_ƒtƒ@ƒCƒ‹ì¬ƒ‚[ƒh ***********************/
+		/******************* ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½[ï¿½h ***********************/
 	case CONST_POINT_MODE:
 		if ( !eExperimentMode )	fprintf( stderr, "Hash Constoraction\n" );
 
-		// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ìì¬
+		// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ìì¬
 		if ( !eExperimentMode )	fprintf( stderr, "Extracting Feature Points...\n" );
 		CreatePointFile( &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
 		break;
-		/************************ DBŒ‹‡ƒ‚[ƒh ************************/
+		/************************ DBï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h ************************/
 	case COMBINE_DB_MODE:
 		fprintf( stderr, "Combine Point File\n" );
-		//LoadConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-		CombineDB();	// DB‚ÌŒ‹‡
+		//LoadConfig();	// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
+		CombineDB();	// DBï¿½ÌŒï¿½ï¿½ï¿½
 		break;
-		/************************ “Á’¥“_ƒtƒ@ƒCƒ‹Œ‹‡ƒ‚[ƒh ************************/
+		/************************ ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h ************************/
 	case COMBINE_PF_MODE:
 		fprintf( stderr, "Combine Point File\n" );
-		CombinePointFile();	// point.dat‚ÌŒ‹‡
+		CombinePointFile();	// point.datï¿½ÌŒï¿½ï¿½ï¿½
 		//fprintf( stderr, "Combine Thin File\n" );
-		//CombineThinFile();	// thin.dat‚ÌŒ‹‡
+		//CombineThinFile();	// thin.datï¿½ÌŒï¿½ï¿½ï¿½
 		break;
-		/************************ “Á’¥“_ƒtƒ@ƒCƒ‹Œ‹‡ƒ‚[ƒh ************************/
+		/************************ ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h ************************/
 	case COMPRESS_PF_MODE:
 		fprintf( stderr, "Compress Point File\n" );
-		LoadConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+		LoadConfig();	// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
 		if ( eThinPs ) {
 			eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
 			SaveThinFile2( eDbDocs, dbcors );
@@ -367,37 +367,37 @@ const_rest:
 			SavePointFile2( eDbDocs, dbcors );
 		}
 		break;
-		/************************ ƒnƒbƒVƒ…Œ‹‡ƒ‚[ƒh ************************/
+		/************************ ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h ************************/
 		//case COMBINE_HASH_MODE:
 		//	fprintf( stderr, "Combine Hash\n" );
-		//	LoadConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-		//	CombineHash();	// ƒnƒbƒVƒ…‚ÌŒ‹‡
-		//	SaveConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì•Û‘¶
+		//	LoadConfig();	// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì“Ç‚İï¿½ï¿½ï¿½
+		//	CombineHash();	// ï¿½nï¿½bï¿½Vï¿½ï¿½ï¿½ÌŒï¿½ï¿½ï¿½
+		//	SaveConfig();	// ï¿½İ’ï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Ì•Û‘ï¿½
 		//	break;
-		/************************* ƒNƒGƒŠ“Á’¥“_ƒ‚[ƒh ***********************/
+		/************************* ï¿½Nï¿½Gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½[ï¿½h ***********************/
 	case MAKE_QUERY_DAT_MODE:
 		for ( ; argi < argc; argi++ ) {
 			if ( !eExperimentMode ) fprintf( stdout, "%s\n", argv[argi] );
 
-			// Œ‹‡‰æ‘œ‚Ì¶¬
+			// ï¿½ï¿½ï¿½ï¿½ï¿½æ‘œï¿½Ìï¿½ï¿½ï¿½
 			img = GetConnectedImage( argv[argi] );
-			if ( img == NULL )	continue;
-			// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+			if ( img.empty() )	continue;
+			// ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½oï¿½Eï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì–ÊÏŒvï¿½Z
 			num = MakeFeaturePoint( img, &(ps), &(areas), &(size));
 #ifdef CLRa
-			con_img = cvCloneImage( img );
-			orig_img = cvLoadImage( argv[argi], 0 );
+			con_img = img.clone();
+			orig_img = cv::imread( argv[argi], cv::IMREAD_GRAYSCALE );
 			fp_img = MakeFeaturePointImage( orig_img, con_img, ps, num );
 			OutPutImage( fp_img );
-			cvReleaseImage( &orig_img );
-			cvReleaseImage( &con_img );
-			cvReleaseImage( &fp_img );
+			//cvReleaseImage( &orig_img );
+			//cvReleaseImage( &con_img );
+			//cvReleaseImage( &fp_img );
 #endif
-			cvReleaseImage( &img );
+			//cvReleaseImage( &img );
 
 			SaveQueryPointFile( argv[argi], num, ps, areas );
 
-			// ‚ ‚Æ‚µ‚Ü‚Â
+			// ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ü‚ï¿½
 			free( ps );
 			free( areas );
 		}
