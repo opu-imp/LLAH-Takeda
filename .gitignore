@@ -1,3 +1,11 @@
 # Build artifacts
 *.o
 llahdoc
+
+# Test artifacts (generated data, images, logs)
+test/db_data/
+test/db_data2/
+test/db_images/
+test/query_images/
+test/*.log
+test/*.txt
