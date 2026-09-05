@@ -109,8 +109,8 @@ docs = [
 
 for i, lines in enumerate(docs):
     img = np.ones((H, W), dtype=np.uint8) * 255
-    # Add some structure: a border
-    cv2.rectangle(img, (20, 20), (W - 20, H - 20), 0, 1)
+    # NOTE: no closed page border. The retrieval-side noise removal fills contour
+    # interiors, so a closed 1px frame would blank out the whole page.
     cv2.line(img, (20, 55), (W - 20, 55), 0, 1)
     draw_text_block(img, lines[:1], 30, 45, font_scale=0.6, thickness=2)
     draw_text_block(img, lines[1:], 30, 78, font_scale=0.45, thickness=1, line_gap=26)
