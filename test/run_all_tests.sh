@@ -142,7 +142,7 @@ for q in query_doc001.jpg query_doc003.jpg query_doc005.jpg; do
 
     # 検索結果から res= 行を表示
     if [ -n "$output" ]; then
-        echo "$output" | grep -E "^res=" | head -3 | sed 's/^/    /' || true
+        echo "$output" | grep -E "jpg : " | head -1 | sed 's|.*/|    -> |' || true
     fi
 done
 
