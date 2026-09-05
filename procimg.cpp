@@ -112,6 +112,7 @@ cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
 	InitHist( &hist, 1000, 0, 1000 );
 	for( size_t ci = 0; ci < contours.size(); ci++ )
 	{
+		if ( hierarchy[ci][3] != -1 )	continue;	// 最外輪郭のみ（旧 C API の h_next 巡回と同じ）
 		mom = cv::moments( contours[ci] );
 		d00 = mom.m00;
 		if ( d00 <= 0.5 ) continue;
@@ -158,6 +159,7 @@ int MakeFeaturePoint( cv::Mat img, cv::Point **ps0, double **areas0, cv::Size *s
 
 	i = 0;
 	for ( size_t ci = 0; ci < contours.size() && i < num ; ci++ ) {
+		if ( hierarchy[ci][3] != -1 )	continue;	// 最外輪郭のみ（旧 C API の h_next 巡回と同じ．穴は特徴点にしない）
 		mom = cv::moments( contours[ci] );
 		d00 = mom.m00;
 		if ( d00 < 5 )	continue;
