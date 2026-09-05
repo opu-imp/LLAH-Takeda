@@ -61,12 +61,12 @@ cv::Mat GetConnectedImage( char *fname )
 		}
 		cv::bitwise_not( smt, bin );
 
-		cv::GaussianBlur( bin, smt, cv::Size(eMask, 1), 0 );
+		cv::GaussianBlur( bin, smt, cv::Size(eMask, eMask), 0, 0, cv::BORDER_REPLICATE );
 
 		cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
 		cv::bitwise_not( bin, inv );
 	} else {
-		cv::GaussianBlur( src, smt, cv::Size(15, 1), 0 );
+		cv::GaussianBlur( src, smt, cv::Size(15, 15), 0, 0, cv::BORDER_REPLICATE );
 		cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
 		cv::bitwise_not( bin, inv );
 	}
@@ -122,7 +122,7 @@ cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
 	ReleaseHist( &hist );
 	chsize = chsize * 2 + 1;
 
-	cv::GaussianBlur( bin, smt, cv::Size(1, 1), 0 );
+	cv::GaussianBlur( bin, smt, cv::Size(1, 1), 0, 0, cv::BORDER_REPLICATE );
 
 	cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 101, 10 );
 	cv::bitwise_not( bin, inv );
