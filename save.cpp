@@ -23,13 +23,13 @@
 extern strHash cut;
 
 void SavePointFile( int doc_num, char **dbcors, int *nums, cv::Point **pss, double **areass, cv::Size *sizes )
-// �����_�t�@�C����ۑ�
+// 特徴点ファイルを保存
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, ePointFileName );
-	StartWriteBlock( fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( fname, kBlockSize );	// 公開に向けて改変
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -47,13 +47,13 @@ void SavePointFile( int doc_num, char **dbcors, int *nums, cv::Point **pss, doub
 }
 
 void SavePointFile2( int doc_num, char **dbcors )
-// �����_�t�@�C����ۑ�
+// 特徴点ファイルを保存
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, "point_comp.dat" );
-	StartWriteBlock( fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( fname, kBlockSize );	// 公開に向けて改変
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -63,7 +63,7 @@ void SavePointFile2( int doc_num, char **dbcors )
 }
 
 void SavePointFileText( int doc_num, char **dbcors, int *nums, cv::Point **pss, double **areass, cv::Size *sizes )
-// �����_�t�@�C����ۑ�
+// 特徴点ファイルを保存
 {
 	int i, j;
 	char fname[kMaxPathLen];
@@ -73,28 +73,28 @@ void SavePointFileText( int doc_num, char **dbcors, int *nums, cv::Point **pss, 
 	if ( (fp = fopen( fname, "w" )) == NULL ) {
 		fprintf( stderr, "error : %s cannot be opened\n", fname );
 	}
-	// �t�@�C�����̏o��
+	// ファイル数の出力
 	fprintf( fp, "%d\n", eDbDocs );
 
 	for ( i = 0; i < doc_num; i++ ) {
-		fprintf( fp, "%s\n", dbcors[i] );	// ���摜�t�@�C�����̏o��
+		fprintf( fp, "%s\n", dbcors[i] );	// 元画像ファイル名の出力
 		fprintf( fp, "%d,%d\n", sizes[i].width, sizes[i].height );
-		fprintf( fp, "%d\n", nums[i] );	// �����_�����o��
+		fprintf( fp, "%d\n", nums[i] );	// 特徴点数を出力
 		for ( j = 0; j < nums[i]; j++ ) {
-			fprintf( fp, "%d,%d,%lf\n", pss[i][j].x, pss[i][j].y, areass[i][j] );	// �����_�̍��W�E�A�������̖ʐς��o��
+			fprintf( fp, "%d,%d,%lf\n", pss[i][j].x, pss[i][j].y, areass[i][j] );	// 特徴点の座標・連結成分の面積を出力
 		}
 	}
 	fclose( fp );
 }
 
 void SaveThinFile( int doc_num, int **thinids, cv::Point **pss, int *thin_nums, cv::Size *sizes, char **dbcors )
-// �T���v�����O��̓����_����ۑ�
+// サンプリング後の特徴点数を保存
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, eThinFileName );
-	StartWriteBlock( fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( fname, kBlockSize );	// 公開に向けて改変
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -112,13 +112,13 @@ void SaveThinFile( int doc_num, int **thinids, cv::Point **pss, int *thin_nums, 
 
 
 void SaveThinFile2( int doc_num, char **dbcors )
-// �T���v�����O��̓����_����ۑ�
+// サンプリング後の特徴点数を保存
 {
 	int i, j;
 	char fname[kMaxPathLen];
 
 	sprintf( fname, "%s%s", eDataDir, "thin_comp.dat" );
-	StartWriteBlock( fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( fname, kBlockSize );	// 公開に向けて改変
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -128,13 +128,13 @@ void SaveThinFile2( int doc_num, char **dbcors )
 }
 
 void SaveThinFileForCombine( int doc_num, cv::Point **pss, cv::Size *sizes, int *thin_nums, char **dbcors )
-// �T���v�����O��̓����_����ۑ�
+// サンプリング後の特徴点数を保存
 {
 	int i, j;
 	char pthin_fname[kMaxPathLen];
 
 	sprintf( pthin_fname, "%s%s", eDataDir, eThinFileName );
-	StartWriteBlock( pthin_fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( pthin_fname, kBlockSize );	// 公開に向けて改変
 
 	WriteBlock( (unsigned char *)&doc_num, sizeof(int) );
 	for ( i = 0; i < doc_num; i++ ) {
@@ -151,7 +151,7 @@ void SaveThinFileForCombine( int doc_num, cv::Point **pss, cv::Size *sizes, int 
 }
 
 void SaveDisc( strDisc *disc )
-// ���U���t�@�C����ۑ�
+// 離散化ファイルを保存
 {
 	char fname[kMaxPathLen];
 	int i;
@@ -170,7 +170,7 @@ void SaveDisc( strDisc *disc )
 
 	fclose(fp);
 
-	// �o�C�i����
+	// バイナリ版
 	//sprintf( fname, "%s%s", eDataDir, eDiscFileName );
 	//StartWriteBlock( fname, kBlockSize );
 	//WriteBlock( (unsigned char *)&disc->min, sizeof(double) );
@@ -182,19 +182,19 @@ void SaveDisc( strDisc *disc )
 }
 
 void SaveHash( strHash **hash )
-// �n�b�V�����Z�[�u����
+// ハッシュをセーブする
 {
 	unsigned int i;
 	char fname[kMaxPathLen];
 	int len_list=0;
 	eHashStorageNum = 0;
 
-	// ���X�g1���̒���
+	// リスト1つ分の長さ
 	if ( eCompressHash )	len_list = eHComp2DatByte;
 	else					len_list = eFByte;
 
 	sprintf( fname, "%s%s", eDataDir, eHashFileName );
-	StartWriteBlock( fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( fname, kBlockSize );	// 公開に向けて改変
 	for ( i = 0; i < eHashSize; i++ ) {
 		if( hash[i] != NULL && hash[i] != &cut ) {
 			printf("%d\n", i);
@@ -207,7 +207,7 @@ void SaveHash( strHash **hash )
 }
 
 void SaveHashText( strHash **hash )
-// �n�b�V�����Z�[�u����
+// ハッシュをセーブする
 {
 	unsigned int i;
 	char fname[kMaxPathLen];
@@ -219,7 +219,7 @@ void SaveHashText( strHash **hash )
 	short point;
 	unsigned char quotient;
 
-	// ���X�g1���̒���
+	// リスト1つ分の長さ
 	if ( eCompressHash )	len_list = eHComp2DatByte;
 	else					len_list = eFByte;
 
@@ -245,7 +245,7 @@ void SaveHashText( strHash **hash )
 }
 
 void SaveHashCompress( strHash **hash )
-// �n�b�V�����Z�[�u����
+// ハッシュをセーブする
 {
 	unsigned int i;
 	char fname[kMaxPathLen];
@@ -253,7 +253,7 @@ void SaveHashCompress( strHash **hash )
 	eHashStorageNum = 0;
 
 	sprintf( fname, "%s%s", eDataDir, eHashFileName );
-	StartWriteBlock( fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( fname, kBlockSize );	// 公開に向けて改変
 	for ( i = 0; i < eHashSize; i++ ) {
 		if( hash[i] == NULL ) {
 
@@ -267,19 +267,19 @@ void SaveHashCompress( strHash **hash )
 }
 
 void SaveConfig( void )
-// �ݒ�t�@�C����ۑ�
+// 設定ファイルを保存
 {
 	char fname[kMaxPathLen];
 	FILE *fp;
 
-	// config.dat�̃p�X���쐬
+	// config.datのパスを作成
 	sprintf( fname, "%s%s", eDataDir, eConfigFileName );
 	if ( ( fp = fopen( fname, "w" ) ) == NULL ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
 	}
 	
-	// config.dat�̃o�[�W����
+	// config.datのバージョン
 	fprintf( fp, "%s\n", kConfigVerStr );
 	// n
 	fprintf( fp, "%c %d\n", 'n', eGroup1Num );
@@ -289,22 +289,22 @@ void SaveConfig( void )
 	fprintf( fp, "%c %d\n", 'd', eDiscNum );
 	// prop
 	fprintf( fp, "%c %lf\n", 'p', eProp );
-	// �n�b�V���T�C�Y
+	// ハッシュサイズ
 	fprintf( fp, "%c %llu %lld\n", 'H', eHashSize, eHashStorageNum );
-	// �n�b�V�����k���[�h�Ȃ�r�b�g���Ȃ�
+	// ハッシュ圧縮モードならビット数など
 	if ( eCompressHash )	fprintf( fp, "%c %d %d %d %d\n", 'z', eDocBit, ePointBit, eQuotBit, eHComp2DatByte );
-	// �����_�Ԉ���
+	// 特徴点間引き
 	if ( eThinPs )	fprintf( fp, "%c\n", 't' );
-	// ���S�_���p
+	// 中心点利用
 	if ( eRmRedund )	fprintf( fp, "%c\n", 'r' );
-	// �ʐϔ������
+	// 面積比特徴量
 	if ( eUseArea )	fprintf( fp, "%c\n", 'a' );
 
 	fclose( fp );
 }
 
 int SaveQueryPointFile( char *fname, int num, cv::Point *ps, double *areas )
-// �T���v�����O��̓����_����ۑ�
+// サンプリング後の特徴点数を保存
 {
 	int i, ret;
 	char base[kMaxPathLen];
@@ -316,7 +316,7 @@ int SaveQueryPointFile( char *fname, int num, cv::Point *ps, double *areas )
 	sprintf( dat_fname, "%s%s.%s", eDataDir, base, "dat" );
 	//puts(dat_fname);
 
-	StartWriteBlock( dat_fname, kBlockSize );	// ���J�Ɍ����ĉ���
+	StartWriteBlock( dat_fname, kBlockSize );	// 公開に向けて改変
 
 	WriteBlock( (unsigned char *)&num, sizeof(int) );
 	for ( i = 0; i < num; i++ ) {

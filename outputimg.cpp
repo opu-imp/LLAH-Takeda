@@ -10,6 +10,7 @@
 
 
 int OutPutImage(cv::Mat img)
+// 画像をファイルに保存する．ファイル名は自動的に連番になる
 {
 	static int n = 0;
 	char filename[1024];
@@ -43,6 +44,7 @@ int GetPixU( cv::Mat &img, int x, int y, unsigned char *val )
 }
 
 cv::Mat MakeFeaturePointImage( cv::Mat orig, cv::Mat connected, cv::Point *ps, int num )
+// 特徴点画像の作成（入力画像はグレイスケール）
 {
 	int i, j, p, con_flag = 0;
 	cv::Mat fp_img, fp;
@@ -109,18 +111,22 @@ void DrawCor( cv::Point *ps, int num, cv::Size img_size, int res, cv::Point *cor
 	width_all = kDrawCorHMargin * 2 + kDrawCorSpace + img_size.width + (int)(corsize.width * kDrawCorScale);
 	height_all = kDrawCorVMargin * 2 + std::max( img_size.height, (int)(corsize.height * kDrawCorScale) );
 	cv::Mat img( cv::Size( width_all, height_all ), CV_8UC3 );
-	img.setTo( cWhite );
+	img.setTo( cWhite );	// 白で塗りつぶし
 
+	// 検索質問の枠を描画
 	cv::rectangle( img, cv::Point( kDrawCorHMargin, kDrawCorVMargin ), \
 		cv::Point( kDrawCorHMargin + img_size.width, kDrawCorVMargin + img_size.height ), \
 		cBlack, kDrawCorRectThick, cv::LINE_AA, 0 );
 	
+	// 検索質問の特徴点の描画
 	for ( i = 0; i < num; i++ ) {
 		cv::circle( img, cv::Point( kDrawCorHMargin + ps[i].x, kDrawCorVMargin + ps[i].y ), kDrawCorPtRad, cBlack, -1, cv::LINE_AA, 0 );
 	}
+	// 登録画像の枠を描画
 	cv::rectangle( img, cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace, kDrawCorVMargin), \
 		cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corsize.width * kDrawCorScale), kDrawCorVMargin + (int)(corsize.height * kDrawCorScale) ), \
 		cBlack, kDrawCorRectThick, cv::LINE_AA, 0 );
+	// 登録画像の特徴点の描画
 	for ( i = 0; i < cornum; i++ ) {
 		cv::circle( img, cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[i].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[i].y * kDrawCorScale) ), \
 		kDrawCorPtRad, cBlack, -1, cv::LINE_AA, 0 );

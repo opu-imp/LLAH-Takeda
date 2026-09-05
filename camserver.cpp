@@ -26,7 +26,7 @@
 using namespace cv;
 using namespace std;
 
-// �l�b�g���[�N
+// ネットワーク
 #ifdef	WIN32
 #include <winsock2.h>	// socket
 #include "ws_cl.h"
@@ -52,7 +52,7 @@ using namespace std;
 extern int **nears;
 
 void RetrieveUSBCamServer( void )
-	// USB�J�����T�[�o���[�h
+	// USBカメラサーバモード
 {
 	int num, res=0, ret, *score = NULL, *reg_nums=NULL/*, *thin_nums*/;
 	int pcornum=0;
@@ -69,32 +69,32 @@ void RetrieveUSBCamServer( void )
 	SOCKET sid1=0, sid2=0, sidpt=0, sidres=0;
 	struct sockaddr_in addr;
 
-	// �ݒ�t�@�C���̓ǂݍ���
+	// 設定ファイルの読み込み
 	LoadConfig();
-	// ���U���t�@�C���̓ǂݍ���
+	// 離散化ファイルの読み込み
 	LoadDisc( &disc );
-	// �n�b�V���̓ǂݍ���
+	// ハッシュの読み込み
 	LoadHashCompressToStorage( &hash );
-	// �����_�t�@�C���̓ǂݍ���
-	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// �T���v�����O�L��
-	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// �T���v�����O����
-	// �ߖT�\���ۑ��p�������m��
+	// 特徴点ファイルの読み込み
+	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// サンプリング有り
+	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// サンプリング無し
+	// 近傍構造保存用メモリ確保
 	SecureNears();
-	// ���[�e�[�u���m��
+	// 得票テーブル確保
 	score = (int *)calloc(eDbDocs, sizeof(int));
-	// �g�ݍ��킹�̍쐬
+	// 組み合わせの作成
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	if ( eRmRedund )	LoadRmRedund();	// �����I��L
-	// �l�b�g���[�N�֌W
+	if ( eRmRedund )	LoadRmRedund();	// 特徴選択有
+	// ネットワーク関係
 start_nego2:
 	puts("Ready");
 #ifdef WIN32
-	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, "192.168.42.129") ) < 0 )	exit(1);	// socket�̏�����
-	if ( ( sid1 = InitWinSockSvTCP( 12345 ) ) < 0 )	exit(1);	// socket�̏�����
-	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, eServerName) ) < 0 )	exit(1);	// socket�̏�����
+	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, "192.168.42.129") ) < 0 )	exit(1);	// socketの初期化
+	if ( ( sid1 = InitWinSockSvTCP( 12345 ) ) < 0 )	exit(1);	// socketの初期化
+	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, eServerName) ) < 0 )	exit(1);	// socketの初期化
 	if ( ( sid2 = AcceptWinSockSvTCP( sid1 ) ) < 0 )	exit(1);	// accept
 #else
-	if ( ( sid1 = InitSockSvTCP( eTCPPort, eServerName ) ) < 0 )	exit(1);	// socket�̏�����
+	if ( ( sid1 = InitSockSvTCP( eTCPPort, eServerName ) ) < 0 )	exit(1);	// socketの初期化
 	if ( ( sid2 = AcceptSockSvTCP( sid1 ) ) < 0 )	exit(1);	// accept
 #endif
 	cout << "connected " << endl;
@@ -112,50 +112,50 @@ start_nego2:
 	SendResultName( sid2, "reject" );
 
 	for ( ; ; ) {
-		num = RecvPointsAreas( sid2, &ps, &areas, &img_size );	// �����_�f�[�^����M
-		if ( num < 0 )	break;	// �ʐM���s
+		num = RecvPointsAreas( sid2, &ps, &areas, &img_size );	// 特徴点データを受信
+		if ( num < 0 )	break;	// 通信失敗
 
-		if ( num >= kMinPoints ) {	// �����_�����ŏ��l�ȏ�
-			MakeNearsFromCentresDiv( ps, num, &img_size, kDivX, kDivY, eGroup1Num );	// �ߖT�_�v�Z�i�����Łj
+		if ( num >= kMinPoints ) {	// 特徴点数が最小値以上
+			MakeNearsFromCentresDiv( ps, num, &img_size, kDivX, kDivY, eGroup1Num );	// 近傍点計算（分割版）
 			res = RetrieveCor( ps, areas, num, score, pcor, &pcornum, &disc, reg_nums, hash );
-			// �ŏ��Ή��_���ȏ�Ȃ�A�ˉe�ϊ��p�����[�^���v�Z
+			// 最小対応点数以上なら、射影変換パラメータを計算
 			if ( pcornum >= kMinPointsToCalcParam ) {
-				CalcProjParamTop( ps, reg_pss[res], pcor, pcornum, &param, PROJ_REVERSE, PARAM_RANSAC );	// �o�^�摜�ɏ㏑��
+				CalcProjParamTop( ps, reg_pss[res], pcor, pcornum, &param, PROJ_REVERSE, PARAM_RANSAC );	// 登録画像に上書き
 				CalcRotationAndTranslation(ps, reg_pss[res], pcor, pcornum, tranceParam1);
 			}
 			else	param = zero_param;
 
-			// �v�Z���Ԃ̕\��
+			// 計算時間の表示
 			//			OutPutResultSv( score, end-start, 0/*5*/, doc_name );
-			if ( score[res] > kTopThr ) {	// �g�b�v�̓��[����臒l�ȉ��i���W�F�N�g�j
+			if ( score[res] > kTopThr ) {	// トップの得票数が閾値以下（リジェクト）
 				GetBasename( dbcors[res], kMaxPathLen, doc_name );
 			}
 			else {
 				strcpy( doc_name, doc_reject );
-				param = zero_param;	// �������ʂ��Ȃ��̂Ƀp�����[�^����������Ă̂��ςȂ̂�
+				param = zero_param;	// 検索結果がないのにパラメータだけあるってのも変なので
 				pcornum=0;
 			}
 			puts( doc_name );
 		}
-		else {	// �����_�����ŏ��l�𖞂����Ȃ�
+		else {	// 特徴点数が最小値を満たさない
 			//puts("min");
 			strcpy( doc_name, doc_reject );
 			param = zero_param;
 			pcornum=0;
 		}
-		if ( strcmp( doc_name, doc_reject ) )	res_size = reg_sizes[res];	// ���������Ȃ炻�̃T�C�Y
-		else	res_size = reg_sizes[0];	// �����łȂ���΃f�[�^�x�[�X��0�Ԃ̃T�C�Y
+		if ( strcmp( doc_name, doc_reject ) )	res_size = reg_sizes[res];	// 検索成功ならそのサイズ
+		else	res_size = reg_sizes[0];	// そうでなければデータベースの0番のサイズ
 
 		//ret = SendResultParam( sid2, doc_name, kMaxDocNameLen, &param, &res_size, &addr, eProtocol );
 		//ret = SendResultParam3D( sid2, doc_name, kMaxDocNameLen, &param, tranceParam1, tranceParam2, &res_size, &addr, eProtocol );
 		SendResultName( sid2, doc_name );
 
 
-		if ( ps != NULL && num > 0 )	free( ps );	// ps�̉��
+		if ( ps != NULL && num > 0 )	free( ps );	// psの解放
 		if ( areas != NULL && num > 0 )	free( areas );
-		ClearNears( num );	// nears�̉��
+		ClearNears( num );	// nearsの解放
 	}
-	// �I������
+	// 終了処理
 	//free(score);
 
 #ifdef	WIN32
@@ -166,7 +166,7 @@ start_nego2:
 	CloseSock( sid1 );	// close
 #endif
 
-	goto start_nego2;	// �l�S�҂��܂Ŗ߂�
+	goto start_nego2;	// ネゴ待ちまで戻る
 }
 
 void CalcRotationAndTranslation( cv::Point *ps, cv::Point *reg_ps, int corres[][2], int cor_num, float *tranceParam )
@@ -210,6 +210,7 @@ void CalcRotationAndTranslation( cv::Point *ps, cv::Point *reg_ps, int corres[][
 	cv::Mat r1Mat(3, 1, CV_64F, _r1);
 	cv::Mat _Homograph(3, 3, CV_64F);
 
+	//3x3に変換
 	cv::Rodrigues(r1Mat, _Homograph);
 
 	//for ( int i = 0; i < 3; i++ ) {
@@ -269,19 +270,19 @@ double normalize ( Vec3f&  vec )
 
 void ExtractRAndTFromP2(strProjParam param, float *tranceParam)
 {
-	double data_H[3][3] = {{param.a1, param.b1, param.c1}, {param.a2, param.b2, param.c2}, {param.a3, param.b3, 1.0}};	// �z���O���t�B�s��
+	double data_H[3][3] = {{param.a1, param.b1, param.c1}, {param.a2, param.b2, param.c2}, {param.a3, param.b3, 1.0}};	// ホモグラフィ行列
 
-	// A[0][2]��A[1][2]��0.0�ɕύX���Ă݂Ă��������D
-	double data_A[3][3] = {{569.65435791, 0.0, 0.0}, {0.0, 568.74615479, 0.0}, {0.0, 0.0, 1.0}};		// �J���������p�����[�^
-	//double data_A[3][3] = {{2.51902783e+003, 0.0, 1.29164893e+003}, {0.0, 2.51729639e+003, 9.62208679e+002}, {0.0, 0.0, 1.0}};		// �J���������p�����[�^
-	//double data_A[3][3] = {{569.65435791, 0.0, 321.98031616}, {0.0, 568.74615479, 237.28897095}, {0.0, 0.0, 1.0}};		// �J���������p�����[�^
+	// A[0][2]とA[1][2]を0.0に変更してみてください．
+	double data_A[3][3] = {{569.65435791, 0.0, 0.0}, {0.0, 568.74615479, 0.0}, {0.0, 0.0, 1.0}};		// カメラ内部パラメータ
+	//double data_A[3][3] = {{2.51902783e+003, 0.0, 1.29164893e+003}, {0.0, 2.51729639e+003, 9.62208679e+002}, {0.0, 0.0, 1.0}};		// カメラ内部パラメータ
+	//double data_A[3][3] = {{569.65435791, 0.0, 321.98031616}, {0.0, 568.74615479, 237.28897095}, {0.0, 0.0, 1.0}};		// カメラ内部パラメータ
 	
 	data_A[0][2] = 0.0;
 	data_A[1][2] = 0.0;
 
 
-	Mat HL(3, 3, CV_64F, data_H);	// �z���O���t�B�s��
-	Mat A(3, 3, CV_64F, data_A);	// �J���������p�����[�^
+	Mat HL(3, 3, CV_64F, data_H);	// ホモグラフィ行列
+	Mat A(3, 3, CV_64F, data_A);	// カメラ内部パラメータ
 
 	Mat RT = A.inv() * HL;
 
@@ -358,9 +359,10 @@ void ExtractRAndTFromP2(strProjParam param, float *tranceParam)
 
 
 void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *tranceParam2)
-// �ˉe�ϊ��p�����[�^�����]�s��R�ƕ��i�s��T�𒊏o����
+// 射影変換パラメータから回転行列Rと併進行列Tを抽出する
 {
 	double data_A[] = {param.a1, param.b1, param.c1, param.a2, param.b2, param.c2, param.a3, param.b3, 1.0};
+	// ホモグラフィ行列
 	cv::Mat Hl(3, 3, CV_64F, data_A);
 	cv::Mat Hl_tenchi, HlHl;
 	cv::Mat eigenVec(3, 3, CV_64F), eigenVal(3, 1, CV_64F);
@@ -380,11 +382,13 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 
 	// Hl is already initialized from data_A
 
+	// ホモグラフィ行列の転置行列
 	Hl_tenchi = Hl.t();
 	HlHl = Hl_tenchi * Hl;
+	// HlHlの固有値分解
 	cv::eigen(HlHl, eigenVal, eigenVec);
 
-	// �s�񂩂�ŗL�x�N�g���̒��o
+	// 行列から固有ベクトルの抽出
 	for ( int i = 0; i < 3; i++ ) {
 		v1.at<double>(i, 0) = eigenVec.at<double>(i, 0);
 		v2.at<double>(i, 0) = eigenVec.at<double>(i, 1);
@@ -475,7 +479,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	//	puts("");
 	//}
 	//puts("");
-	// �^�̃z���O���t�B�s��iHl�̐��K���H�j
+	// 真のホモグラフィ行列（Hlの正規化？）
 	cv::addWeighted( Hl, 1.0/sqrt(sigma2), Hl, 0, 0, H);
 
 	cv::Mat H_tenchi, HH;
@@ -483,6 +487,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	HH = H_tenchi * H;
 	cv::eigen(HH, eigenVal, eigenVec);
 
+	// HlHlの固有値分解
 	printf("v2 : %lf\n", eigenVal.at<double>(1,0));
 
 	puts("H : ");
@@ -572,7 +577,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	puts("");
 	double dw = cv::determinant(W1);
 	printf("W1 : %lf\n", dw);
-	// �^�̃z���O���t�B�s��iHl�̐��K���H�j
+	// 真のホモグラフィ行列（Hlの正規化？）
 	cv::addWeighted( W1, 1.0/pow(dw, 1.0/3.0), W1, 0, 0, W1);
 	dw = cv::determinant(W1);
 	printf("W1 : %lf\n", dw);
@@ -586,6 +591,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	puts("");
 	double dw2 = cv::determinant(W2);
 	printf("W2 : %lf\n", dw2);
+	// 真のホモグラフィ行列（Hlの正規化？）
 	cv::addWeighted( W2, 1.0/dw2, W2, 0, 0, W2);
 	dw2 = cv::determinant(W2);
 	printf("W2 : %lf\n", dw2);
@@ -604,7 +610,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	//	puts("");
 	//}
 	//puts("");
-	// R1,T1�̒��o�iR,T��2�ł���j
+	// R1,T1の抽出（R,Tは2つできる）
 
 	U1tenchi = U1.t();
 	// R1 = W1U1
@@ -613,7 +619,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	T1tmp = H - R1;
 	T1 = T1tmp * v2u1;
 
-	// R2,T2�̒��o�iR,T��2�ł���j
+	// R2,T2の抽出（R,Tは2つできる）
 	U2tenchi = U2.t();
 	// R2 = W2U2
 	R2 = W2 * U2tenchi;
@@ -621,7 +627,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	T2tmp = H - R2;
 	T2 = T1tmp * v2u2;
 
-	// �z��Ɋi�[
+	// 配列に格納
 	for ( int i = 0; i < 3; i++ ) {
 		tranceParam1[0+4*i] = (float)R1.at<double>(0,i);
 		tranceParam1[1+4*i] = (float)R1.at<double>(1,i);
@@ -635,7 +641,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	tranceParam1[11] = 0.0;
 	tranceParam1[15] = 1.0;
 
-	// �z��Ɋi�[
+	// 配列に格納
 	for ( int i = 0; i < 3; i++ ) {
 		tranceParam2[0+4*i] = (float)R2.at<double>(0,i);
 		tranceParam2[1+4*i] = (float)R2.at<double>(1,i);
@@ -649,7 +655,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	tranceParam2[11] = 0.0;
 	tranceParam2[15] = 1.0;
 
-	////R,T�̕\��
+	////R,Tの表示
 	//puts("R1 :\t\t\t\t\t\tT1 :");
 	//for ( int i = 0; i < 3; i++ ) {
 	//	for ( int j = 0; j < 3; j++ ) {
@@ -660,7 +666,7 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	//puts("");
 
 
-	// H�̕���
+	// Hの復元
 	cv::Mat N1tenchi = v2u1.t();
 	cv::Mat _H = T1 * N1tenchi;
 	_H = R1 + _H;
@@ -683,17 +689,17 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 
 
 int RecvComSetting( SOCKET sid, int *ptc, int *pt_port, int *res_port, char *cl_name )
-	// �ʐM�ݒ����M
+	// 通信設定を受信
 {
 	int ret;
 
-	ret = recv( sid, (char *)ptc, sizeof(int), RECV_FLAG );	// �v���g�R��
+	ret = recv( sid, (char *)ptc, sizeof(int), RECV_FLAG );	// プロトコル
 	if ( ret <= 0 )	return -1;
-	ret = recv( sid, (char *)pt_port, sizeof(int), RECV_FLAG );	// �����_�|�[�g
+	ret = recv( sid, (char *)pt_port, sizeof(int), RECV_FLAG );	// 特徴点ポート
 	if ( ret <= 0 )	return -1;
-	ret = recv( sid, (char *)res_port, sizeof(int), RECV_FLAG );	// �������ʃ|�[�g
+	ret = recv( sid, (char *)res_port, sizeof(int), RECV_FLAG );	// 検索結果ポート
 	if ( ret <= 0 )	return -1;
-	ret = recv( sid, cl_name, kMaxNameLen, RECV_FLAG );	// �N���C�A���g��
+	ret = recv( sid, cl_name, kMaxNameLen, RECV_FLAG );	// クライアント名
 	if ( ret <= 0 )	return -1;
 
 	return 1;
@@ -705,7 +711,7 @@ void SendResultName( SOCKET sock, char *result_name )
 }
 
 int SendResultParam( SOCKET sid, char *doc_name, int len, strProjParam *param, cv::Size *img_size, struct sockaddr_in *addr, int ptc )
-	// �������Ǝˉe�ϊ��p�����[�^�𑗐M
+	// 文書名と射影変換パラメータを送信
 {
 	int ret;
 	char buff[kSendBuffSize];
@@ -720,7 +726,7 @@ int SendResultParam( SOCKET sid, char *doc_name, int len, strProjParam *param, c
 }
 
 int SendResultParam3D( SOCKET sid, char *doc_name, int len, strProjParam *param, float *tranceParam1, float *tranceParam2, cv::Size *img_size, struct sockaddr_in *addr, int ptc )
-	// �������Ǝˉe�ϊ��p�����[�^�𑗐M
+	// 文書名と射影変換パラメータを送信
 {
 	int ret;
 	char buff[kSendBuffSize3D];
@@ -736,7 +742,7 @@ int SendResultParam3D( SOCKET sid, char *doc_name, int len, strProjParam *param,
 }
 
 int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, cv::Size size, int pcor[][2], int pcornum, cv::Point *ps, cv::Point *psall, struct sockaddr_in *addr, int ptc )
-	// �������ƑΉ��_�𑗐M
+	// 文書名と対応点を送信
 {
 	int i, buff_cur=0, ret;
 	char buff[kSendBuffSizeCor];
@@ -770,7 +776,7 @@ int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, cv:
 }
 
 int RecvPointsAreas( SOCKET sid, cv::Point **ps0, double **areas0, cv::Size *size )
-	// �_�f�[�^����M
+	// 点データを受信
 {
 	int i, num = 0, ret=0, buff_cur, total=0;
 	char buff[kRecvBuffSizeAreas];
@@ -784,17 +790,18 @@ int RecvPointsAreas( SOCKET sid, cv::Point **ps0, double **areas0, cv::Size *siz
 		total += ret;
 	}
 	if ( ret <= 0 )	return -1;
+	// バッファから画像サイズを得る
 	for ( i = 0, buff_cur = 0; i < (int)sizeof(cv::Size); i++, buff_cur++ ) {
 		((char *)size)[i] = buff[buff_cur];
 	}
 	//printf("%d\n",sizeof(CvSize));
 	//printf("Mat size: %d, %d\n", (*size).width, (*size).height);
-	// �o�b�t�@��������_���𓾂�
+	// バッファから特徴点数を得る
 	for ( i = 0; i < (int)sizeof(int); i++, buff_cur++ ) {
 		((char *)&num)[i] = buff[buff_cur];
 	}
 	//printf("Point Num: %d\n", num);
-	// �����_����1�ȏ�Ȃ烁�������m��
+	// 特徴点数が1以上ならメモリを確保
 	if ( num > 0 )	{
 		ps = (cv::Point *)calloc( num, sizeof(cv::Point) );
 		areas = (double *)calloc( num, sizeof(double) );
@@ -805,13 +812,13 @@ int RecvPointsAreas( SOCKET sid, cv::Point **ps0, double **areas0, cv::Size *siz
 	}
 	*ps0 = ps;
 	*areas0 = areas;
-	// �o�b�t�@��������_�f�[�^�𓾂�
+	// バッファから特徴点データを得る
 	for ( i = 0; i < (int)(sizeof(cv::Point) * num); i++, buff_cur++ ) {
 		((char *)ps)[i] = buff[buff_cur];
 	}
 	//for ( i = 0; i < num; i++ )	printf("Point: %d, %d\n", ps[i].x, ps[i].y);
 
-	// �o�b�t�@����ʐσf�[�^�𓾂�
+	// バッファから面積データを得る
 	buff_cur = sizeof(cv::Size) + sizeof(int) + sizeof(cv::Point) * kMaxPointNum;
 	for ( i = 0; i < (int)(sizeof(unsigned short) * num); i++, buff_cur++ ) {
 		((char *)areas_us)[i] = buff[buff_cur];
@@ -826,21 +833,21 @@ int RecvPointsAreas( SOCKET sid, cv::Point **ps0, double **areas0, cv::Size *siz
 
 
 int RecvFlag( SOCKET sid )
-	// �J�n�t���O������M
+	// 開始フラグをを受信
 {
 	int i, num = 0, ret, buff_cur;
 	char buff[kRecvBuffSizeAreas];
 
-	// �o�b�t�@�Ɏ�M
+	// バッファに受信
 	ret = recv( sid, buff, 5, RECV_FLAG );
 
-	if ( ret <= 0 )	return -1;	// ��M���s
+	if ( ret <= 0 )	return -1;	// 受信失敗
 	printf("Android LLAH %s!\n", buff);
 	return ret;
 }
 
 int SendDoc( SOCKET sid, char *doc_name, struct sockaddr_in *addr, int ptc )
-	// �������Ǝˉe�ϊ��p�����[�^�𑗐M
+	// 文書名と射影変換パラメータを送信
 {
 	int ret, length=0, buff_cur=0;
 	char buff[20]="";

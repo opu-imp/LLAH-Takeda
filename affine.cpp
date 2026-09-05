@@ -24,13 +24,13 @@
 extern int **nears;
 
 long double GetPointsAngle(cv::Point p1, cv::Point p2)
-// p1���猩��p2�̊p�x���v�Z����i��-3.14�����3.14�j
+// p1から見たp2の角度を計算する（約-3.14から約3.14）
 {
 	return atan2((double)(p2.y-p1.y), (double)(p2.x-p1.x));
 }
 
 void CalcOrderCWN( int pt, cv::Point *ps, int idx[], int num )
-// ���v���ɋߖT�_��z��ɓ����i���_�o�[�W�����j
+// 時計回りに近傍点を配列に入れる（ｎ点バージョン）
 {
 	int i, j, tmp_i;
 	double *angs, tmp_a;
@@ -57,14 +57,14 @@ void CalcOrderCWN( int pt, cv::Point *ps, int idx[], int num )
 }
 
 int FindStartPoint( char *inv_array, int st_num )
-// �J�n�_��������
+// 開始点を見つける
 {
 	int i, j, min;
 
 	for ( i = 1, min = 0; i < st_num; i++ ) {
-		// �܂�inv_array[min]��inv_array[i]���r���C
-		// ����inv_array[min+1]��inv_array[i+1]�Ƃ����悤�ɏ��ɔ�r���ď������ق���min�Ƃ���D
-		// �܂�Ԃ��̂���eGroup2Num��mod�����
+		// まずinv_array[min]とinv_array[i]を比較し，
+		// 次にinv_array[min+1]とinv_array[i+1]というように順に比較して小さいほうをminとする．
+		// 折り返しのためeGroup2Numでmodを取る
 		for ( j = 0; j < st_num; j++ ) {
 			if ( inv_array[(min+j)%st_num] < inv_array[(i+j)%st_num] ) {
 				break;
@@ -78,13 +78,13 @@ int FindStartPoint( char *inv_array, int st_num )
 }
 
 double CalcArea( cv::Point p1, cv::Point p2, cv::Point p3 )
-// �w�肳�ꂽ3�_�ň͂܂ꂽ�O�p�`�̖ʐς��v�Z����
+// 指定された3点で囲まれた三角形の面積を計算する
 {
 	return fabs((double)((p1.x-p3.x)*(p2.y-p3.y)-(p1.y-p3.y)*(p2.x-p3.x))) / (double)2.0L;
 }
 
 double CalcAffineInv( cv::Point p1, cv::Point p2, cv::Point p3, cv::Point p4 )
-// ���ʏ��4�_�ŃA�t�B���ϊ��̕s�ϗʂ��v�Z����
+// 平面上の4点でアフィン変換の不変量を計算する
 {
 	double s;
 	if ( (s = CalcArea(p1, p2, p3)) < 0.0001 )	s = 0.0001;
@@ -92,8 +92,8 @@ double CalcAffineInv( cv::Point p1, cv::Point p2, cv::Point p3, cv::Point p4 )
 }
 
 void CalcHindexAreaRatio( int *idxcom1, double *areas, char *hindex_area )
-// �ʐς���C���f�b�N�X���v�Z
-// �ʐϔ�̏��ʃo�[�W����
+// 面積からインデックスを計算
+// 面積比の順位バージョン
 // 
 {
 	int i, j;
@@ -133,17 +133,17 @@ void CalcHindexAreaRatio( int *idxcom1, double *areas, char *hindex_area )
 
 
 void CalcAffineAndAddHist( cv::Point *ps, int num, strHist *hist )
-// �A�t�B���s�ϗʂ��v�Z���ăq�X�g�O�����ɓ����
+// アフィン不変量を計算してヒストグラムに入れる
 /****************************************************************/
-/*	���������x�N�g�����v�Z����̂́C�����_�̉B��ɑΉ����邽��	*/
-/*  ���S�_�͉B��Ȃ��̂ŁC���S�_���܂܂Ȃ��g�����͕K�v�Ȃ��H	*/
+/*	複数特徴ベクトルを計算するのは，特徴点の隠れに対応するため	*/
+/*  中心点は隠れないので，中心点を含まない組合せは必要ない？	*/
 /****************************************************************/
 {
 	int i, j, k, l, st, tmp, vec_num, st_num;
 	int *idx, *idxcom1, *idxcom2;
 	double cr;
 
-	// �z��̊m��
+	// 配列の確保
 	idx		= (int *)calloc( eGroup1Num, sizeof(int) );
 	idxcom1	= (int *)calloc( eGroup2Num, sizeof(int) );
 	idxcom2	= (int *)calloc( eGroup3Num, sizeof(int) );
@@ -151,21 +151,21 @@ void CalcAffineAndAddHist( cv::Point *ps, int num, strHist *hist )
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	for ( i = 0; i < num; i++ ) {	// �S�Ă̓����_�ɂ���
-		// �ߖT�_�����v���ɐ���
+	for ( i = 0; i < num; i++ ) {	// 全ての特徴点について
+		// 近傍点を時計回りに整列
 		CalcOrderCWN( i, ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ ) {	// nCm-1
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m�_�̒��o
-			for ( st = 0; st < st_num; st++ ) {	// �J�n�_
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m点の抽出
+			for ( st = 0; st < st_num; st++ ) {	// 開始点
 				for ( k = 0; k < eNumCom2; k++ ) {	// mC4
 					for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 					cr = CalcAffineInv( ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
-					// �q�X�g�O�����ɒǉ�
+					// ヒストグラムに追加
 					if (eTrueHist)	Add2Hist2( hist, cr );
 					else			Add2Hist( hist, cr );
 				}
 
-				// ��]
+				// 回転
 				tmp = idxcom1[1];
 				for ( k = 1; k < st_num; k++ )	idxcom1[k] = idxcom1[k+1];
 				idxcom1[st_num] = tmp;
@@ -173,15 +173,15 @@ void CalcAffineAndAddHist( cv::Point *ps, int num, strHist *hist )
 		}
 	}
 
-	// ���
+	// 解放
 	free( idx );
 	free( idxcom1 );
 	free( idxcom2 );
 }
 
 void CalcAffineRotateOnceAndAddHash( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, int *pids, int *collision )
-// �A�t�B���s�ϗʌv�Z
-// �Փˉ񐔃J�E���g
+// アフィン不変量計算
+// 衝突回数カウント
 {
 	char *hindex = NULL, *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -193,7 +193,7 @@ void CalcAffineRotateOnceAndAddHash( cv::Point *ps, double *areas, int n, int nu
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// �z��̊m��
+	// 配列の確保
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -208,29 +208,29 @@ void CalcAffineRotateOnceAndAddHash( cv::Point *ps, double *areas, int n, int nu
 	//}
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// �ߖT�_�����v���ɐ���
+		// 近傍点を時計回りに整列
 		CalcOrderCWN( pids[i], ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ )	{	// nCm
 		//for ( j = 0; j < 2; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m�_�̒��o
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m点の抽出
 
-			/************** �J�n�_�̒T�� **************************************************/
-			// �s�ϗʂ̌v�Z
+			/************** 開始点の探索 **************************************************/
+			// 不変量の計算
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
-				//fprintf( fp, "%lf\n", cr );	// ���摜�t�@�C�����̏o��
+				//fprintf( fp, "%lf\n", cr );	// 元画像ファイル名の出力
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// �s�ϗʂ���J�n�_��������
+			// 不変量から開始点を見つける
 			st = FindStartPoint( inv_array, st_num );
-			// st���J�n�_�Ƃ��ĉ�]������
+			// stを開始点として回転させる
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** �T���̏I�� ****************************************************/
+			/************** 探索の終了 ****************************************************/
 
-			// �A�t�B���s�ϗʂ𗣎U��
+			// アフィン不変量を離散化
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				cr = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
@@ -239,8 +239,8 @@ void CalcAffineRotateOnceAndAddHash( cv::Point *ps, double *areas, int n, int nu
 				//printf("%d ", hindex[k]);
 			}
 			//puts("");
-			// �n�b�V���\�̃C���f�b�N�X���v�Z
-			if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+			// ハッシュ表のインデックスを計算
+			if ( eUseArea ) {	// 面積特徴量追加
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				index = HashFuncArea( hindex, hindex_area, disc->num, &quotient );
 			}
@@ -265,8 +265,8 @@ void CalcAffineRotateOnceAndAddHash( cv::Point *ps, double *areas, int n, int nu
 }
 
 void AdditionalAffineToHash( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, int *pids, int *collision )
-// �A�t�B���s�ϗʌv�Z
-// �Փˉ񐔃J�E���g
+// アフィン不変量計算
+// 衝突回数カウント
 {
 	char *hindex = NULL, *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -278,7 +278,7 @@ void AdditionalAffineToHash( cv::Point *ps, double *areas, int n, int num, strDi
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// �z��̊m��
+	// 配列の確保
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -293,29 +293,29 @@ void AdditionalAffineToHash( cv::Point *ps, double *areas, int n, int num, strDi
 	//}
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// �ߖT�_�����v���ɐ���
+		// 近傍点を時計回りに整列
 		CalcOrderCWN( pids[i], ps, idx, eGroup1Num );
 		//for ( j = 0; j < vec_num; j++ )	{	// nCm
 		for ( j = 0; j < 2; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m�_�̒��o
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m点の抽出
 
-			/************** �J�n�_�̒T�� **************************************************/
-			// �s�ϗʂ̌v�Z
+			/************** 開始点の探索 **************************************************/
+			// 不変量の計算
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
-				//fprintf( fp, "%lf\n", cr );	// ���摜�t�@�C�����̏o��
+				//fprintf( fp, "%lf\n", cr );	// 元画像ファイル名の出力
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// �s�ϗʂ���J�n�_��������
+			// 不変量から開始点を見つける
 			st = FindStartPoint( inv_array, st_num );
-			// st���J�n�_�Ƃ��ĉ�]������
+			// stを開始点として回転させる
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** �T���̏I�� ****************************************************/
+			/************** 探索の終了 ****************************************************/
 
-			// �A�t�B���s�ϗʂ𗣎U��
+			// アフィン不変量を離散化
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				cr = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
@@ -324,8 +324,8 @@ void AdditionalAffineToHash( cv::Point *ps, double *areas, int n, int num, strDi
 				//printf("%d ", hindex[k]);
 			}
 			//puts("");
-			// �n�b�V���\�̃C���f�b�N�X���v�Z
-			if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+			// ハッシュ表のインデックスを計算
+			if ( eUseArea ) {	// 面積特徴量追加
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				index = HashFuncArea( hindex, hindex_area, disc->num, &quotient );
 			}
@@ -349,8 +349,8 @@ void AdditionalAffineToHash( cv::Point *ps, double *areas, int n, int num, strDi
 }
 
 void CalcAffineRotateOnce( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, double ***features, char ***area_features )
-// �A�t�B���s�ϗʌv�Z
-// �Փˉ񐔃J�E���g
+// アフィン不変量計算
+// 衝突回数カウント
 {
 	char *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -360,7 +360,7 @@ void CalcAffineRotateOnce( cv::Point *ps, double *areas, int n, int num, strDisc
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// �z��̊m��
+	// 配列の確保
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -369,34 +369,34 @@ void CalcAffineRotateOnce( cv::Point *ps, double *areas, int n, int num, strDisc
 	inv_array = ( char * )calloc( st_num, sizeof(char) );
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// �ߖT�_�����v���ɐ���
+		// 近傍点を時計回りに整列
 		CalcOrderCWN( i, ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m�_�̒��o
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m点の抽出
 
-			/************** �J�n�_�̒T�� **************************************************/
-			// �s�ϗʂ̌v�Z
+			/************** 開始点の探索 **************************************************/
+			// 不変量の計算
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// �s�ϗʂ���J�n�_��������
+			// 不変量から開始点を見つける
 			st = FindStartPoint( inv_array, st_num );
-			// st���J�n�_�Ƃ��ĉ�]������
+			// stを開始点として回転させる
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** �T���̏I�� ****************************************************/
+			/************** 探索の終了 ****************************************************/
 
-			// �A�t�B���s�ϗ�
+			// アフィン不変量
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				features[i][j][k] = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
 				//if ( features[i][j][k] > 10.0 )	features[i][j][k] = 10.0;
 			}
-			// �ʐϓ����ʌv�Z
-			if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+			// 面積特徴量計算
+			if ( eUseArea ) {	// 面積特徴量追加
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				memcpy(area_features[i][j], hindex_area, eGroup2Num);
 			}
@@ -413,8 +413,8 @@ void CalcAffineRotateOnce( cv::Point *ps, double *areas, int n, int num, strDisc
 
 
 void CalcAffineRotateOnce2( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, double ***features, char ***area_features, int *pids )
-// �A�t�B���s�ϗʌv�Z
-// �Փˉ񐔃J�E���g
+// アフィン不変量計算
+// 衝突回数カウント
 {
 	char *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -424,7 +424,7 @@ void CalcAffineRotateOnce2( cv::Point *ps, double *areas, int n, int num, strDis
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// �z��̊m��
+	// 配列の確保
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -433,34 +433,34 @@ void CalcAffineRotateOnce2( cv::Point *ps, double *areas, int n, int num, strDis
 	inv_array = ( char * )calloc( st_num, sizeof(char) );
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// �ߖT�_�����v���ɐ���
+		// 近傍点を時計回りに整列
 		CalcOrderCWN( pids[i], ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m�_�̒��o
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m点の抽出
 
-			/************** �J�n�_�̒T�� **************************************************/
-			// �s�ϗʂ̌v�Z
+			/************** 開始点の探索 **************************************************/
+			// 不変量の計算
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// �s�ϗʂ���J�n�_��������
+			// 不変量から開始点を見つける
 			st = FindStartPoint( inv_array, st_num );
-			// st���J�n�_�Ƃ��ĉ�]������
+			// stを開始点として回転させる
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** �T���̏I�� ****************************************************/
+			/************** 探索の終了 ****************************************************/
 
-			// �A�t�B���s�ϗ�
+			// アフィン不変量
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				features[i][j][k] = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
 				//if ( features[i][j][k] > 10.0 )	features[i][j][k] = 10.0;
 			}
-			// �ʐϓ����ʌv�Z
-			if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+			// 面積特徴量計算
+			if ( eUseArea ) {	// 面積特徴量追加
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				memcpy(area_features[i][j], hindex_area, eGroup2Num);
 			}
@@ -478,11 +478,11 @@ void CalcAffineRotateOnce2( cv::Point *ps, double *areas, int n, int num, strDis
 double CalcFeatureScore(double feature, double *border, strDisc *disc)
 {
 	double x=0.0;
-	if ( feature < border[0] ) {					// ���U���̈悪���[�̏ꍇ
+	if ( feature < border[0] ) {					// 離散化領域が左端の場合
 		if ( feature < border[0]/2.0 )	x = 0.0;
 		else										x = (feature / border[0] * 2 - 1.0) * 3.0;
 	}
-	else if ( feature > border[disc->num-2] ) {		// ���U���̈悪�E�[�̏ꍇ
+	else if ( feature > border[disc->num-2] ) {		// 離散化領域が右端の場合
 		if ( feature > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 		else	x = ((feature - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 	} else {
@@ -506,24 +506,24 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	//IplImage *img;
 	//img = cvLoadImage("/home/takeda/code/llahdoc/0606/test/cvpr01p1010.jpg", 1);
 	//img = cvCreateImage( cvSize(1700,2200), IPL_DEPTH_8U, 3 );
-	//cvSet( img, cWhite, NULL );	// ���œh��Ԃ�
+	//cvSet( img, cWhite, NULL );	// 白で塗りつぶす
 
-	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// ���U���e�[�u����臒lID
-	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 臒lID�ɂ�����s�ϗʒl
+	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// 離散化テーブルの閾値ID
+	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 閾値IDにおける不変量値
 
-	// ���U���e�[�u����臒l�C���f�b�N�X�̎擾
+	// 離散化テーブルの閾値インデックスの取得
 	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 		if( disc->dat[i] != j ) {
 			bindex[j] = i;
 			j++;
 		}
 	}
-	// 臒l�C���f�b�N�X�̃A�t�B���s�ϗʂ��Z�o
+	// 閾値インデックスのアフィン不変量を算出
 	for ( int i = 0; i < disc->num-1; i++ ) {
 		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 	}
 
-	// �����ʂ̊e�����̓��_�z��
+	// 特徴量の各次元の得点配列
 	double ***f_score = (double ***)calloc(p_num, sizeof(double **));
 	for ( int i = 0; i < p_num; i++ ) {
 		f_score[i] = (double **)calloc(eNumCom1-1, sizeof(double *));
@@ -532,16 +532,16 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 		}
 	}
 
-	// �����ʂ̍폜�t���O
+	// 特徴量の削除フラグ
 	char **f_flag = (char **)calloc(p_num, sizeof(char *));
 	for ( int i = 0; i < p_num; i++ ) {
 		f_flag[i] = (char *)calloc(eNumCom1-1, sizeof(char));
 	}
 	int f_num=p_num*(eNumCom1-1);
-	// �����ʂ̓��_�v�Z
-	for ( int i = 0; i < p_num; i++ ) {				// �e�����_
-		for ( int j = 0; j < eNumCom1-1; j++ ) {	// �����_���Ƃ̓�����
-			for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
+	// 特徴量の得点計算
+	for ( int i = 0; i < p_num; i++ ) {				// 各特徴点
+		for ( int j = 0; j < eNumCom1-1; j++ ) {	// 特徴点ごとの特徴量
+			for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
 				f_score[i][j][k] = CalcFeatureScore( features[i][j][k], border, disc );
 				if ( features[i][j][k] > 100.0 || features[i][j][k] < 0.001 ) {
 					f_flag[i][j] = 1;
@@ -553,8 +553,8 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	}
 	//int flag = 0;
 	//int size = eNumCom2*sizeof(double);
-	//for ( int i = 0; i < p_num-1; i++ ) {				// �e�����_
-	//	for ( int j = 0; j < eNumCom1-2; j++ ) {	// �����_���Ƃ̓�����
+	//for ( int i = 0; i < p_num-1; i++ ) {				// 各特徴点
+	//	for ( int j = 0; j < eNumCom1-2; j++ ) {	// 特徴点ごとの特徴量
 	//		flag = 0;
 	//		for ( int k = i+1; k < p_num; k++ ) {
 	//			for ( int l = j+1; l < eNumCom1-1; l++ ) {
@@ -580,10 +580,10 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	double rate = 0.01;
 	while ( 1 ) {
 		f_num = f_num_bak;
-		for ( int i = 0; i < p_num; i++ ) {				// �e�����_
-			for ( int j = 0; j < eNumCom1-1; j++ ) {	// �����_���Ƃ̓�����
+		for ( int i = 0; i < p_num; i++ ) {				// 各特徴点
+			for ( int j = 0; j < eNumCom1-1; j++ ) {	// 特徴点ごとの特徴量
 				if ( f_flag[i][j] == 0 ) {
-					for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
+					for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
 						if ( f_score[i][j][k] < threshold ) {
 							f_num--;
 							break;
@@ -604,10 +604,10 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 		threshold += rate;
 	}
 
-	for ( int i = 0; i < p_num; i++ ) {				// �e�����_
-		for ( int j = 0; j < eNumCom1-1; j++ ) {	// �����_���Ƃ̓�����
+	for ( int i = 0; i < p_num; i++ ) {				// 各特徴点
+		for ( int j = 0; j < eNumCom1-1; j++ ) {	// 特徴点ごとの特徴量
 			if ( f_flag[i][j] == 0 ) {
-				for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
+				for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
 					if ( f_score[i][j][k] < threshold ) {
 						f_flag[i][j] = 1;
 						break;
@@ -618,15 +618,15 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	}
 
 	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
-	for ( int i = 0; i < p_num; i++ ) {				// �e�����_
-		for ( int j = 0; j < eNumCom1-1; j++ ) {	// �����_���Ƃ̓�����
+	for ( int i = 0; i < p_num; i++ ) {				// 各特徴点
+		for ( int j = 0; j < eNumCom1-1; j++ ) {	// 特徴点ごとの特徴量
 			if ( f_flag[i][j] == 0 ) {
 				//cvCircle( img, ps[i], 12, cRed, CV_FILLED, CV_AA, 0 );
-				for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
+				for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
 					if (eTrueHist)	hindex[k] = Affine2Disc2( features[i][j][k], disc );
 					else			hindex[k] = Affine2Disc( features[i][j][k], disc );
 				}
-				// �n�b�V���\�̃C���f�b�N�X���v�Z
+				// ハッシュ表のインデックスを計算
 				if ( eUseArea )	index = HashFuncArea( hindex, area_features[i][j], disc->num, &quotient );
 				else			index = HashFunc( hindex, disc->num, &quotient );
 			//printf("%llu, %u\n", index, quotient);
@@ -640,7 +640,7 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	//OutPutImage(img);
 
 	//cvReleaseImage( &img );
-	// ���������
+	// メモリ解放
 	for ( int i = 0; i < p_num; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(f_score[i][j]);
@@ -650,8 +650,8 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	}
 	free(f_score);
 	free(f_flag);
-	free( bindex );	// �����ʂ̓��_
-	free( border );	// �����ʂ̓��_
+	free( bindex );	// 特徴量の得点
+	free( border );	// 特徴量の得点
 	free( hindex );
 }
 
@@ -662,11 +662,11 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	unsigned int index;
 //	unsigned char quotient;
 //
-//	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// �����ʂ̓��_
-//	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// �����ʂ̓����_ID
-//	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// �����ʂ̓����_ID
-//	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// ���U���e�[�u����臒lID
-//	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 臒lID�ɂ�����s�ϗʒl
+//	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// 特徴量の得点
+//	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// 特徴量の特徴点ID
+//	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// 特徴量の特徴点ID
+//	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// 離散化テーブルの閾値ID
+//	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 閾値IDにおける不変量値
 //	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
 //
 //	//for ( int i = 0; i < p_num; i++ ) {
@@ -682,14 +682,14 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	//}
 //
 //
-//	// ���U���e�[�u����臒l�C���f�b�N�X�̎擾
+//	// 離散化テーブルの閾値インデックスの取得
 //	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 //		if( disc->dat[i] != j ) {
 //			bindex[j] = i;
 //			j++;
 //		}
 //	}
-//	// 臒l�C���f�b�N�X�̃A�t�B���s�ϗʂ��Z�o
+//	// 閾値インデックスのアフィン不変量を算出
 //	for ( int i = 0; i < disc->num-1; i++ ) {
 //		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 //	}
@@ -697,18 +697,18 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	int all = 0;
 //	int flag = 0;
 //	double fxt = 0.0;
-//	// �����ʂ̓��_�v�Z
-//	for ( int i = 0; i < p_num; i++ ) {	// �e�����_
-//		for ( int j = 0; j < eNumCom1-1; j++ ) { // �����_���Ƃ̓�����
+//	// 特徴量の得点計算
+//	for ( int i = 0; i < p_num; i++ ) {	// 各特徴点
+//		for ( int j = 0; j < eNumCom1-1; j++ ) { // 特徴点ごとの特徴量
 //			//printf("%d: %d: ", i, j);
 //			flag = 0;
 //			fx[n] = 0.0;
-//			for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
-//				if ( features[i][j][k] < border[0] ) {					// ���U���̈悪���[�̏ꍇ
+//			for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
+//				if ( features[i][j][k] < border[0] ) {					// 離散化領域が左端の場合
 //					if ( features[i][j][k] < border[0]/2.0 )	x = 0.0;
 //					else										x = (features[i][j][k] / border[0] * 2 - 1.0) * 3.0;
 //				}
-//				else if ( features[i][j][k] > border[disc->num-2] ) {	// ���U���̈悪�E�[�̏ꍇ
+//				else if ( features[i][j][k] > border[disc->num-2] ) {	// 離散化領域が右端の場合
 //					if ( features[i][j][k] > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 //					else	x = ((features[i][j][k] - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 //				} else {
@@ -720,38 +720,38 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //					}
 //				}
 //
-//				// f(x)�̌v�Z
+//				// f(x)の計算
 //				fxt = exp((double)(-x*x/2));
 //				//printf("%9.6lf ", fxt);
 //				if ( fxt < 0.02 ) {
 //					flag = 1;
 //				}
-//				// �e������f(x)�����Z
+//				// 各次元のf(x)を合算
 //				fx[n] += fxt;
 //				//printf("%9.6lf ", fxt);
 //			}
 //			//puts("");
 //			if ( flag == 0 ) {
 //				//puts("no flag");
-//				f_id[n] = j;	// ������ID�ۑ�
-//				p_id[n] = i;	// �����_ID�ۑ�
+//				f_id[n] = j;	// 特徴量ID保存
+//				p_id[n] = i;	// 特徴点ID保存
 //				//printf("%3d: %2d: %09.6lf\n", p_id[n], f_id[n], fx[n]);
 //				n++;
 //			}
 //		}
 //	}
 //
-//	// �摜�𕪊����C�e�̈�ŕۑ������ʐ���ς���
+//	// 画像を分割し，各領域で保存特徴量数を変える
 //	for ( int i = 0; i < tx; i++ ) {
 //		for ( int j = 0; j < ty; j++ ) {
-//			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// �����ʂ̓��_
-//			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// �����_ID
-//			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// �����_���̓�����ID
+//			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// 特徴量の得点
+//			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// 特徴点ID
+//			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// 特徴点内の特徴量ID
 //			int m=0;
-//			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// �̈� (i,j)��
-//				int id = div_ps[i][j][k];					// k�Ԗڂ̓_ID�ɑ΂���
-//				for ( int l = 0; l < n; l++ ) {				// �폜���ꂸ�Ɏc���������ʂ̒���
-//					if ( id == p_id[l] ) {					// �_ID����v������̂������
+//			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// 領域 (i,j)の
+//				int id = div_ps[i][j][k];					// k番目の点IDに対して
+//				for ( int l = 0; l < n; l++ ) {				// 削除されずに残った特徴量の中に
+//					if ( id == p_id[l] ) {					// 点IDが一致するものがあれば
 //						div_pid[m] = p_id[l];
 //						div_fid[m] = f_id[l];
 //						div_fx[m] = fx[l];
@@ -765,8 +765,8 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //			int tid;
 //			for (int k = 0; k < m - 1; k++) {
 //				for (int l = m - 1; l > k; l--) {
-//					if (div_fx[l - 1] < div_fx[l]) {  /* �O�̗v�f�̕����傫�������� */
-//						temp = div_fx[l];        /* �������� */
+//					if (div_fx[l - 1] < div_fx[l]) {  /* 前の要素の方が大きかったら */
+//						temp = div_fx[l];        /* 交換する */
 //						div_fx[l] = div_fx[l - 1];
 //						div_fx[l - 1]= temp;
 //
@@ -785,14 +785,14 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //			int f_num = std::min(m,(int)((double)div_pnum[i][j]/(double)p_num*400.0));
 //			//printf("%d\n", f_num);
 //
-//			for ( int k = 0; k < f_num; k++ ) {	// �e�����_
+//			for ( int k = 0; k < f_num; k++ ) {	// 各特徴点
 //
 //				for ( int l = 0; l < eNumCom2; l++ ) {
 //					if (eTrueHist)	hindex[l] = Affine2Disc2( features[div_pid[k]][div_fid[k]][l], disc );
 //					else			hindex[l] = Affine2Disc( features[div_pid[k]][div_fid[k]][l], disc );
 //				}
-//				// �n�b�V���\�̃C���f�b�N�X���v�Z
-//				if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+//				// ハッシュ表のインデックスを計算
+//				if ( eUseArea ) {	// 面積特徴量追加
 //					index = HashFuncArea( hindex, area_features[div_pid[k]][div_fid[k]], disc->num, &quotient );
 //				}
 //				else {
@@ -810,13 +810,13 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	}
 //
 //
-//	//// ���_�ɂ������ʂ̃\�[�g
+//	//// 得点による特徴量のソート
 //	//double temp;
 //	//int tid;
 //	//for (int i = 0; i < n - 1; i++) {
 //	//	for (int j = n - 1; j > i; j--) {
-//	//		if (fx[j - 1] < fx[j]) {  /* �O�̗v�f�̕����傫�������� */
-//	//			temp = fx[j];        /* �������� */
+//	//		if (fx[j - 1] < fx[j]) {  /* 前の要素の方が大きかったら */
+//	//			temp = fx[j];        /* 交換する */
 //	//			fx[j] = fx[j - 1];
 //	//			fx[j - 1]= temp;
 //
@@ -838,12 +838,12 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	//printf("%d\n", n);
 //	//int f_num = std::min(n,400);
 //
-//	//for ( int i = 0; i < f_num; i++ ) {	// �e�����_
+//	//for ( int i = 0; i < f_num; i++ ) {	// 各特徴点
 //	//	for ( int j = 0; j < eNumCom2; j++ ) {
 //	//		hindex[j] = Affine2Disc( features[p_id[i]][f_id[i]][j], disc );
 //	//	}
-//	//	// �n�b�V���\�̃C���f�b�N�X���v�Z
-//	//	if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+//	//	// ハッシュ表のインデックスを計算
+//	//	if ( eUseArea ) {	// 面積特徴量追加
 //	//		index = HashFuncArea( hindex, area_features[p_id[i]][f_id[i]], disc->num, &quotient );
 //	//	}
 //	//	else {
@@ -854,10 +854,10 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	//	else 					AddHash( index, doc_id, p_id[i], quotient, hash );
 //	//}
 //
-//	free( fx );	// �����ʂ̓��_
-//	free( p_id );	// �����ʂ̓��_
-//	free( bindex );	// �����ʂ̓��_
-//	free( border );	// �����ʂ̓��_
+//	free( fx );	// 特徴量の得点
+//	free( p_id );	// 特徴量の得点
+//	free( bindex );	// 特徴量の得点
+//	free( border );	// 特徴量の得点
 //	free( hindex );
 //}
 
@@ -869,11 +869,11 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 	unsigned int index;
 	unsigned char quotient;
 
-	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// �����ʂ̓��_
-	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// �����ʂ̓����_ID
-	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// �����ʂ̓����_ID
-	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// ���U���e�[�u����臒lID
-	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 臒lID�ɂ�����s�ϗʒl
+	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// 特徴量の得点
+	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// 特徴量の特徴点ID
+	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// 特徴量の特徴点ID
+	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// 離散化テーブルの閾値ID
+	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 閾値IDにおける不変量値
 	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
 
 	//for ( int i = 0; i < p_num; i++ ) {
@@ -889,31 +889,31 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 	//}
 
 
-	// ���U���e�[�u����臒l�C���f�b�N�X�̎擾
+	// 離散化テーブルの閾値インデックスの取得
 	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 		if( disc->dat[i] != j ) {
 			bindex[j] = i;
 			j++;
 		}
 	}
-	// 臒l�C���f�b�N�X�̃A�t�B���s�ϗʂ��Z�o
+	// 閾値インデックスのアフィン不変量を算出
 	for ( int i = 0; i < disc->num-1; i++ ) {
 		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 	}
 	int flag = 0;
 	double fxt = 0.0;
-	// �����ʂ̓��_�v�Z
-	for ( int i = 0; i < p_num; i++ ) {	// �e�����_
-		for ( int j = 0; j < eNumCom1-1; j++ ) { // �����_���Ƃ̓�����
+	// 特徴量の得点計算
+	for ( int i = 0; i < p_num; i++ ) {	// 各特徴点
+		for ( int j = 0; j < eNumCom1-1; j++ ) { // 特徴点ごとの特徴量
 			//printf("%d: %d: ", i, j);
 			flag = 0;
 			fx[n] = 0.0;
-			for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
-				if ( features[i][j][k] < border[0] ) {					// ���U���̈悪���[�̏ꍇ
+			for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
+				if ( features[i][j][k] < border[0] ) {					// 離散化領域が左端の場合
 					if ( features[i][j][k] < border[0]/2.0 )	x = 0.0;
 					else										x = (features[i][j][k] / border[0] * 2 - 1.0) * 3.0;
 				}
-				else if ( features[i][j][k] > border[disc->num-2] ) {	// ���U���̈悪�E�[�̏ꍇ
+				else if ( features[i][j][k] > border[disc->num-2] ) {	// 離散化領域が右端の場合
 					if ( features[i][j][k] > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 					else	x = ((features[i][j][k] - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 				} else {
@@ -925,43 +925,43 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 					}
 				}
 
-				// f(x)�̌v�Z
+				// f(x)の計算
 				fxt = exp((double)(-x*x/2));
 				//printf("%9.6lf ", fxt);
 				if ( fxt < 0.025 ) {
 					flag = 1;
 				}
-				// �e������f(x)�����Z
+				// 各次元のf(x)を合算
 				fx[n] += fxt;
 				//printf("%9.6lf ", fxt);
 			}
 			//puts("");
 			if ( flag == 0 ) {
 				//puts("no flag");
-				f_id[n] = j;	// ������ID�ۑ�
-				p_id[n] = i;	// �����_ID�ۑ�
+				f_id[n] = j;	// 特徴量ID保存
+				p_id[n] = i;	// 特徴点ID保存
 				//printf("%3d: %2d: %09.6lf\n", p_id[n], f_id[n], fx[n]);
 				n++;
 			}
 		}
 	}
 
-	double *spare_fx	= (double *)calloc(n, sizeof(double));	// �����ʂ̓��_
-	int    *spare_pid	= (int *)	calloc(n, sizeof(int));		// �����ʂ̓����_ID
-	int    *spare_fid	= (int *)	calloc(n, sizeof(int));		// �����ʂ̓����_ID
+	double *spare_fx	= (double *)calloc(n, sizeof(double));	// 特徴量の得点
+	int    *spare_pid	= (int *)	calloc(n, sizeof(int));		// 特徴量の特徴点ID
+	int    *spare_fid	= (int *)	calloc(n, sizeof(int));		// 特徴量の特徴点ID
 	int count = 0;
 
-	// �摜�𕪊����C�e�̈�ŕۑ������ʐ���ς���
+	// 画像を分割し，各領域で保存特徴量数を変える
 	for ( int i = 0; i < tx; i++ ) {
 		for ( int j = 0; j < ty; j++ ) {
-			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// �����ʂ̓��_
-			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// �����_ID
-			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// �����_���̓�����ID
+			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// 特徴量の得点
+			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// 特徴点ID
+			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// 特徴点内の特徴量ID
 			int m=0;
-			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// �̈� (i,j)��
-				int id = div_ps[i][j][k];					// k�Ԗڂ̓_ID�ɑ΂���
-				for ( int l = 0; l < n; l++ ) {				// �폜���ꂸ�Ɏc���������ʂ̒���
-					if ( id == p_id[l] ) {					// �_ID����v������̂������
+			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// 領域 (i,j)の
+				int id = div_ps[i][j][k];					// k番目の点IDに対して
+				for ( int l = 0; l < n; l++ ) {				// 削除されずに残った特徴量の中に
+					if ( id == p_id[l] ) {					// 点IDが一致するものがあれば
 						div_pid[m] = p_id[l];
 						div_fid[m] = f_id[l];
 						div_fx[m] = fx[l];
@@ -975,8 +975,8 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 			int tid;
 			for (int k = 0; k < m - 1; k++) {
 				for (int l = m - 1; l > k; l--) {
-					if (div_fx[l - 1] < div_fx[l]) {  /* �O�̗v�f�̕����傫�������� */
-						temp = div_fx[l];        /* �������� */
+					if (div_fx[l - 1] < div_fx[l]) {  /* 前の要素の方が大きかったら */
+						temp = div_fx[l];        /* 交換する */
 						div_fx[l] = div_fx[l - 1];
 						div_fx[l - 1]= temp;
 
@@ -995,13 +995,13 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 			int f_num = std::min( m, (int)((double)div_pnum[i][j]/(double)p_num*400.0));
 			//printf("%d\n", f_num);
 
-			for ( int k = 0; k < f_num; k++ ) {	// �e�����_
+			for ( int k = 0; k < f_num; k++ ) {	// 各特徴点
 
 				for ( int l = 0; l < eNumCom2; l++ ) {
 					hindex[l] = Affine2Disc( features[div_pid[k]][div_fid[k]][l], disc );
 				}
-				// �n�b�V���\�̃C���f�b�N�X���v�Z
-				if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+				// ハッシュ表のインデックスを計算
+				if ( eUseArea ) {	// 面積特徴量追加
 					index = HashFuncArea( hindex, area_features[div_pid[k]][div_fid[k]], disc->num, &quotient );
 				}
 				else {
@@ -1012,7 +1012,7 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 				else 					AddHash( index, doc_id, div_pid[k], quotient, hash );
 			}
 
-			// �X�y�A��ۑ�
+			// スペアを保存
 			for ( int k = f_num; k < m; k++ ) {
 				spare_pid[count] = div_pid[k];
 				spare_fid[count] = div_fid[k];
@@ -1030,8 +1030,8 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 	int tid;
 	for (int i = 0; i < count - 1; i++) {
 		for (int j = count - 1; j > i; j--) {
-			if (spare_fx[j - 1] < spare_fx[j]) {  /* �O�̗v�f�̕����傫�������� */
-				temp = spare_fx[j];        /* �������� */
+			if (spare_fx[j - 1] < spare_fx[j]) {  /* 前の要素の方が大きかったら */
+				temp = spare_fx[j];        /* 交換する */
 				spare_fx[j] = spare_fx[j - 1];
 				spare_fx[j - 1]= temp;
 
@@ -1057,8 +1057,8 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 		for ( int j = 0; j < eNumCom2; j++ ) {
 			hindex[j] = Affine2Disc( features[spare_pid[i]][spare_fid[i]][j], disc );
 		}
-		// �n�b�V���\�̃C���f�b�N�X���v�Z
-		if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+		// ハッシュ表のインデックスを計算
+		if ( eUseArea ) {	// 面積特徴量追加
 			index = HashFuncArea( hindex, area_features[spare_pid[i]][spare_fid[i]], disc->num, &quotient );
 		}
 		else {
@@ -1078,10 +1078,10 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 
 	}
 
-	free( fx );	// �����ʂ̓��_
-	free( p_id );	// �����ʂ̓��_
-	free( bindex );	// �����ʂ̓��_
-	free( border );	// �����ʂ̓��_
+	free( fx );	// 特徴量の得点
+	free( p_id );	// 特徴量の得点
+	free( bindex );	// 特徴量の得点
+	free( border );	// 特徴量の得点
 	free( hindex );
 	free( spare_fx );
 	free( spare_pid );
@@ -1095,21 +1095,21 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 	unsigned int index;
 	unsigned char quotient;
 
-	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// �����ʂ̓��_
-	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// �����ʂ̓����_ID
-	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// �����ʂ̓����_ID
-	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// ���U���e�[�u����臒lID
-	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 臒lID�ɂ�����s�ϗʒl
+	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// 特徴量の得点
+	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// 特徴量の特徴点ID
+	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// 特徴量の特徴点ID
+	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// 離散化テーブルの閾値ID
+	double *border = (double *)calloc(disc->num-1, sizeof(double));			// 閾値IDにおける不変量値
 	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
 
-	// ���U���e�[�u����臒l�C���f�b�N�X�̎擾
+	// 離散化テーブルの閾値インデックスの取得
 	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 		if( disc->dat[i] != j ) {
 			bindex[j] = i;
 			j++;
 		}
 	}
-	// 臒l�C���f�b�N�X�̃A�t�B���s�ϗʂ��Z�o
+	// 閾値インデックスのアフィン不変量を算出
 	for ( int i = 0; i < disc->num-1; i++ ) {
 		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 	}
@@ -1117,18 +1117,18 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 	int all = 0;
 	int flag = 0;
 	double fxt = 0.0;
-	// �����ʂ̓��_�v�Z
-	for ( int i = 0; i < p_num; i++ ) {	// �e�����_
-		for ( int j = 0; j < eNumCom1-1; j++ ) { // �����_���Ƃ̓�����
+	// 特徴量の得点計算
+	for ( int i = 0; i < p_num; i++ ) {	// 各特徴点
+		for ( int j = 0; j < eNumCom1-1; j++ ) { // 特徴点ごとの特徴量
 			//printf("%d: %d: ", i, j);
 			flag = 0;
 			fx[n] = 0.0;
-			for ( int k = 0; k < eNumCom2; k++ ) {	// �����ʖ��̊e����
-				if ( features[i][j][k] < border[0] ) {					// ���U���̈悪���[�̏ꍇ
+			for ( int k = 0; k < eNumCom2; k++ ) {	// 特徴量毎の各次元
+				if ( features[i][j][k] < border[0] ) {					// 離散化領域が左端の場合
 					if ( features[i][j][k] < border[0]/2.0 )	x = 0.0;
 					else										x = (features[i][j][k] / border[0] * 2 - 1.0) * 3.0;
 				}
-				else if ( features[i][j][k] > border[disc->num-2] ) {	// ���U���̈悪�E�[�̏ꍇ
+				else if ( features[i][j][k] > border[disc->num-2] ) {	// 離散化領域が右端の場合
 					if ( features[i][j][k] > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 					else	x = ((features[i][j][k] - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 				} else {
@@ -1140,38 +1140,38 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 					}
 				}
 
-				// f(x)�̌v�Z
+				// f(x)の計算
 				fxt = exp((double)(-x*x/2));
 				//printf("%9.6lf ", fxt);
 				if ( fxt < 0.02 ) {
 					flag += 1;
 				}
-				// �e������f(x)�����Z
+				// 各次元のf(x)を合算
 				fx[n] += fxt;
 				//printf("%9.6lf ", fxt);
 			}
 			//puts("");
 			if ( flag < 2 ) {
 				//puts("no flag");
-				f_id[n] = j;	// ������ID�ۑ�
-				p_id[n] = i;	// �����_ID�ۑ�
+				f_id[n] = j;	// 特徴量ID保存
+				p_id[n] = i;	// 特徴点ID保存
 				//printf("%3d: %2d: %09.6lf\n", p_id[n], f_id[n], fx[n]);
 				n++;
 			}
 		}
 	}
 
-	// �摜�𕪊����C�e�̈�ŕۑ������ʐ���ς���
+	// 画像を分割し，各領域で保存特徴量数を変える
 	for ( int i = 0; i < tx; i++ ) {
 		for ( int j = 0; j < ty; j++ ) {
-			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// �����ʂ̓��_
-			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// �����_ID
-			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// �����_���̓�����ID
+			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// 特徴量の得点
+			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// 特徴点ID
+			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// 特徴点内の特徴量ID
 			int m=0;
-			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// �̈� (i,j)��
-				int id = div_ps[i][j][k];					// k�Ԗڂ̓_ID�ɑ΂���
-				for ( int l = 0; l < n; l++ ) {				// �폜���ꂸ�Ɏc���������ʂ̒���
-					if ( id == p_id[l] ) {					// �_ID����v������̂������
+			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// 領域 (i,j)の
+				int id = div_ps[i][j][k];					// k番目の点IDに対して
+				for ( int l = 0; l < n; l++ ) {				// 削除されずに残った特徴量の中に
+					if ( id == p_id[l] ) {					// 点IDが一致するものがあれば
 						div_pid[m] = p_id[l];
 						div_fid[m] = f_id[l];
 						div_fx[m] = fx[l];
@@ -1185,8 +1185,8 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 			int tid;
 			for (int k = 0; k < m - 1; k++) {
 				for (int l = m - 1; l > k; l--) {
-					if (div_fx[l - 1] < div_fx[l]) {  /* �O�̗v�f�̕����傫�������� */
-						temp = div_fx[l];        /* �������� */
+					if (div_fx[l - 1] < div_fx[l]) {  /* 前の要素の方が大きかったら */
+						temp = div_fx[l];        /* 交換する */
 						div_fx[l] = div_fx[l - 1];
 						div_fx[l - 1]= temp;
 
@@ -1205,14 +1205,14 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 			int f_num = std::min(m,(int)((double)div_pnum[i][j]/(double)p_num*400.0));
 			//printf("%d\n", f_num);
 
-			for ( int k = 0; k < f_num; k++ ) {	// �e�����_
+			for ( int k = 0; k < f_num; k++ ) {	// 各特徴点
 
 				for ( int l = 0; l < eNumCom2; l++ ) {
 					if (eTrueHist)	hindex[l] = Affine2Disc2( features[div_pid[k]][div_fid[k]][l], disc );
 					else			hindex[l] = Affine2Disc( features[div_pid[k]][div_fid[k]][l], disc );
 				}
-				// �n�b�V���\�̃C���f�b�N�X���v�Z
-				if ( eUseArea ) {	// �ʐϓ����ʒǉ�
+				// ハッシュ表のインデックスを計算
+				if ( eUseArea ) {	// 面積特徴量追加
 					index = HashFuncArea( hindex, area_features[div_pid[k]][div_fid[k]], disc->num, &quotient );
 				}
 				else {
@@ -1229,9 +1229,9 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 		}
 	}
 
-	free( fx );	// �����ʂ̓��_
-	free( p_id );	// �����ʂ̓��_
-	free( bindex );	// �����ʂ̓��_
-	free( border );	// �����ʂ̓��_
+	free( fx );	// 特徴量の得点
+	free( p_id );	// 特徴量の得点
+	free( bindex );	// 特徴量の得点
+	free( border );	// 特徴量の得点
 	free( hindex );
 }

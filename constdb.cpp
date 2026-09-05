@@ -33,7 +33,7 @@
 #define CLRa
 
 void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
-// �����_���o����
+// 特徴点抽出処理
 {
 	char search_path[kMaxPathLen];
 	char **files=NULL, **dbcors=NULL;
@@ -47,7 +47,7 @@ void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size *
 	cv::Mat fp_img, con_img, orig_img;
 #endif
 
-	sprintf( search_path, "%s*.%s", eSrcDir, eSrcSuffix );	// �����p�X�̍쐬
+	sprintf( search_path, "%s*.%s", eSrcDir, eSrcSuffix );	// 検索パスの作成
 	if ( !eExperimentMode)	fprintf( stdout, "search_path : %s\n", search_path );
 
 	eDbDocs = FindPath( search_path, &files );
@@ -60,7 +60,7 @@ void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size *
 		exit(1);
 	}
 
-	// �������̊m��
+	// メモリの確保
 	reg_pss = (cv::Point **)calloc(eDbDocs, sizeof(cv::Point *));
 	reg_areass = (double **)calloc(eDbDocs, sizeof(double *));
 	reg_sizes = (cv::Size *)calloc(eDbDocs, sizeof(cv::Size));
@@ -69,16 +69,16 @@ void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size *
 	for ( i = 0; i < eDbDocs; i++ )
 		dbcors[i] = (char *)calloc(kMaxPathLen, sizeof(char));
 
-	// �����_���o����
+	// 特徴点抽出処理
 	for ( i = 0; i < eDbDocs; i++ ) {
 		//if ( !eExperimentMode )	fprintf( stderr, "%d/%d %s\n", i+1, eDbDocs, files[i] );
 		
-		strcpy( dbcors[i], files[i] );		// ���摜�t�@�C�����̕ۑ�
+		strcpy( dbcors[i], files[i] );		// 元画像ファイル名の保存
 		
-		// �����摜�̐���
+		// 結合画像の生成
 		img = GetConnectedImage( files[i] );
 		if ( img.empty() )	continue;
-		// �����_���o�E�A�������̖ʐόv�Z
+		// 特徴点抽出・連結成分の面積計算
 		reg_nums[i] = MakeFeaturePoint( img, &(reg_pss[i]), &(reg_areass[i]), &(reg_sizes[i]) );
 		//if ( i == 0 ) {
 		//	for ( int j = 0; j < reg_nums[i]; j++ ) {
@@ -97,7 +97,7 @@ void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size *
 		// cvReleaseImage( &img );  // cv::Mat handles memory automatically
 	}
 	//printf("%d, %d\n", reg_pss[0][0].x, reg_pss[0][0].y);
-	// �����_�t�@�C���̕ۑ��i�o�C�i���j
+	// 特徴点ファイルの保存（バイナリ）
 	SavePointFile( eDbDocs, dbcors, reg_nums, reg_pss, reg_areass, reg_sizes );
 	//SavePointFileText( eDbDocs, dbcors, reg_nums, reg_pss, reg_areass, reg_sizes );
 
@@ -107,7 +107,7 @@ void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size *
 	*p_reg_nums = reg_nums;
 	*p_dbcors = dbcors;
 	
-	// ���
+	// 解放
 	for ( i = 0; i < eDbDocs; i++ ) {
 		free( files[i] );
 	}
@@ -115,16 +115,16 @@ void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size *
 }
 
 void MakeDiscFile( int doc_num, cv::Point **pss, int *nums, strDisc *disc )
-// ���U���t�@�C���쐬
+// 離散化ファイル作成
 {
 	int i;
 	strHist hist;
 
-	// �q�X�g�O�����̏�����
+	// ヒストグラムの初期化
 	InitHist( &hist, eDiscRes, eDiscMin, eDiscMax );
-	// �g�����̍쐬
+	// 組合せの作成
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// �����I��L
+	// 特徴選択有
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
@@ -132,27 +132,27 @@ void MakeDiscFile( int doc_num, cv::Point **pss, int *nums, strDisc *disc )
 
 	for ( i = 0; i < doc_num; i++ ) {
 		if ( !eExperimentMode )	fprintf( stdout, "%d/%d\n", i+1, doc_num );
-		// �ߖT�\���̉��
+		// 近傍構造の解析
 		MakeNearsFromCentres( pss[i], nums[i] );
-		// �q�X�g�O�����̍쐬
+		// ヒストグラムの作成
 		CalcAffineAndAddHist( pss[i], nums[i], &hist );
-		// ���Ƃ��܂�
+		// あとしまつ
 		ClearNears( nums[i] );
 	}
 
-	// �g�����̉��
+	// 組合せの解放
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 
-	// �A�t�B���s�ϗʃq�X�g�O�������痣�U����臒l�����߂�
+	// アフィン不変量ヒストグラムから離散化の閾値を求める
 	if ( eTrueHist )	Hist2Disc2( &hist, disc, eDiscNum );
 	else				Hist2Disc( &hist, disc, eDiscNum );
-	// ���U���t�@�C���̕ۑ�
+	// 離散化ファイルの保存
 	SaveDisc( disc );
 }
 
 void ConstructHash( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// �n�b�V�����\�z
+// ハッシュを構築
 {
 	int i, j;
 	int **thinids = NULL, *thin_nums = NULL, *ids = NULL;
@@ -167,26 +167,26 @@ void ConstructHash( cv::Point **pss, double **areass, cv::Size *sizes, int doc_n
 		ids = (int *)calloc( kMaxPointNum, sizeof(int) );
 	}
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// �g�����̍쐬�i nCm, mC4 �j
+	// 組合せの作成（ nCm, mC4 ）
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// �����I��L
+	// 特徴選択有
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// �Փˉ񐔃J�E���g
+	// 衝突回数カウント
 	for ( i = 0; i < doc_num; i++ ) {
 		if ( i % 10000 == 0 )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
 
-		// �ߖT�\���̉��
+		// 近傍構造の解析
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		if ( eThinPs ) {
@@ -199,11 +199,11 @@ void ConstructHash( cv::Point **pss, double **areass, cv::Size *sizes, int doc_n
 			memset( ids, 0, nums[i] );
 		}
 
-		// ���Ƃ��܂�
+		// あとしまつ
 		ClearNears( nums[i] );
 	}
 
-	// �g�����̉��
+	// 組合せの解放
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -223,7 +223,7 @@ void ConstructHash( cv::Point **pss, double **areass, cv::Size *sizes, int doc_n
 }
 
 void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// �n�b�V�����\�z
+// ハッシュを構築
 {
 	strHash **hash = NULL;
 	int *collision=NULL;
@@ -240,22 +240,22 @@ void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	for ( int i = 0; i < eDbDocs; i++ )	thin_ids[i] = (int *)calloc( kMaxPointNum, sizeof(int) );
 	thin_nums = (int *)calloc( eDbDocs, sizeof(int) );
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// �g�����̍쐬�i nCm, mC4 �j
+	// 組合せの作成（ nCm, mC4 ）
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// �����I��L
+	// 特徴選択有
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// �����ʊi�[�z��ifeatures[�����_][������][����]�j
+	// 特徴量格納配列（features[特徴点][特徴量][次元]）
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -267,11 +267,11 @@ void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 		}
 	}
 
-	// �Փˉ񐔃J�E���g
+	// 衝突回数カウント
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( i % 10000 == 0 )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
-		// �ߖT�\���̉��
+		// 近傍構造の解析
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		thin_nums[i] = SearchMinNears( pss[i], areass[i], nums[i], thin_ids[i] );
@@ -281,13 +281,13 @@ void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 
 		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, 0, 0, NULL, NULL);
 
-		// ���Ƃ��܂�
+		// あとしまつ
 		ClearNears( nums[i] );
 	}
 
 	//RemoveListSameIndexAndQuotient(hash);
 
-	// �g�����̉��
+	// 組合せの解放
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -295,7 +295,7 @@ void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	if ( eCompressHash )	SaveHashCompress( hash );
 	else					SaveHash( hash );
 	SaveThinFile( eDbDocs, thin_ids, pss, thin_nums, sizes, dbcors );
-	// ���������
+	// メモリ解放
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(features[i][j]);
@@ -309,7 +309,7 @@ void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 }
 
 void ConstructHash2( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// �n�b�V�����\�z
+// ハッシュを構築
 {
 	strHash **hash = NULL;
 	int *collision=NULL;
@@ -321,22 +321,22 @@ void ConstructHash2( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	char hindex;
 	int n=0, *id;
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// �g�����̍쐬�i nCm, mC4 �j
+	// 組合せの作成（ nCm, mC4 ）
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// �����I��L
+	// 特徴選択有
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// �����ʊi�[�z��ifeatures[�����_][������][����]�j
+	// 特徴量格納配列（features[特徴点][特徴量][次元]）
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -348,24 +348,24 @@ void ConstructHash2( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 		}
 	}
 
-	// �Փˉ񐔃J�E���g
+	// 衝突回数カウント
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( i % 10000 == 0 )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
-		// �ߖT�\���̉��
+		// 近傍構造の解析
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		CalcAffineRotateOnce( pss[i], areass[i], i, nums[i], disc, hash, features, area_features );
 
 		RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, 0, 0, NULL, NULL, pss[i]);
 
-		// ���Ƃ��܂�
+		// あとしまつ
 		ClearNears( nums[i] );
 	}
 
 	//RemoveListSameIndexAndQuotient(hash);
 
-	// �g�����̉��
+	// 組合せの解放
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -373,7 +373,7 @@ void ConstructHash2( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	if ( eCompressHash )	SaveHashCompress( hash );
 	else					SaveHash( hash );
 
-	// ���������
+	// メモリ解放
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(features[i][j]);
@@ -387,7 +387,7 @@ void ConstructHash2( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 }
 
 void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// �n�b�V�����\�z
+// ハッシュを構築
 {
 	strHash **hash = NULL;
 	int *collision=NULL;
@@ -399,22 +399,22 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	char hindex;
 	int n=0, *id;
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// �g�����̍쐬�i nCm, mC4 �j
+	// 組合せの作成（ nCm, mC4 ）
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// �����I��L
+	// 特徴選択有
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// �����ʊi�[�z��ifeatures[�����_][������][����]�j
+	// 特徴量格納配列（features[特徴点][特徴量][次元]）
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -426,24 +426,24 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 		}
 	}
 
-	// �Փˉ񐔃J�E���g
+	// 衝突回数カウント
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( !eExperimentMode )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
-		// �ߖT�\���̉��
+		// 近傍構造の解析
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		CalcAffineRotateOnce( pss[i], areass[i], i, nums[i], disc, hash, features, area_features );
 
 		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, 0, 0, NULL, NULL);
 
-		// ���Ƃ��܂�
+		// あとしまつ
 		ClearNears( nums[i] );
 	}
 
 	RemoveListSameIndexAndQuotient(hash);
 
-	// �g�����̉��
+	// 組合せの解放
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -451,7 +451,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	if ( eCompressHash )	SaveHashCompress( hash );
 	else					SaveHash( hash );
 
-	// ���������
+	// メモリ解放
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(features[i][j]);
@@ -465,7 +465,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 }
 
 //void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-//// �n�b�V�����\�z
+//// ハッシュを構築
 //{
 //	int **thinids = NULL, *thin_nums = NULL, *ids = NULL;
 //	strHash **hash = NULL;
@@ -478,22 +478,22 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //	char hindex;
 //	int n=0, *id;
 //
-//	// �n�b�V���̏�����
+//	// ハッシュの初期化
 //	hash = InitHash();	
 //	if ( hash == NULL )	{
 //		fprintf( stderr, "error: hash allocation error\n" );
 //		exit(1);
 //	}
 //
-//	// �g�����̍쐬�i nCm, mC4 �j
+//	// 組合せの作成（ nCm, mC4 ）
 //	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-//	// �����I��L
+//	// 特徴選択有
 //	if ( eRmRedund ) {
 //		eNumCom2 = 17;
 //		LoadRmRedund();
 //	}	//printf("%d, %d\n", eNumCom1, eNumCom2);
 //
-//	// �����ʊi�[�z��ifeatures[�����_][������][����]�j
+//	// 特徴量格納配列（features[特徴点][特徴量][次元]）
 //	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 //	for ( int i = 0; i < kMaxPointNum; i++ ) {
 //		features[i] = (double **)calloc(eNumCom1-1, sizeof(double *));
@@ -503,7 +503,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //	}
 //
 //
-//	// �ʐϓ����ʊi�[�z��
+//	// 面積特徴量格納配列
 //	if ( eUseArea ) {
 //		area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 //		for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -513,13 +513,13 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //			}
 //		}
 //	}
-//	// �e�̈�̓����_��
+//	// 各領域の特徴点数
 //	int tx = 4, ty = 5;
 //	int **div_pnum = (int **)calloc( tx, sizeof(int*) );
 //	for ( int i = 0; i < tx; i++ ) {
 //		div_pnum[i] = (int *)calloc( ty, sizeof(int) );
 //	}
-//	// �e�̈�̓����_ID
+//	// 各領域の特徴点ID
 //	int ***div_ps = (int ***)calloc( tx, sizeof(int*) );
 //	for ( int i = 0; i < tx; i++ ) {
 //		div_ps[i] = (int **)calloc( ty, sizeof(int*) );
@@ -528,12 +528,12 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //		}
 //	}
 //
-//	// �Փˉ񐔃J�E���g
+//	// 衝突回数カウント
 //	//for ( int i = 0; i < 1; i++ ) {
 //	for ( int i = 0; i < doc_num; i++ ) {
 //		if ( !eExperimentMode )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
 //
-//		// �ߖT�\���̉��
+//		// 近傍構造の解析
 //		MakeNearsFromCentres( pss[i], nums[i] );
 //
 //		if ( eThinPs ) {
@@ -545,7 +545,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //		}
 //
 //		//printf("%d\n", nums[i]);
-//		for ( int j = 0; j < nums[i]; j++ ) {	// �����_�̗̈�ւ̕���
+//		for ( int j = 0; j < nums[i]; j++ ) {	// 特徴点の領域への分類
 //			//puts("b");
 //			//printf("%3d: %3d, %3d\n", j, pss[i][j].x, pss[i][j].y);
 //			//printf("%d, %d, %d, %d\n", sizes->width, sizes->height, pss[i][j].x, pss[i][j].y);
@@ -569,7 +569,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //		RankFeatureAndAddHash3(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum);
 //		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum);
 //
-//		// ���Ƃ��܂�
+//		// あとしまつ
 //		ClearNears( nums[i] );
 //		for ( int j = 0; j < tx; j++ ) {
 //			for ( int k = 0; k < ty; k++ ) {
@@ -578,7 +578,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 //		}
 //	}
 //
-//	// �g�����̉��
+//	// 組合せの解放
 //	ReleaseCombination();
 //	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 //	
@@ -618,7 +618,7 @@ void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 
 
 void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// �n�b�V�����\�z
+// ハッシュを構築
 {
 	int **thinids = NULL, *thin_nums = NULL, *ids = NULL;
 	strHash **hash = NULL;
@@ -631,19 +631,19 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	char hindex;
 	int n=0, *id;
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// �g�����̍쐬�i nCm, mC4 �j
+	// 組合せの作成（ nCm, mC4 ）
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	if ( eRmRedund )	LoadRmRedund();	// �����I��L
+	if ( eRmRedund )	LoadRmRedund();	// 特徴選択有
 	//printf("%d, %d\n", eNumCom1, eNumCom2);
 
-	// �����ʊi�[�z��ifeatures[�����_][������][����]�j
+	// 特徴量格納配列（features[特徴点][特徴量][次元]）
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		features[i] = (double **)calloc(eNumCom1-1, sizeof(double *));
@@ -652,7 +652,7 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 		}
 	}
 
-	// �ʐϓ����ʊi�[�z��
+	// 面積特徴量格納配列
 	if ( eUseArea ) {
 		area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 		for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -662,13 +662,13 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 			}
 		}
 	}
-	// �e�̈�̓����_��
+	// 各領域の特徴点数
 	int tx = 4, ty = 5;
 	int **div_pnum = (int **)calloc( tx, sizeof(int*) );
 	for ( int i = 0; i < tx; i++ ) {
 		div_pnum[i] = (int *)calloc( ty, sizeof(int) );
 	}
-	// �e�̈�̓����_ID
+	// 各領域の特徴点ID
 	int ***div_ps = (int ***)calloc( tx, sizeof(int*) );
 	for ( int i = 0; i < tx; i++ ) {
 		div_ps[i] = (int **)calloc( ty, sizeof(int*) );
@@ -681,18 +681,18 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 	char ***spare_features = (char ***)calloc(doc_num, sizeof(char **));
 	printf("doc_num : %d\n", sizeof(***spare_features));
 
-	// �Փˉ񐔃J�E���g
+	// 衝突回数カウント
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( !eExperimentMode )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
 
-		// �ߖT�\���̉��
+		// 近傍構造の解析
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		CalcAffineRotateOnce( pss[i], areass[i], i, nums[i], disc, hash, features, area_features );
 
 		//printf("%d\n", nums[i]);
-		for ( int j = 0; j < nums[i]; j++ ) {	// �����_�̗̈�ւ̕���
+		for ( int j = 0; j < nums[i]; j++ ) {	// 特徴点の領域への分類
 			//printf("%3d: %3d, %3d\n", j, pss[i][j].x, pss[i][j].y);
 			//printf("%d, %d, %d, %d\n", sizes->width, sizes->height, pss[i][j].x, pss[i][j].y);
 			int div_x = (int)(((double)pss[i][j].x/(double)sizes->width)*tx);
@@ -713,7 +713,7 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum);
 		//RankFeatureAndAddHash2(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum, spare_fnums, spare_features);
 
-		// ���Ƃ��܂�
+		// あとしまつ
 		ClearNears( nums[i] );
 		for ( int j = 0; j < tx; j++ ) {
 			for ( int k = 0; k < ty; k++ ) {
@@ -724,7 +724,7 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 
 	//RefineHash( hash, spare_fnums, spare_features );
 
-	// �g�����̉��
+	// 組合せの解放
 	ReleaseCombination();
 	
 	if ( !eExperimentMode )	fprintf( stderr, "Saving Hash Table...\n" );
@@ -772,7 +772,7 @@ void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_
 }
 
 void CombineDB( void )
-// �n�b�V������
+// ハッシュ結合
 {
 	int i, j, k;
 	char hname[kMaxPathLen], pname[kMaxPathLen], cname[kMaxPathLen];
@@ -788,7 +788,7 @@ void CombineDB( void )
 	puts(cname);
 	LoadConfigForCombine(cname);
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();
 	if ( hash == NULL ) {
 		fprintf( stderr, "error: hash allocation error\n" );
@@ -821,23 +821,23 @@ void CombineDB( void )
 				dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 		}
 
-		// �ۑ�
+		// 保存
 		for ( j = 0; j < doc_num2; j++ ) {
 			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 		}
 		doc_num1 = eDbDocs;
 
-		// �|�C���^�Ɋi�[
+		// ポインタに格納
 		for ( j = 0; j < doc_num2; j++ ) 	free( tmp_dbcors[j] );
 		free( tmp_dbcors );
 	}
 
-	// �n�b�V���ۑ�
+	// ハッシュ保存
 	SaveHashCompress( hash );
-	// �����_�t�@�C���̕ۑ��i�o�C�i���j
+	// 特徴点ファイルの保存（バイナリ）
 	if ( eThinPs )	SaveThinFile2( eDbDocs, dbcors );
 	else			SavePointFile2( eDbDocs, dbcors );
-	SaveConfig();	// �ݒ�t�@�C���̕ۑ�
+	SaveConfig();	// 設定ファイルの保存
 
 	for ( i = 0; i < doc_num1; i++ )	free( dbcors[i] );
 	free( dbcors );
@@ -845,7 +845,7 @@ void CombineDB( void )
 
 
 //void CombineDB( void )
-//// �n�b�V������
+//// ハッシュ結合
 //{
 //	int i, j, k;
 //	char hname[kMaxPathLen], pname[kMaxPathLen];
@@ -856,7 +856,7 @@ void CombineDB( void )
 //	int *reg_nums, *tmp_nums;
 //	char **dbcors, **tmp_dbcors; 
 //
-//	// �n�b�V���̏�����
+//	// ハッシュの初期化
 //	hash = InitHash();
 //	if ( hash == NULL ) {
 //		fprintf( stderr, "error: hash allocation error\n" );
@@ -864,12 +864,12 @@ void CombineDB( void )
 //	}
 //	eDbDocs = 0;
 //
-//	// �x�[�X�n�b�V���̓ǂݍ���
+//	// ベースハッシュの読み込み
 //	sprintf( hname, "%s%s", eDataDir, eHashFileName );
 //	puts(hname);
 //	LoadHashCompressForCombine( hname, hash, eDbDocs );
 //
-//	// �x�[�X�|�C���g�̓ǂݍ���
+//	// ベースポイントの読み込み
 //	sprintf( pname, "%s%s", eDataDir, eThinFileName );
 //	puts(pname);
 //	doc_num1 = LoadThinFile( pname, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
@@ -896,13 +896,13 @@ void CombineDB( void )
 //		for ( j = doc_num1; j < eDbDocs; j++ )
 //			dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 //
-//		// �ۑ�
+//		// 保存
 //		for ( j = 0; j < doc_num2; j++ ) {
 //			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 //			reg_nums[j+doc_num1] = tmp_nums[j];
 //			reg_sizes[j+doc_num1].width = tmp_sizes[j].width;
 //			reg_sizes[j+doc_num1].height = tmp_sizes[j].height;
-//			reg_pss[j+doc_num1] = (CvPoint *)calloc(reg_nums[j+doc_num1], sizeof(CvPoint));	// �����_�f�[�^�̃������m��
+//			reg_pss[j+doc_num1] = (CvPoint *)calloc(reg_nums[j+doc_num1], sizeof(CvPoint));	// 特徴点データのメモリ確保
 //			for ( k = 0; k < reg_nums[j+doc_num1]; k++ ) {
 //				reg_pss[j+doc_num1][k].x = tmp_pss[j][k].x;
 //				reg_pss[j+doc_num1][k].y = tmp_pss[j][k].y;
@@ -910,7 +910,7 @@ void CombineDB( void )
 //		}
 //		doc_num1 = eDbDocs;
 //
-//		// �|�C���^�Ɋi�[
+//		// ポインタに格納
 //		for ( j = 0; j < doc_num2; j++ )	free( tmp_pss[j] );
 //		free( tmp_pss );
 //		free( tmp_sizes );
@@ -919,9 +919,9 @@ void CombineDB( void )
 //		free( tmp_dbcors );
 //	}
 //
-//	// �n�b�V���ۑ�
+//	// ハッシュ保存
 //	SaveHashCompress( hash );
-//	// �����_�t�@�C���̕ۑ��i�o�C�i���j
+//	// 特徴点ファイルの保存（バイナリ）
 //	SaveThinFileForCombine( eDbDocs, reg_pss, reg_sizes, reg_nums, dbcors );
 //
 //	for ( i = 0; i < doc_num1; i++ )	free( reg_pss[i] );
@@ -933,7 +933,7 @@ void CombineDB( void )
 //}
 
 void CombinePointFile( void )
-// �n�b�V������
+// ハッシュ結合
 {
 	int i, j, k;
 	char pname[kMaxPathLen];
@@ -946,7 +946,7 @@ void CombinePointFile( void )
 
 	eDbDocs = 0;
 
-	// �x�[�X�|�C���g�̓ǂݍ���
+	// ベースポイントの読み込み
 	sprintf( pname, "%s%s", eDataDir, ePointFileName );
 	puts(pname);
 	doc_num1 = LoadPointFile( pname, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
@@ -970,14 +970,14 @@ void CombinePointFile( void )
 		for ( j = doc_num1; j < eDbDocs; j++ )
 			dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-		// �ۑ�
+		// 保存
 		for ( j = 0; j < doc_num2; j++ ) {
 			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 			reg_nums[j+doc_num1] = tmp_nums[j];
 			reg_sizes[j+doc_num1].width = tmp_sizes[j].width;
 			reg_sizes[j+doc_num1].height = tmp_sizes[j].height;
-			reg_pss[j+doc_num1] = (cv::Point *)calloc(reg_nums[j+doc_num1], sizeof(cv::Point));	// �����_�f�[�^�̃������m��
-			reg_areass[j+doc_num1] = (double *)calloc(reg_nums[j+doc_num1], sizeof(double));	// �����_�f�[�^�̃������m��
+			reg_pss[j+doc_num1] = (cv::Point *)calloc(reg_nums[j+doc_num1], sizeof(cv::Point));	// 特徴点データのメモリ確保
+			reg_areass[j+doc_num1] = (double *)calloc(reg_nums[j+doc_num1], sizeof(double));	// 特徴点データのメモリ確保
 			for ( k = 0; k < reg_nums[j+doc_num1]; k++ ) {
 				reg_pss[j+doc_num1][k].x = tmp_pss[j][k].x;
 				reg_pss[j+doc_num1][k].y = tmp_pss[j][k].y;
@@ -986,7 +986,7 @@ void CombinePointFile( void )
 		}
 		doc_num1 = eDbDocs;
 
-		// �|�C���^�Ɋi�[
+		// ポインタに格納
 		for ( j = 0; j < doc_num2; j++ )	free( tmp_pss[j] );
 		free( tmp_pss );
 		for ( j = 0; j < doc_num2; j++ )	free( tmp_areass[j] );
@@ -997,7 +997,7 @@ void CombinePointFile( void )
 		free( tmp_dbcors );
 	}
 
-	// �����_�t�@�C���̕ۑ��i�o�C�i���j
+	// 特徴点ファイルの保存（バイナリ）
 	SavePointFile( eDbDocs, dbcors, reg_nums, reg_pss, reg_areass, reg_sizes );
 
 	for ( i = 0; i < doc_num1; i++ )	free( reg_pss[i] );
@@ -1011,7 +1011,7 @@ void CombinePointFile( void )
 }
 
 void CombineThinFile( void )
-// �n�b�V������
+// ハッシュ結合
 {
 	int i, j, k;
 	char pname[kMaxPathLen];
@@ -1023,7 +1023,7 @@ void CombineThinFile( void )
 
 	eDbDocs = 0;
 
-	// �x�[�X�|�C���g�̓ǂݍ���
+	// ベースポイントの読み込み
 	sprintf( pname, "%s%s", eDataDir, eThinFileName );
 	puts(pname);
 	doc_num1 = LoadThinFile( pname, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
@@ -1045,13 +1045,13 @@ void CombineThinFile( void )
 		for ( j = doc_num1; j < eDbDocs; j++ )
 			dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-		// �ۑ�
+		// 保存
 		for ( j = 0; j < doc_num2; j++ ) {
 			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 			reg_nums[j+doc_num1] = tmp_nums[j];
 			reg_sizes[j+doc_num1].width = tmp_sizes[j].width;
 			reg_sizes[j+doc_num1].height = tmp_sizes[j].height;
-			reg_pss[j+doc_num1] = (cv::Point *)calloc(reg_nums[j+doc_num1], sizeof(cv::Point));	// �����_�f�[�^�̃������m��
+			reg_pss[j+doc_num1] = (cv::Point *)calloc(reg_nums[j+doc_num1], sizeof(cv::Point));	// 特徴点データのメモリ確保
 			for ( k = 0; k < reg_nums[j+doc_num1]; k++ ) {
 				reg_pss[j+doc_num1][k].x = tmp_pss[j][k].x;
 				reg_pss[j+doc_num1][k].y = tmp_pss[j][k].y;
@@ -1059,7 +1059,7 @@ void CombineThinFile( void )
 		}
 		doc_num1 = eDbDocs;
 
-		// �|�C���^�Ɋi�[
+		// ポインタに格納
 		for ( j = 0; j < doc_num2; j++ )	free( tmp_pss[j] );
 		free( tmp_pss );
 		free( tmp_nums );
@@ -1067,7 +1067,7 @@ void CombineThinFile( void )
 		free( tmp_dbcors );
 	}
 
-	// �����_�t�@�C���̕ۑ��i�o�C�i���j
+	// 特徴点ファイルの保存（バイナリ）
 	SaveThinFileForCombine( eDbDocs, reg_pss, reg_sizes, reg_nums, dbcors );
 
 	for ( i = 0; i < doc_num1; i++ )	free( reg_pss[i] );
@@ -1079,13 +1079,13 @@ void CombineThinFile( void )
 }
 
 void CombineHash( void )
-// �n�b�V������
+// ハッシュ結合
 {
 	int i, doc_num;
 	char hname[kMaxPathLen], pname[kMaxPathLen];
 	strHash **hash=NULL;
 
-	// �n�b�V���̏�����
+	// ハッシュの初期化
 	hash = InitHash();
 	if ( hash == NULL ) {
 		fprintf( stderr, "error: hash allocation error\n" );
@@ -1093,12 +1093,12 @@ void CombineHash( void )
 	}
 	eDbDocs = 0;
 
-	// �x�[�X�n�b�V���̓ǂݍ���
+	// ベースハッシュの読み込み
 	sprintf( hname, "%s%s", eDataDir, eHashFileName );
 	puts(hname);
 	LoadHashCompressForCombine( hname, hash, eDbDocs );
 
-	// �x�[�X�|�C���g�̓ǂݍ���
+	// ベースポイントの読み込み
 	sprintf( pname, "%s%s", eDataDir, ePointFileName );
 	puts(pname);
 	doc_num = LoadDocNum( pname );
@@ -1119,6 +1119,6 @@ void CombineHash( void )
 		printf("%d\n", eDbDocs);
 	}
 
-	// �n�b�V���ۑ�
+	// ハッシュ保存
 	SaveHashCompress( hash );
 }

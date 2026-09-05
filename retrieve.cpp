@@ -34,9 +34,9 @@ int dnum=0;
 using namespace std;
 
 int VoteDirectlyByHL( strHash *hl, int *score, int p, unsigned char quotient )
-// �n�b�V�����X�g���璼��vote����
-// ����vote�������ōő�̂��̂�Ԃ�
-// �����ʂ̔�r���C���̔�r�ɕύX
+// ハッシュリストから直にvoteする
+// 今回voteした中で最大のものを返す
+// 特徴量の比較を，商の比較に変更
 {
 	int i;
 	static int max_vote = -1;
@@ -50,17 +50,17 @@ int VoteDirectlyByHL( strHash *hl, int *score, int p, unsigned char quotient )
 			hpoint		= *( ( short *			)( hl + 1 + i * 7 + 4	) );
 			hquotient	= *( ( unsigned char *	)( hl + 1 + i * 7 + 6	) );
 
-			if ( //flag1[hdoc] == 0 && /* �Ή��_�t���O�`�F�b�N */ 
+			if ( //flag1[hdoc] == 0 && /* 対応点フラグチェック */ 
 				 //flag2[hdoc][hpoint] == 0 && 
-				 ( memcmp(&hquotient, &quotient, 1) == 0 ) /* ���̔�r */ ) {
-				score[hdoc]++;	// ���[
+				 ( memcmp(&hquotient, &quotient, 1) == 0 ) /* 商の比較 */ ) {
+				score[hdoc]++;	// 投票
 				if ( score[hdoc] > max_vote ) {
-					max_vote = score[hdoc];	// �ő�Ȃ�X�V
+					max_vote = score[hdoc];	// 最大なら更新
 					max_doc = hdoc;
 				}
 
-				//flag1[hdoc] = 1;	// hp->doc�͓��[�ς�
-				//flag2[hdoc][hpoint] = 1;	// hp-doc��hp->point�͓��[�ς�
+				//flag1[hdoc] = 1;	// hp->docは投票済み
+				//flag2[hdoc][hpoint] = 1;	// hp-docのhp->pointは投票済み
 				//flag1_clear[flag1_num++] = hdoc;
 				//flag2_dclear[flag2_num] = hdoc;
 				//flag2_pclear[flag2_num] = hpoint;
@@ -78,9 +78,9 @@ int VoteDirectlyByHL( strHash *hl, int *score, int p, unsigned char quotient )
 }
 
 int VoteDirectlyByHL2( strHash *hl, int *score, int p, unsigned char quotient )
-// �n�b�V�����X�g���璼��vote����
-// ����vote�������ōő�̂��̂�Ԃ�
-// �����ʂ̔�r���C���̔�r�ɕύX
+// ハッシュリストから直にvoteする
+// 今回voteした中で最大のものを返す
+// 特徴量の比較を，商の比較に変更
 {
 	int i;
 	static int max_vote = -1;
@@ -101,16 +101,16 @@ int VoteDirectlyByHL2( strHash *hl, int *score, int p, unsigned char quotient )
 				 //flag2[pdoc][ppoint] == 0 &&
 				 //pdoc != 0 &&
 				 ( memcmp(&pquotient, &quotient, 1) == 0 )) {
-				score[pdoc]++;	// ���[
+				score[pdoc]++;	// 投票
 				vote.push_back(pdoc);
 
 				if ( score[pdoc] > max_vote ) {
-					max_vote = score[pdoc];	// �ő�Ȃ�X�V
+					max_vote = score[pdoc];	// 最大なら更新
 					max_doc = pdoc;
 				}
 
-				//flag1[pdoc] = 1;	// hp->doc�͓��[�ς�
-				//flag2[pdoc][ppoint] = 1;	// hp-doc��hp->point�͓��[�ς�
+				//flag1[pdoc] = 1;	// hp->docは投票済み
+				//flag2[pdoc][ppoint] = 1;	// hp-docのhp->pointは投票済み
 				//flag1_clear[flag1_num++] = pdoc;
 				//flag2_dclear[flag2_num] = pdoc;
 				//flag2_pclear[flag2_num] = ppoint;
@@ -128,8 +128,8 @@ int VoteDirectlyByHL2( strHash *hl, int *score, int p, unsigned char quotient )
 }
 
 void CalcScoreRotateOnce( cv::Point *ps, double *areas, int num, int *score, strDisc *disc, strHash **hash )
-// �A�t�B���s�ϗʂ��听�����_�ɕϊ����ăn�b�V���ɓo�^����
-// ��]�s�ϔ�
+// アフィン不変量を主成分得点に変換してハッシュに登録する
+// 回転不変版
 {
 	char **hindex = NULL, *hindex_area = NULL, *inv_array = NULL, *vec_flag=NULL, *sum=NULL;
 	int i, j, k, l, m, st, row, max_vote = 0;
@@ -138,7 +138,7 @@ void CalcScoreRotateOnce( cv::Point *ps, double *areas, int num, int *score, str
 	unsigned char quotient;
 	double cr;
 
-	// �z��̊m��
+	// 配列の確保
 	idx = (int *)calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = (int *)calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = (int *)calloc( eGroup2Num-1, sizeof(int) );
@@ -156,29 +156,29 @@ void CalcScoreRotateOnce( cv::Point *ps, double *areas, int num, int *score, str
 
 	for ( i = 0; i < num; i++ ) {	// for all points
 		//ClearFlag1();
-		// �ߖT�X�����v���ɐ���
+		// 近傍店を時計回りに整列
 		CalcOrderCWN( i, ps, idx, eGroup1Num );
 
 		for ( j = 0; j < eNumCom1-1; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m�_�̒��o
-			/************** �J�n�_�̒T�� **************************************************/
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m点の抽出
+			/************** 開始点の探索 **************************************************/
 			
-			// �s�ϗʂ̌v�Z
+			// 不変量の計算
 			for ( st = 0; st < eGroup2Num-1; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%(eGroup2Num-1))+1]], ps[idxcom1[((st+1)%(eGroup2Num-1))+1]], ps[idxcom1[((st+2)%(eGroup2Num-1))+1]]);
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// �s�ϗʂ���J�n�_��������
+			// 不変量から開始点を見つける
 			st = FindStartPoint( inv_array, eGroup2Num-1 );
 
-			// st���J�n�_�Ƃ��ĉ�]������
+			// stを開始点として回転させる
 			for ( k = 0; k < eGroup2Num-1; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < eGroup2Num-1; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%(eGroup2Num-1)];
-			/************** �T���̏I�� ****************************************************/
+			/************** 探索の終了 ****************************************************/
 
-			// �A�t�B���s�ϗʂ�W����
+			// アフィン不変量を標準化
 			for ( k = 0; k < eNumCom2; k++ ) {
 
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
@@ -256,20 +256,20 @@ void CalcScoreRotateOnce( cv::Point *ps, double *areas, int num, int *score, str
 }
 
 int Retrieve( cv::Point *ps, double *areas, int num, int *score, strDisc *disc, int *reg_nums, int *ret_time, strHash **hash )
-// �n�b�V�����猟������
+// ハッシュから検索する
 {
 	int i, max_doc = 0;
 	int  max_score = 0;
 	int start, end;
 
-	//// flag2�̏�����
+	//// flag2の初期化
 	//ClearFlag2();
-	//// �_�Ή��e�[�u���̍쐬
+	//// 点対応テーブルの作成
 	//ClearCorres();
 
-	// �����J�n
+	// 検索開始
 	start = GetProcTimeMicroSec();
-	// ����
+	// 検索
 	std::sort(vote.begin(), vote.end());
 	vote.erase( std::unique(vote.begin(), vote.end()), vote.end());
 	for ( int i = 0; i < vote.size(); i++ ) {
@@ -279,16 +279,16 @@ int Retrieve( cv::Point *ps, double *areas, int num, int *score, strDisc *disc, 
 
 	//memset( score, 0, sizeof( int ) * eDbDocs );
 	CalcScoreRotateOnce( ps, areas, num, score, disc, hash );
-	// �����I��
+	// 検索終了
 	end = GetProcTimeMicroSec();
 
 
 
-	// ��������
+	// 検索時間
 	*ret_time = end - start;
 	if ( !eExperimentMode )	printf( "retrieval time : %d[milisec]\n", *ret_time );
 	
-	// �\�[�g
+	// ソート
 	for ( i = 0; i < eDbDocs; i++ ) {
 		if ( score[i] > max_score ) {
 			max_doc = i;
@@ -300,7 +300,7 @@ int Retrieve( cv::Point *ps, double *areas, int num, int *score, strDisc *disc, 
 }
 
 int RetrieveCor( cv::Point *ps, double *areas, int num, int *score, int pcor[][2], int *pcornum0, strDisc *disc, int *reg_nums, strHash **hash )
-// �n�b�V�����猟������
+// ハッシュから検索する
 {
 	int i, j, k, max_doc=0, flag;
 	int  max_score = 0;
@@ -308,15 +308,15 @@ int RetrieveCor( cv::Point *ps, double *areas, int num, int *score, int pcor[][2
 	memset( corres[0], -1, sizeof(int)*corres_num );
 	corres_num = 0;
 
-	// ����
+	// 検索
 	CalcScoreRotateOnce( ps, areas, num, score, disc, hash );
 
-	// �X�R�A�̐��K��
+	// スコアの正規化
 	for ( i = 0; i < eDbDocs; i++ )	{
-		score[i] = (int)((double)score[i] - (double)reg_nums[i] * eProp);	// CBDAR�ł̕␳
+		score[i] = (int)((double)score[i] - (double)reg_nums[i] * eProp);	// CBDARでの補正
 	}
 
-	// �\�[�g
+	// ソート
 	for ( i = 0; i < eDbDocs; i++ ) {
 		if ( score[i] > max_score ) {
 			max_doc = i;
@@ -344,7 +344,7 @@ int RetrieveCor( cv::Point *ps, double *areas, int num, int *score, int pcor[][2
 }
 
 int IsSucceed( char *str1, char *str2 )
-// �������[�h�p�F��������
+// 実験モード用：成功判定
 {
 	char base1[kMaxPathLen], base2[kMaxPathLen];
 	
@@ -355,7 +355,7 @@ int IsSucceed( char *str1, char *str2 )
 }
 
 double Calc12Diff( int *score )
-// 1�ʂ�2�ʂ̍����v�Z
+// 1位と2位の差を計算
 {
 	int i;
 	int score_1st = 1, score_2nd = 1;

@@ -16,49 +16,49 @@
 #include "hist.h"
 
 char Affine2Disc( double cr, strDisc *disc )
-// �A���l�̃A�t�B���s�ϗʂ𗣎U�l�ɕϊ�����
+// 連続値のアフィン不変量を離散値に変換する
 {
-	if ( cr <= disc->min )		return 0;	// min��菬������΍ŏ��l�ł���0��
-	else if ( cr >= disc->max )	return disc->num-1;	// max���傫����΍ő�l�ł���num-1��Ԃ�
-	else						return disc->dat[(int)(((cr - disc->min)/(disc->max-disc->min))*(double)disc->res)];	// �����łȂ���ΊY������dat�̒l��Ԃ�
+	if ( cr <= disc->min )		return 0;	// minより小さければ最小値である0を
+	else if ( cr >= disc->max )	return disc->num-1;	// maxより大きければ最大値であるnum-1を返す
+	else						return disc->dat[(int)(((cr - disc->min)/(disc->max-disc->min))*(double)disc->res)];	// そうでなければ該当するdatの値を返す
 }
 
 char Affine2Disc2( double cr, strDisc *disc )
-// �A���l�̃A�t�B���s�ϗʂ𗣎U�l�ɕϊ�����
+// 連続値のアフィン不変量を離散値に変換する
 {
 	if ( cr > 1.0 )	{
 		cr = 1.0/cr;
-		if ( cr <= disc->min )		return 0;	// min��菬������΍ŏ��l�ł���0��
-		else if ( cr >= disc->max )	return disc->num-1;	// max���傫����΍ő�l�ł���num-1��Ԃ�
-		else						return disc->dat[disc->res - 1 - (int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// �����łȂ���ΊY������dat�̒l��Ԃ�
+		if ( cr <= disc->min )		return 0;	// minより小さければ最小値である0を
+		else if ( cr >= disc->max )	return disc->num-1;	// maxより大きければ最大値であるnum-1を返す
+		else						return disc->dat[disc->res - 1 - (int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// そうでなければ該当するdatの値を返す
 	} else {
-		if ( cr <= disc->min )		return 0;	// min��菬������΍ŏ��l�ł���0��
-		else if ( cr >= disc->max )	return disc->num-1;	// max���傫����΍ő�l�ł���num-1��Ԃ�
-		else						return disc->dat[(int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// �����łȂ���ΊY������dat�̒l��Ԃ�
+		if ( cr <= disc->min )		return 0;	// minより小さければ最小値である0を
+		else if ( cr >= disc->max )	return disc->num-1;	// maxより大きければ最大値であるnum-1を返す
+		else						return disc->dat[(int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// そうでなければ該当するdatの値を返す
 	}
 }
 
 //char Affine2Disc2( double cr, strDisc *disc )
-//// �A���l�̃A�t�B���s�ϗʂ𗣎U�l�ɕϊ�����
+//// 連続値のアフィン不変量を離散値に変換する
 //{
-//	if ( cr <= disc->min )		return 0;	// min��菬������΍ŏ��l�ł���0��
-//	else if ( cr >= disc->max )	return disc->num-1;	// max���傫����΍ő�l�ł���num-1��Ԃ�
-//	else if ( cr < 1.0 )		return disc->dat[(int)( (cr - disc->min) / (1.0 - disc->min) * ((double)disc->res / 2.0))];	// �����łȂ���ΊY������dat�̒l��Ԃ�
-//	else						return disc->dat[(int)( (cr - 1.0) / (disc->max - 1.0) * ((double)disc->res / 2.0))];	// �����łȂ���ΊY������dat�̒l��Ԃ�
+//	if ( cr <= disc->min )		return 0;	// minより小さければ最小値である0を
+//	else if ( cr >= disc->max )	return disc->num-1;	// maxより大きければ最大値であるnum-1を返す
+//	else if ( cr < 1.0 )		return disc->dat[(int)( (cr - disc->min) / (1.0 - disc->min) * ((double)disc->res / 2.0))];	// そうでなければ該当するdatの値を返す
+//	else						return disc->dat[(int)( (cr - 1.0) / (disc->max - 1.0) * ((double)disc->res / 2.0))];	// そうでなければ該当するdatの値を返す
 //}
 
 char Affine2DiscForRetrieve( double cr, strDisc *disc, char *vecflag )
-// �A���l�̃A�t�B���s�ϗʂ𗣎U�l�ɕϊ� & �����x�N�g�����s�̃t���O����
+// 連続値のアフィン不変量を離散値に変換 & 複数ベクトル発行のフラグ立て
 {
 	int idx;
-	if ( cr <= disc->min )		return 0;	// min��菬������΍ŏ��l�ł���0��
-	else if ( cr >= disc->max )	return disc->num-1;	// max���傫����΍ő�l�ł���num-1��Ԃ�
+	if ( cr <= disc->min )		return 0;	// minより小さければ最小値である0を
+	else if ( cr >= disc->max )	return disc->num-1;	// maxより大きければ最大値であるnum-1を返す
 	else {
-		idx = (int)((cr - disc->min)/((disc->max-disc->min)/(double)disc->res));	// �����łȂ���ΊY������dat�̒l��Ԃ�
+		idx = (int)((cr - disc->min)/((disc->max-disc->min)/(double)disc->res));	// そうでなければ該当するdatの値を返す
 		if ( idx > eBounds && idx < (disc->res - eBounds) ) {
-			if ( disc->dat[idx] > disc->dat[idx-eBounds] ) 		// eBounds��������bin�̗��U�l���قȂ��Ă�����
+			if ( disc->dat[idx] > disc->dat[idx-eBounds] ) 		// eBoundsだけ下のbinの離散値が異なっていたら
 				*vecflag = -1;
-			else if ( disc->dat[idx] < disc->dat[idx+eBounds] ) 	// eBounds�������bin�̗��U�l���قȂ��Ă�����
+			else if ( disc->dat[idx] < disc->dat[idx+eBounds] ) 	// eBoundsだけ上のbinの離散値が異なっていたら
 				*vecflag = 1;
 		}
 		return disc->dat[idx];
@@ -66,7 +66,7 @@ char Affine2DiscForRetrieve( double cr, strDisc *disc, char *vecflag )
 }
 
 void Hist2Disc( strHist *hist, strDisc *disc, int disc_num )
-// �q�X�g�O�������痣�U����臒l�����߂�
+// ヒストグラムから離散化の閾値を求める
 {
 	int i, j;
 	unsigned int total, sum;
@@ -87,7 +87,7 @@ void Hist2Disc( strHist *hist, strDisc *disc, int disc_num )
 }
 
 void Hist2Disc2( strHist *hist, strDisc *disc, int disc_num )
-// �q�X�g�O�������痣�U����臒l�����߂�
+// ヒストグラムから離散化の閾値を求める
 {
 	int i, j;
 	unsigned int total=0, sum=0;
@@ -109,7 +109,7 @@ void Hist2Disc2( strHist *hist, strDisc *disc, int disc_num )
 }
 
 void ReleaseDisc( strDisc *disc )
-// �q�X�g�O�������J������
+// ヒストグラムを開放する
 {
 	free( disc->dat );
 }

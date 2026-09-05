@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-// �l�b�g���[�N�֘A
+// ネットワーク関連
 #ifdef	WIN32
 #include <winsock2.h>
 #include "ws_cl.h"
@@ -17,7 +17,7 @@
 #include "sock_sv.h"
 #endif
 
-//// �}���`�X���b�h
+//// マルチスレッド
 //#include <pthread.h>    /* pthread_create */
 
 // OpenCV
@@ -51,7 +51,7 @@ using namespace cv;
 #endif
 
 cv::Mat RecvCapImg( SOCKET sock )
-	// �_�f�[�^����M
+	// 点データを受信
 {
 	char size[32];
 	char *buff;
@@ -59,7 +59,7 @@ cv::Mat RecvCapImg( SOCKET sock )
 	int buff_size=0, total=0, ret=0, width=0, height=0, buff_cur=0;
 	FILE *fp;
 
-	// �B�e�摜�̃T�C�Y����M
+	// 撮影画像のサイズを受信
 	while ( total < 12 ) {
 		ret = recv ( sock, &size[total], 12-total, RECV_FLAG );
 		total += ret;
@@ -75,7 +75,7 @@ cv::Mat RecvCapImg( SOCKET sock )
 
 	buff = (char *)malloc(buff_size);
 
-	// �B�e�摜����M
+	// 撮影画像を受信
 	total=0;
 	while ( total < buff_size ) {
 		//printf("%d\n", total);
@@ -84,7 +84,7 @@ cv::Mat RecvCapImg( SOCKET sock )
 	}
 	puts("Recieved");
 
-	// Mat�ւ̕ϊ�
+	// Matへの変換
 	Mat mat( Size(width, height), CV_8UC1);
 	for ( int i=0; i<height; i++ ) {
 		for ( int j=0; j<width; j++ ) {
@@ -103,7 +103,7 @@ void SendResult( SOCKET sock, char *result_name )
 }
 
 int RetrieveDocImg( SOCKET sock, cv::Point **reg_pss, double **reg_areass, int *reg_nums, cv::Size *reg_sizes, char **dbcors, strDisc disc, strHash **hash )
-// �X�}�t�H����摜����M���C�����C���ʂ𑗐M
+// スマフォから画像を受信し，検索，結果を送信
 {
 	cv::Mat img, connect;
 	cv::Point *ps=NULL;
@@ -114,23 +114,23 @@ int RetrieveDocImg( SOCKET sock, cv::Point **reg_pss, double **reg_areass, int *
 	int res=0, ret_time=0;
 	char doc_name[kFileNameLen]={0};
 
-	// �B�e�摜�̎�M
+	// 撮影画像の受信
 	img = RecvCapImg( sock );
 	if ( img.empty() )	return -1;
 
-	// ���[�e�[�u���m��
+	// 得票テーブル確保
 	int *score = (int *)calloc(eDbDocs, sizeof(int));
-	// �����摜����
+	// 結合画像生成
 	connect = GetConnectedImageForSmartphone( img );
 	if ( connect.empty() )	exit(-1);
-	// �����_���o�E�A�������̖ʐόv�Z
+	// 特徴点抽出・連結成分の面積計算
 	num = MakeFeaturePoint( connect, &ps, &areas, &size );
-	if ( num >= 20 ) {	// �����_����臒l
-		// �ߖT�\���̉��
+	if ( num >= 20 ) {	// 特徴点数の閾値
+		// 近傍構造の解析
 		MakeNearsFromCentres( ps, num );
-		// ����
+		// 検索
 		res = Retrieve( ps, areas, num, score, &disc, reg_nums, &ret_time, hash );
-		if ( score[res] > 10 ) {	// �g�b�v�̓��[����臒l�ȉ��i���W�F�N�g�j
+		if ( score[res] > 10 ) {	// トップの得票数が閾値以下（リジェクト）
 			GetBasename( dbcors[res], kMaxPathLen, doc_name );
 		}
 		else {
@@ -149,17 +149,18 @@ int RetrieveDocImg( SOCKET sock, cv::Point **reg_pss, double **reg_areass, int *
 	free( score );
 	ClearNears( num );
 
-	// �������ʂ̑��M
+	// 検索結果の送信
 	SendResult( sock, doc_name );
 
 	return 0;
 }
 
 void retrieve_thread( void *arg )
-// ��M�C�����C���M
+// 受信，検索，送信
 {
 	cv::Mat cap_img;
 
+	// ウィンドウの生成
 	cv::namedWindow( "Capture", cv::WINDOW_AUTOSIZE );
 
 	//cap_img = RecvCapImg( ((svTheadArg*)arg)->sock);
@@ -170,14 +171,14 @@ void retrieve_thread( void *arg )
 }
 
 //void *retrieve_thread( void *arg )
-//// ��M�C�����C���M
+//// 受信，検索，送信
 //{
 //	IplImage *cap_img;
 //
-//	// �E�B���h�E�̐���
+//	// ウィンドウの生成
 //	cvNamedWindow( "Capture", CV_WINDOW_AUTOSIZE );
 //
-//	// �B�e�摜����M
+//	// 撮影画像を受信
 //	cap_img = RecvCapImg( ((svTheadArg*)arg)->sock);
 //	cvShowImage( "Capture", cap_img );
 //	cvWaitKey( 0 );
@@ -201,20 +202,20 @@ void RetrieveSmartphoneServer( void )
 	int *reg_nums=NULL, ret=0;
 	char **dbcors=NULL;
 
-	// �ݒ�t�@�C���̓ǂݍ���
+	// 設定ファイルの読み込み
 	LoadConfig();
-	// ���U���t�@�C���̓ǂݍ���
+	// 離散化ファイルの読み込み
 	LoadDisc( &disc );
-	// �n�b�V���̓ǂݍ���
+	// ハッシュの読み込み
 	LoadHashCompressToStorage( &hash );
-	// �����_�t�@�C���̓ǂݍ���
-	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// �T���v�����O�L��
-	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// �T���v�����O����
-	// �ߖT�\���ۑ��p�������m��
+	// 特徴点ファイルの読み込み
+	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// サンプリング有り
+	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// サンプリング無し
+	// 近傍構造保存用メモリ確保
 	SecureNears();
-	// �g�ݍ��킹�̍쐬
+	// 組み合わせの作成
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	if ( eRmRedund )	LoadRmRedund();	// �����I��L
+	if ( eRmRedund )	LoadRmRedund();	// 特徴選択有
 
 ready:
 
@@ -224,7 +225,7 @@ ready:
 	if ( ( sock1 = InitSockSvTCP( eTCPPort, eServerName ) ) < 0 )	exit(1);	// initialization
 	if ( ( sock2 = AcceptSockSvTCP( sock1 ) ) < 0 )	exit(1);	// accept
 #endif
-	//// �E�B���h�E�̐���
+	//// ウィンドウの生成
 	//cvNamedWindow( "Capture", CV_WINDOW_AUTOSIZE );
 	puts("Ready");
 	if ( ( sock2 = AcceptWinSockSvTCP( sock1 ) ) < 0 ) {

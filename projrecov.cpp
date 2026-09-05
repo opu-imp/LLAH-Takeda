@@ -64,7 +64,7 @@ void simplesort(double *d, keytype *a, int first, int last)
 }
 
 void GetNumRand( int num, int max, int *arr )
-// 0�`max-1�̐������d���Ȃ���num�������Carr�Ɋi�[����
+// 0～max-1の整数を重複なしでnum個生成し，arrに格納する
 {
 /*	int i, j, r;
 
@@ -90,7 +90,7 @@ gen:
 }
 
 int CompareDouble( const double *a, const double *b )
-// double�̒l���r����
+// doubleの値を比較する
 {
 	if ( *a < *b )	return -1;
 	else if ( *a > *b )	return 1;
@@ -98,7 +98,7 @@ int CompareDouble( const double *a, const double *b )
 }
 
 double GetMedian( double *arr, int num )
-// �T�C�Ynum�̔z��arr�i��\�[�g�j���烁�f�B�A���l�𓾂�
+// サイズnumの配列arr（非ソート）からメディアン値を得る
 {
 	int i;
 	for ( i = 0; i < num; i++ )
@@ -113,7 +113,7 @@ double GetMedian( double *arr, int num )
 }
 
 int IsNearParam( strProjParam *param1, strProjParam *param2 )
-// �߂��p�����[�^��
+// 近いパラメータか
 {
 	double diff = 0.0L;
 
@@ -131,17 +131,17 @@ int IsNearParam( strProjParam *param1, strProjParam *param2 )
 }
 
 void CalcProjParamTop( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param, int mode, int method )
-// ps->corps�ւ̎ˉe�ϊ��p�����[�^�����߂�(mode==1�Ȃ�t�j
+// ps->corpsへの射影変換パラメータを求める(mode==1なら逆）
 {
 	int i, j, randpi[4];
 	strPoint strp1[4], strp2[4];
 	strProjParam paramarr[kTryParamRand];
 
-	if ( method == PARAM_IWAMURA ) {	// �⑺���\�b�h�̏ꍇ
+	if ( method == PARAM_IWAMURA ) {	// 岩村メソッドの場合
 		srand(clock());
 
 		for ( j = 0; j < kTryParamRand; j++ ) {
-			// �����_����4�_�񕜌����o����
+			// ランダムに4点非復元抽出する
 			GetNumRand( 4, cor_num, randpi );
 			for ( i = 0; i < 4; i++ ) {
 				strp1[i].x = corps[cor[randpi[i]][1]].x;
@@ -154,31 +154,31 @@ void CalcProjParamTop( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_nu
 			else
 				CalcProjParam( strp2, strp1, &(paramarr[j]) );
 		}
-		// �K�؂ȃp�����[�^���v�Z����
+		// 適切なパラメータを計算する
 		GetAppropriateParam( paramarr, param );
 	}
-	else if ( method == PARAM_RANSAC ) {	// RANSAC�̏ꍇ
+	else if ( method == PARAM_RANSAC ) {	// RANSACの場合
 		GetAppropriateParamRANSAC( ps, corps, cor, cor_num, param, mode );
 	}
 }
 
 int GetAppropriateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param, int mode )
-// RANSAC�ɂ���Ďˉe�ϊ��p�����[�^�����߂�
+// RANSACによって射影変換パラメータを求める
 {
 	int i, j, randpi[4], score, max_score = -1, max_param = -1;
 	strPoint strp1[4], strp2[4];
 	strProjParam paramarr[kRANSACTry], zero_param;
 	
 	zero_param.a1 = 0.0; zero_param.a2 = 0.0; zero_param.a3 = 0.0; zero_param.b1 = 0.0; zero_param.b2 = 0.0; zero_param.b3 = 0.0; zero_param.c1 = 0.0; zero_param.c2 = 0.0;
-	for ( j = 0; j < kRANSACTry; j++ ) {	// kRANSACTry��J��Ԃ�
-		GetNumRand( 4, cor_num, randpi );	// �����_����4�_�񕜌����o����
+	for ( j = 0; j < kRANSACTry; j++ ) {	// kRANSACTry回繰り返す
+		GetNumRand( 4, cor_num, randpi );	// ランダムに4点非復元抽出する
 		for ( i = 0; i < 4; i++ ) {
 			strp1[i].x = corps[cor[randpi[i]][1]].x;
 			strp1[i].y = corps[cor[randpi[i]][1]].y;
 			strp2[i].x = ps[cor[randpi[i]][0]].x;
 			strp2[i].y = ps[cor[randpi[i]][0]].y;
 		}
-		// 4�_��p���ăp�����[�^�����߂�
+		// 4点を用いてパラメータを求める
 		if ( mode == PROJ_NORMAL )
 			CalcProjParam( strp1, strp2, &(paramarr[j]) );
 		else
@@ -190,14 +190,14 @@ int GetAppropriateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], in
 			max_param = j;
 		}
 	}
-	if ( max_score < kRANSACMinScore ) {	// �ő�X�R�A��臒l�ȉ�
+	if ( max_score < kRANSACMinScore ) {	// 最大スコアが閾値以下
 		*param = zero_param;
 	}
 	else {
-		// ����ꂽ�p�����[�^���T�|�[�g����Ή��_����p�����[�^�����߂Ȃ���
-		// �������Đ��x���Ⴍ�Ȃ�D����ɕ��ς����肵�Ȃ����������̂�
+		// 得られたパラメータをサポートする対応点からパラメータを求めなおす
+		// かえって精度が低くなる．下手に平均したりしない方がいいのか
 //		GetRefinedParamRANSAC( ps, corps, cor, cor_num, &(paramarr[max_param]), param, mode );
-		// �ő�̃X�R�A�𓾂��p�����[�^��Ԃ�
+		// 最大のスコアを得たパラメータを返す
 		*param = paramarr[max_param];
 	}
 //	*param = paramarr[max_param];
@@ -205,7 +205,7 @@ int GetAppropriateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], in
 }
 
 int EvaluateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param, int mode )
-// RANSAC�ł̃p�����[�^�̕]��
+// RANSACでのパラメータの評価
 {
 	int i, score = 0;
 	double dist;
@@ -224,17 +224,17 @@ int EvaluateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_
 			p2.x = corps[cor[i][1]].x;
 			p2.y = corps[cor[i][1]].y;
 		}
-		// �p�����[�^���狁�߂���Ή��_�̍��W�Ƃ̋����i�̂Q��j�����߂�
+		// パラメータから求められる対応点の座標との距離（の２乗）を求める
 		ProjTrans( &p1, &p2h, param );
 		dist = (p2.x-p2h.x)*(p2.x-p2h.x)+(p2.y-p2h.y)*(p2.y-p2h.y);
 //		printf("%f\n", dist);
-		if ( dist < kRANSACThr )	score++;	// ������臒l�ȉ��Ȃ�C���N�������g
+		if ( dist < kRANSACThr )	score++;	// 距離が閾値以下ならインクリメント
 	}
 	return score;
 }
 
 void GetRefinedParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param_src, strProjParam *param_dst, int mode )
-// ��萸�x�̍����p�����[�^�����߂�
+// より精度の高いパラメータを求める
 {
 	int i, j, randpi[4], *support, sup_num = 0;
 	double dist;
@@ -242,9 +242,9 @@ void GetRefinedParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int c
 	strProjParam param_cur, zero_param;
 	
 	zero_param.a1 = 0.0; zero_param.a2 = 0.0; zero_param.a3 = 0.0; zero_param.b1 = 0.0; zero_param.b2 = 0.0; zero_param.b3 = 0.0; zero_param.c1 = 0.0; zero_param.c2 = 0.0;
-	support = (int *)calloc( cor_num, sizeof(int) );	// param���T�|�[�g����Ή��_�̏�����
+	support = (int *)calloc( cor_num, sizeof(int) );	// paramをサポートする対応点の初期化
 	
-	for ( i = 0; i < cor_num; i++ ) {	// param���T�|�[�g����Ή��_��T��
+	for ( i = 0; i < cor_num; i++ ) {	// paramをサポートする対応点を探す
 		if ( mode == PROJ_NORMAL ) {
 			p1.x = corps[cor[i][1]].x;
 			p1.y = corps[cor[i][1]].y;
@@ -257,23 +257,23 @@ void GetRefinedParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int c
 			p2.x = corps[cor[i][1]].x;
 			p2.y = corps[cor[i][1]].y;
 		}
-		// �p�����[�^���狁�߂���Ή��_�̍��W�Ƃ̋����i�̂Q��j�����߂�
+		// パラメータから求められる対応点の座標との距離（の２乗）を求める
 		ProjTrans( &p1, &p2h, param_src );
 		dist = (p2.x-p2h.x)*(p2.x-p2h.x)+(p2.y-p2h.y)*(p2.y-p2h.y);
-		if ( dist < kRANSACThr ) {	// ������臒l�ȉ��Ȃ�T�|�[�g������̂ɒǉ�
+		if ( dist < kRANSACThr ) {	// 距離が閾値以下ならサポートするものに追加
 			support[sup_num++] = i;
 		}
 	}
-	*param_dst = zero_param;	// ���ׂă[���ŏ�����
-	for ( j = 0; j < kRANSACRefineNum; j++ ) {	// kRANSACRefineNum��J��Ԃ�
-		GetNumRand( 4, sup_num, randpi );	// �����_����4�_�񕜌����o����
+	*param_dst = zero_param;	// すべてゼロで初期化
+	for ( j = 0; j < kRANSACRefineNum; j++ ) {	// kRANSACRefineNum回繰り返す
+		GetNumRand( 4, sup_num, randpi );	// ランダムに4点非復元抽出する
 		for ( i = 0; i < 4; i++ ) {
 			strp1[i].x = corps[cor[support[randpi[i]]][1]].x;
 			strp1[i].y = corps[cor[support[randpi[i]]][1]].y;
 			strp2[i].x = ps[cor[support[randpi[i]]][0]].x;
 			strp2[i].y = ps[cor[support[randpi[i]]][0]].y;
 		}
-		// 4�_��p���ăp�����[�^�����߂�
+		// 4点を用いてパラメータを求める
 		if ( mode == PROJ_NORMAL )
 			CalcProjParam( strp1, strp2, &param_cur );
 		else
@@ -300,6 +300,7 @@ void GetRefinedParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int c
 }
 
 void RecovPTSub( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, cv::Size size, cv::Mat src )
+// 射影変換補正サブ
 {
 	int i, j, randpi[4];
 	strPoint strp1[4], strp2[4], pp1, pp2;
@@ -309,6 +310,7 @@ void RecovPTSub( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, cv:
 	srand(clock());
 
 	for ( j = 0; j < kTryParamRand; j++ ) {
+		// ランダムに4点非復元抽出する
 		GetNumRand( 4, cor_num, randpi );
 
 		for ( i = 0; i < 4; i++ ) {
@@ -320,6 +322,7 @@ void RecovPTSub( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, cv:
 		CalcProjParam( strp1, strp2, &(paramarr[j]) );
 	}
 
+	// 適切なパラメータを計算する
 	GetAppropriateParam( paramarr, &param );
 
 	img = cv::Mat::zeros( size, CV_8UC1 );
@@ -338,7 +341,7 @@ void RecovPTSub( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, cv:
 }
 
 void GetAppropriateParam( strProjParam *paramarr, strProjParam *param )
-// �p�����[�^�\���̔z��paramarr[]����K�؂ȃp�����[�^param�𓾂�
+// パラメータ構造体配列paramarr[]から適切なパラメータparamを得る
 {
 #if 0
 	int i, j, paramvote[kTryParamRand], maxvote = 0, maxparam;
@@ -379,7 +382,7 @@ void GetAppropriateParam( strProjParam *paramarr, strProjParam *param )
 		pdouble[i][6] = paramarr[i].c1;
 		pdouble[i][7] = paramarr[i].c2;
 	}
-	MeanParam( pdouble, mean, kTryParamRand, kErrorThrMeanParam, kNumVectorMeanParam );	// ���Œ�
+	MeanParam( pdouble, mean, kTryParamRand, kErrorThrMeanParam, kNumVectorMeanParam );	// 個数固定
 	param->a1 = mean[0];
 	param->a2 = mean[1];
 	param->a3 = mean[2];
@@ -392,7 +395,7 @@ void GetAppropriateParam( strProjParam *paramarr, strProjParam *param )
 }
 
 void RPTMain( char *fname1, char *fname2 )
-// �e�X�g�̃��C��
+// テストのメイン
 {
 	cv::Mat img1, img2;
 	cv::Point p1[4], p2[4];
@@ -442,7 +445,7 @@ void RPTMain( char *fname1, char *fname2 )
 }
 
 void RecoverPTTest( cv::Mat &img1, cv::Mat &img2, cv::Point *p1, cv::Point *p2 )
-// �ˉe�ϊ��␳�̃e�X�g
+// 射影変換補正のテスト
 {
 	int i, j;
 	strPoint strp1[4], strp2[4], pp1, pp2;
@@ -472,8 +475,8 @@ void RecoverPTTest( cv::Mat &img1, cv::Mat &img2, cv::Point *p1, cv::Point *p2 )
 	//OutPutImage( recov );
 }
 
-// err0: �P�O�̌덷�ƐV���Ɍv�Z�����덷��err0�����Ȃ�I��
-// threshold: �_���������߂����ɕ��ׂ��Ƃ��Cthreshold�܂ł͎���̕��ϒl�̌v�Z�Ɏg��(inside)
+// err0: １つ前の誤差と新たに計算した誤差がerr0未満なら終了
+// threshold: 点を距離が近い順に並べたとき，threshold個までは次回の平均値の計算に使う(inside)
 void MeanParam( double data[kTryParamRand][8], double *mean, int n, double err0, int threshold) {
 	// variable for "for"
 	int i,j;
@@ -513,7 +516,7 @@ void MeanParam( double data[kTryParamRand][8], double *mean, int n, double err0,
 	// initialization of size_flag1
 	size_flag1 = n;
 
-	// loop (counter��0��1�̂Ƃ���err0�ɂ��]���͂��Ȃ��D�܂�C�Q��͕K�����[�v����)
+	// loop (counterが0か1のときはerr0による評価はしない．つまり，２回は必ずループする)
 	  while ( fabs(err-err_prev) > err0 || counter<=1) {
 	
 		// calculate mean
@@ -561,11 +564,11 @@ void MeanParam( double data[kTryParamRand][8], double *mean, int n, double err0,
 		for (i=0; i<n; i++) {
 			dist_n[i] = i;
 		}
-		// dist[dist_n[i]]�����������ɕ��Ԃ悤��dist_n���\�[�g
+		// dist[dist_n[i]]が小さい順に並ぶようにdist_nをソート
 //		quicksort(dist,dist_n,pdist,1,n);
 //		quicksort(dist,dist_n,0,n-1);
 		simplesort(dist,dist_n,0,n-1);
-		// ���������������̂�inside�ɁC�����łȂ����̂�outside�ɂ���
+		// 距離が小さいものをinsideに，そうでないものをoutsideにする
 		for (i=0; i<threshold; i++) {
 			inside_flag[dist_n[i]] = 1;
 			size_flag1++;
@@ -580,7 +583,7 @@ void MeanParam( double data[kTryParamRand][8], double *mean, int n, double err0,
 }
 
 double GetPPVar( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num )
-// �ˉe�ϊ��p�����[�^�̕��U�����߂�
+// 射影変換パラメータの分散を求める
 {
 	int i, j, randpi[4];
 	static int first_flag = 0, seed;
@@ -595,7 +598,7 @@ double GetPPVar( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num )
 	srand(seed++);
 
 	for ( j = 0; j < kTryParamRand; j++ ) {
-		// �����_����4�_�񕜌����o����
+		// ランダムに4点非復元抽出する
 		GetNumRand( 4, cor_num, randpi );
 
 		for ( i = 0; i < 4; i++ ) {
@@ -607,12 +610,12 @@ double GetPPVar( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num )
 		CalcProjParam( strp1, strp2, &(paramarr[j]) );
 	}
 
-	// �p�����[�^�̕��U�̑��a���v�Z���C�Ԃ�
+	// パラメータの分散の総和を計算し，返す
 	return GetPPVarSub( paramarr );
 }
 
 double GetPPVarSub( strProjParam *paramarr )
-// �p�����[�^�\���̔z��paramarr[]����K�؂ȃp�����[�^param�𓾂�
+// パラメータ構造体配列paramarr[]から適切なパラメータparamを得る
 {
 	int i;
 	double pdouble[kTryParamRand][8]/*, mean[8]*/;
@@ -681,7 +684,7 @@ double GetPPVarSubSub( double data[kTryParamRand][8], int n, double err0, int th
 	// initialization of size_flag1
 	size_flag1 = n;
 
-	// loop (counter��0��1�̂Ƃ���err0�ɂ��]���͂��Ȃ��D�܂�C�Q��͕K�����[�v����)
+	// loop (counterが0か1のときはerr0による評価はしない．つまり，２回は必ずループする)
 	  while ( fabs(err-err_prev) > err0 || counter<=1) {
 	
 		// calculate mean
@@ -730,11 +733,11 @@ double GetPPVarSubSub( double data[kTryParamRand][8], int n, double err0, int th
 		for (i=0; i<n; i++) {
 			dist_n[i] = i;
 		}
-		// dist[dist_n[i]]�����������ɕ��Ԃ悤��dist_n���\�[�g
+		// dist[dist_n[i]]が小さい順に並ぶようにdist_nをソート
 //		quicksort(dist,dist_n,pdist,1,n);
 //		quicksort(dist,dist_n,0,n-1);
 		simplesort(dist,dist_n,0,n-1);
-		// ���������������̂�inside�ɁC�����łȂ����̂�outside�ɂ���
+		// 距離が小さいものをinsideに，そうでないものをoutsideにする
 		for (i=0; i<threshold; i++) {
 			inside_flag[dist_n[i]] = 1;
 			size_flag1++;

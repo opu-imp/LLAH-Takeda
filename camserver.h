@@ -1,8 +1,8 @@
 #define	kTCP	(1)
 #define	kUDP	(2)
 
-#define	kDivX	4	/* MakeNearsFromCentresDiv�p */
-#define	kDivY	5	/* MakeNearsFromCentresDiv�p */
+#define	kDivX	4	/* MakeNearsFromCentresDiv用 */
+#define	kDivY	5	/* MakeNearsFromCentresDiv用 */
 
 #define	SEND_FLAG	0
 #ifdef	WIN32
@@ -11,14 +11,14 @@
 #define	RECV_FLAG	MSG_WAITALL
 #endif
 
-#define	kMaxNameLen	(20)	/* �N���C�A���g���̍ő咷�� */
-#define	kMaxDocNameLen	(20)	/* �摜���̍ő咷 */
-#define	kMinPoints	(20)	/* USB�J�������[�h�ł̍ŏ������_�� */
-#define	kTopThr	3	/* 08/09/14 ���[�I���reject�������Ȃ̂ŕύX */
-#define	kMinPointsToCalcParam	(4)	/* �ˉe�ϊ��p�����[�^���v�Z����ۂ̍ŏ��Ή��_���i4�ȏ�ɂ��邱�Ɓj*/
+#define	kMaxNameLen	(20)	/* クライアント名の最大長さ */
+#define	kMaxDocNameLen	(20)	/* 画像名の最大長 */
+#define	kMinPoints	(20)	/* USBカメラモードでの最小特徴点数 */
+#define	kTopThr	3	/* 08/09/14 ラーオ語でrejectしすぎなので変更 */
+#define	kMinPointsToCalcParam	(4)	/* 射影変換パラメータを計算する際の最小対応点数（4以上にすること）*/
 
 #define	kRecvBuffSize	(sizeof(cv::Size) + sizeof(int) + sizeof(cv::Point) * kMaxPointNum)	/* 受信時のバッファのサイズ */
-#define	kRecvBuffSizeAreas	(sizeof(cv::Size) + sizeof(int) + (sizeof(cv::Point) + sizeof(unsigned short)) * kMaxPointNum)	/* 受信時のバッファのサイズ（面積も送信バージョン） */
+#define	kRecvBuffSizeAreas	(sizeof(cv::Size) + sizeof(int) + (sizeof(cv::Point) + sizeof(unsigned short)) * kMaxPointNum)	/* 受信時のバッファのサイズ（面積も受信バージョン） */
 #define	kSendBuffSize	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size))
 #define	kSendBuffSize3D	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size) + sizeof(float)*16)
 #define kSendBuffSizeCor	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size) + sizeof(int) + sizeof(cv::Point)*kMaxPointNum*2 )

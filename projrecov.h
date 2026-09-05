@@ -1,19 +1,19 @@
 #include "proj4p.h"
 
 #define	kNearParamThr	(1000.0L)
-#define	kErrorThrMeanParam	(0.00001)	/* MeanParam�ɂ�����v�Z�ł��؂�̂��߂̃G���[��臒l */
-#define	kNumVectorMeanParam	(30)	/* MeanParam�ɂ����鎟��̌v�Z�ɗp����x�N�g���̐� */
+#define	kErrorThrMeanParam	(0.00001)	/* MeanParamにおける計算打ち切りのためのエラーの閾値 */
+#define	kNumVectorMeanParam	(30)	/* MeanParamにおける次回の計算に用いるベクトルの数 */
 
-// RANSAC�ł̃p�����[�^
-#define	kRANSACTry	(100)	/* �p�����[�^�̌v�Z�� */
-#define	kRANSACThr	(10.0)	/* �����i�̂Q��j��臒l */
-#define	kRANSACMinScore	(4)	/* �ŏ��X�R�A */
-#define	kRANSACRefineNum	(100)	/* ��萸�x�̍����p�����[�^�����߂�ۂ̐� */
+// RANSACでのパラメータ
+#define	kRANSACTry	(100)	/* パラメータの計算回数 */
+#define	kRANSACThr	(10.0)	/* 距離（の２乗）の閾値 */
+#define	kRANSACMinScore	(4)	/* 最小スコア */
+#define	kRANSACRefineNum	(100)	/* より精度の高いパラメータを求める際の数 */
 
-// CalcProjParamTop�ł̃��[�h
+// CalcProjParamTopでのモード
 #define	PROJ_NORMAL	(1)
 #define	PROJ_REVERSE	(2)
-// CalcProjParamTop�ł̐���@
+// CalcProjParamTopでの推定法
 #define	PARAM_IWAMURA	(1)
 #define	PARAM_RANSAC	(2)
 

@@ -21,7 +21,7 @@
 using namespace std;
 
 int LoadPointFile( char *fname, cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
-// �����_�t�@�C�������[�h����
+// 特徴点ファイルをロードする
 {
 	fprintf( stderr, "Point File ... ");
     int i, j;
@@ -48,7 +48,7 @@ int LoadPointFile( char *fname, cv::Point ***p_reg_pss, double ***p_reg_areass, 
 	
 	cout << doc_num << endl;
 
-	// �������̊m��
+	// メモリの確保
 	reg_pss = (cv::Point **)calloc( doc_num, sizeof(cv::Point *) );
 	reg_areass = (double **)calloc( doc_num, sizeof(double *) );
 	reg_sizes = (cv::Size *)calloc( doc_num, sizeof(cv::Size) );
@@ -57,15 +57,15 @@ int LoadPointFile( char *fname, cv::Point ***p_reg_pss, double ***p_reg_areass, 
 	for ( i = 0; i < doc_num; i++ )
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-	// �ۑ�
+	// 保存
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		ReadBlock( (unsigned char *)&reg_sizes[i].width, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_sizes[i].height, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_nums[i], sizeof(int) );
 		//cout << dbcors[i] << ":" << reg_nums[i] << ":";
-		reg_pss[i] = (cv::Point *)calloc( reg_nums[i], sizeof(cv::Point) );	// �����_�f�[�^�̃������m��
-		reg_areass[i] = (double *)calloc( reg_nums[i], sizeof(double) );	// �ʐσf�[�^�̃������m��
+		reg_pss[i] = (cv::Point *)calloc( reg_nums[i], sizeof(cv::Point) );	// 特徴点データのメモリ確保
+		reg_areass[i] = (double *)calloc( reg_nums[i], sizeof(double) );	// 面積データのメモリ確保
 		double max=0;
 		for ( j = 0; j < reg_nums[i]; j++ ) {
 			ReadBlock( (unsigned char *)&reg_pss[i][j].x, sizeof(int) );
@@ -96,7 +96,7 @@ int LoadPointFile( char *fname, cv::Point ***p_reg_pss, double ***p_reg_areass, 
 }
 
 int LoadPointFile2( char *fname, char ***p_dbcors )
-// �����_�t�@�C�������[�h����
+// 特徴点ファイルをロードする
 {
 	//fprintf( stderr, "Point File ... ");
     int i, j;
@@ -116,13 +116,13 @@ int LoadPointFile2( char *fname, char ***p_dbcors )
 		fprintf( stderr, "error: %s registered nothing\n", fname );
 		exit(1);
 	}
-	// �������̊m��
+	// メモリの確保
 	dbcors = (char **)calloc( doc_num, sizeof(char *) );
 	for ( i = 0; i < doc_num; i++ ) {
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 	}
 
-	// �ۑ�
+	// 保存
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		//cout << dbcors[i] << endl;
@@ -136,7 +136,7 @@ int LoadPointFile2( char *fname, char ***p_dbcors )
 }
 
 int LoadThinFile( char *fname, cv::Point ***p_reg_pss, cv::Size **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
-// �����_�t�@�C�������[�h����
+// 特徴点ファイルをロードする
 {
     int i, j;
 	int doc_num;
@@ -161,7 +161,7 @@ int LoadThinFile( char *fname, cv::Point ***p_reg_pss, cv::Size **p_reg_sizes, i
 		exit(1);
 	}
 
-	// �������̊m��
+	// メモリの確保
 	reg_pss = (cv::Point **)calloc( doc_num, sizeof(cv::Point *) );
 	reg_sizes = (cv::Size *)calloc( doc_num, sizeof(cv::Size) );
 	reg_nums = (int *)calloc( doc_num, sizeof(int) );
@@ -169,13 +169,13 @@ int LoadThinFile( char *fname, cv::Point ***p_reg_pss, cv::Size **p_reg_sizes, i
 	for ( i = 0; i < doc_num; i++ )
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-	// �ۑ�
+	// 保存
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		ReadBlock( (unsigned char *)&reg_sizes[i].width, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_sizes[i].height, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_nums[i], sizeof(int) );
-		reg_pss[i] = (cv::Point *)calloc( reg_nums[i], sizeof(cv::Point) );	// �����_�f�[�^�̃������m��
+		reg_pss[i] = (cv::Point *)calloc( reg_nums[i], sizeof(cv::Point) );	// 特徴点データのメモリ確保
 		for ( j = 0; j < reg_nums[i]; j++ ) {
 			ReadBlock( (unsigned char *)&reg_pss[i][j].x, sizeof(int) );
 			ReadBlock( (unsigned char *)&reg_pss[i][j].y, sizeof(int) );
@@ -197,7 +197,7 @@ int LoadThinFile( char *fname, cv::Point ***p_reg_pss, cv::Size **p_reg_sizes, i
 
 
 int LoadThinFile2( char *fname, char ***p_dbcors )
-// �����_�t�@�C�������[�h����
+// 特徴点ファイルをロードする
 {
     int i, j;
 	int doc_num;
@@ -222,12 +222,12 @@ int LoadThinFile2( char *fname, char ***p_dbcors )
 		exit(1);
 	}
 
-	// �������̊m��
+	// メモリの確保
 	dbcors = (char **)calloc( doc_num, sizeof(char *) );
 	for ( i = 0; i < doc_num; i++ ) {
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 	}
-	// �ۑ�
+	// 保存
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		//cout << dbcors[i] << endl;
@@ -241,7 +241,7 @@ int LoadThinFile2( char *fname, char ***p_dbcors )
 }
 
 int LoadQueryPointFile( char *fname, cv::Point **ps0, double **areas0 )
-// �N�G�������_�t�@�C���̓ǂݍ���
+// クエリ特徴点ファイルの読み込み
 {
     int i, num;
 	double *areas;
@@ -257,7 +257,7 @@ int LoadQueryPointFile( char *fname, cv::Point **ps0, double **areas0 )
 	}
 	//printf("%d\n", doc_num);
 	
-	// �������̊m��
+	// メモリの確保
 	ps = (cv::Point *)calloc( num, sizeof(cv::Point) );
 	areas = (double *)calloc( num, sizeof(double) );
 
@@ -277,7 +277,7 @@ int LoadQueryPointFile( char *fname, cv::Point **ps0, double **areas0 )
 }
 
 int LoadDocNum( char *fname )
-// �o�^�����摜���̓ǂݍ���
+// 登録文書画像数の読み込み
 {
 	int doc_num;
 	char tname[kMaxPathLen];
@@ -296,7 +296,7 @@ int LoadDocNum( char *fname )
 }
 
 void LoadDisc( strDisc *disc )
-// ���U���t�@�C���̓ǂݍ���
+// 離散化ファイルの読み込み
 {
 	fprintf( stderr, "Disc File ... ");
 	int i;
@@ -328,7 +328,7 @@ void LoadDisc( strDisc *disc )
 }
 
 void LoadRmRedund( void )
-// �����I���t�@�C���̓ǂݍ���
+// 特徴選択ファイルの読み込み
 {
 	int i, j;
 	char line[kMaxLineLen], fname[kMaxPathLen];
@@ -351,7 +351,7 @@ void LoadRmRedund( void )
 }
 
 void LoadHashCompressToStorage( strHash ***p_hash )
-// �n�b�V�������[�h����
+// ハッシュをロードする
 {
 	fprintf( stderr, "Hash File ... ");
 //	int start_mem=0, end_mem=0, memsize=0;
@@ -363,11 +363,11 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	strHash *storage = NULL;
 	int len_list = 0;
 
-	// ���X�g1���̒����iSaveHash�Ɠ����j
+	// リスト1個の長さ（SaveHashと同じ）
 	if ( eCompressHash )	len_list = eHComp2DatByte;
 	else					len_list = eFByte;
 
-	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// �n�b�V���t�@�C���̃I�[�v��
+	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ハッシュファイルのオープン
 	if ( StartReadBlock(fname, kBlockSize) == 0 ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
@@ -380,7 +380,7 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	}
 
 #ifndef WIN32	
-	// �������v���J�n
+	// メモリ計測開始
 	//start_mem = CalcMemory();
 #endif
 
@@ -398,7 +398,7 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 
 	FinishReadBlock();
 
-	// �|�C���^�n��
+	// ポインタ渡し
 	*p_hash = hash;
 	if ( *p_hash == NULL ) {
 		fprintf( stderr, "error: failed to pass hash table" );
@@ -406,10 +406,10 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	}
 
 #ifndef WIN32	
-	// �������v���I��
+	// メモリ計測終了
 	//end_mem = CalcMemory();
 	//memsize = end_mem - start_mem;
-	// �g�p�������\��
+	// 使用メモリ表示
 	//printf("Used Memory Size\t: %15lf KB, %15lf MB, %15lf GB\n", ((double)memsize), ((double)memsize/1024), ((double)memsize/1024/1024) );
 #endif
 	fprintf( stderr, "Loaded\n");
@@ -417,14 +417,14 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 
 
 void LoadHashCompress( strHash ***p_hash )
-// �n�b�V�������[�h����
+// ハッシュをロードする
 {
 	unsigned char n;
 	unsigned int i, index;
 	unsigned char *dat;
 	unsigned int pdoc;
 	unsigned short ppoint;
-	unsigned char pquotient;	// ��
+	unsigned char pquotient;	// 商
 	char fname[kMaxPathLen];
 	strHash **hash = NULL;
 
@@ -436,7 +436,7 @@ void LoadHashCompress( strHash ***p_hash )
 		exit(1);
 	}
 
-	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// �n�b�V���t�@�C���̃I�[�v��
+	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ハッシュファイルのオープン
 	if ( StartReadBlock(fname, kBlockSize) == 0 ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
@@ -453,7 +453,7 @@ void LoadHashCompress( strHash ***p_hash )
 	FinishReadBlock();
 	free( dat );
 
-	// �|�C���^�n��
+	// ポインタ渡し
 	*p_hash = hash;
 	if ( *p_hash == NULL ) {
 		fprintf( stderr, "error: failed to pass hash table" );
@@ -464,14 +464,14 @@ void LoadHashCompress( strHash ***p_hash )
 
 
 void LoadHashCompressForCombine( char *fname, strHash **hash, int doc_num )
-// �n�b�V�������[�h����
+// ハッシュをロードする
 {
 	unsigned char n;
 	unsigned int i, index;
 	unsigned char *dat;
 	unsigned int pdoc;
 	unsigned short ppoint;
-	unsigned char pquotient;	// ��
+	unsigned char pquotient;	// 商
 
 	dat = (unsigned char *)calloc( eHComp2DatByte, sizeof(unsigned char) );
 
@@ -493,26 +493,26 @@ void LoadHashCompressForCombine( char *fname, strHash **hash, int doc_num )
 }
 
 void LoadConfig( void )
-// �ݒ�t�@�C���̓ǂݍ���
+// 設定ファイルの読み込み
 {
 	fprintf( stderr, "Config File ... ");
 	char fname[kMaxPathLen], line[kMaxLineLen], ch, *fgets_ret=NULL;
 	FILE *fp=NULL;
 
-	sprintf( fname, "%s%s", eDataDir, eConfigFileName );	// config.dat�̐�΃p�X���쐬����
-	if ( (fp = fopen(fname, "r")) == NULL ) {				// �J��
+	sprintf( fname, "%s%s", eDataDir, eConfigFileName );	// config.datの絶対パスを作成して
+	if ( (fp = fopen(fname, "r")) == NULL ) {				// 開く
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
 	}
 
-	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1�s�ǂݍ���
-	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// �ǂݍ��ݎ��s�܂��̓o�[�W�����Ⴂ
+	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1行読み込み
+	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// 読み込み失敗またはバージョン違い
 		fprintf( stderr, "error: %s version error\n", eConfigFileName );
 		exit(1);
 	}
 
-	// �e�s����͂��Đݒ�
-	/*	��:	n 7
+	// 各行を解析して設定
+	/*	例:	n 7
 			m 6
 			d 15	*/
 	while ( fgets( line, kMaxLineLen, fp ) != NULL ) {
@@ -523,25 +523,25 @@ void LoadConfig( void )
 			case 'm':	// m
 				sscanf( line, "%c %d", &ch, &eGroup2Num );
 				break;
-			case 'd':	// ���U�����x��
+			case 'd':	// 離散化レベル
 				sscanf( line, "%c %d", &ch, &eDiscNum );
 				break;
-			case 'p':	// ���萔
+			case 'p':	// 比例定数
 				sscanf( line, "%c %lf", &ch, &eProp );
 				break;
-			case 'H':	// �n�b�V���e�[�u���̃T�C�Y
+			case 'H':	// ハッシュテーブルのサイズ
 				sscanf( line, "%c %llu %lld", &ch, &eHashSize, &eHashStorageNum );
 				break;
-			case 'a':	// �ʐϔ�����ʎg�p
+			case 'a':	// 面積比特徴量使用
 				eUseArea = 1;
 				break;
-			case 'r':	// �����ʑI��L�i�璷�������j
+			case 'r':	// 特徴量選択有（冗長性除去）
 				eRmRedund = 1;
 				break;
-			case 't':	// �����_�T���v�����O�L
+			case 't':	// 特徴点サンプリング有
 				eThinPs = 1;
 				break;
-			case 'z':	// ���X�g���k
+			case 'z':	// リスト圧縮
 				eCompressHash = 1;
 				sscanf( line, "%c %d %d %d %d", &ch, &eDocBit, &ePointBit, &eQuotBit, &eHComp2DatByte );
 				break;
@@ -551,34 +551,34 @@ void LoadConfig( void )
 	}
 	fclose( fp );
 
-	// �g�����v�Z
+	// 組合せ計算
 	eNumCom1 = CalcnCr( eGroup1Num, eGroup2Num );	// nCm
 	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );	// mCf
 
-	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// ���k�����̃��X�g�T�C�Y�i�ꉞ�j
+	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// 圧縮無しのリストサイズ（一応）
 	fprintf( stderr, "Loaded\n");
 }
 
 void LoadConfigForCombine( char *fname )
-// �ݒ�t�@�C���̓ǂݍ���
+// 設定ファイルの読み込み
 {
 	fprintf( stderr, "Config File ... ");
 	char line[kMaxLineLen], ch, *fgets_ret=NULL;
 	FILE *fp=NULL;
 
-	if ( (fp = fopen(fname, "r")) == NULL ) {				// �J��
+	if ( (fp = fopen(fname, "r")) == NULL ) {				// 開く
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
 	}
 
-	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1�s�ǂݍ���
-	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// �ǂݍ��ݎ��s�܂��̓o�[�W�����Ⴂ
+	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1行読み込み
+	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// 読み込み失敗またはバージョン違い
 		fprintf( stderr, "error: %s version error\n", eConfigFileName );
 		exit(1);
 	}
 
-	// �e�s����͂��Đݒ�
-	/*	��:	n 7
+	// 各行を解析して設定
+	/*	例:	n 7
 			m 6
 			d 15	*/
 	while ( fgets( line, kMaxLineLen, fp ) != NULL ) {
@@ -589,25 +589,25 @@ void LoadConfigForCombine( char *fname )
 			case 'm':	// m
 				sscanf( line, "%c %d", &ch, &eGroup2Num );
 				break;
-			case 'd':	// ���U�����x��
+			case 'd':	// 離散化レベル
 				sscanf( line, "%c %d", &ch, &eDiscNum );
 				break;
-			case 'p':	// ���萔
+			case 'p':	// 比例定数
 				sscanf( line, "%c %lf", &ch, &eProp );
 				break;
-			case 'H':	// �n�b�V���e�[�u���̃T�C�Y
+			case 'H':	// ハッシュテーブルのサイズ
 				sscanf( line, "%c %llu %lld", &ch, &eHashSize, &eHashStorageNum );
 				break;
-			case 'a':	// �ʐϔ�����ʎg�p
+			case 'a':	// 面積比特徴量使用
 				eUseArea = 1;
 				break;
-			case 'r':	// �����ʑI��L�i�璷�������j
+			case 'r':	// 特徴量選択有（冗長性除去）
 				eRmRedund = 1;
 				break;
-			case 't':	// �����_�T���v�����O�L
+			case 't':	// 特徴点サンプリング有
 				eThinPs = 1;
 				break;
-			case 'z':	// ���X�g���k
+			case 'z':	// リスト圧縮
 				eCompressHash = 1;
 				sscanf( line, "%c %d %d %d %d", &ch, &eDocBit, &ePointBit, &eQuotBit, &eHComp2DatByte );
 				break;
@@ -617,10 +617,10 @@ void LoadConfigForCombine( char *fname )
 	}
 	fclose( fp );
 
-	// �g�����v�Z
+	// 組合せ計算
 	eNumCom1 = CalcnCr( eGroup1Num, eGroup2Num );	// nCm
 	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );	// mCf
 
-	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// ���k�����̃��X�g�T�C�Y�i�ꉞ�j
+	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// 圧縮無しのリストサイズ（一応）
 	fprintf( stderr, "Loaded\n");
 }

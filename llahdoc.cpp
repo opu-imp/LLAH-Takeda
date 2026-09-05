@@ -1,11 +1,11 @@
 #include "def_general.h"
 
 /* dcams.c */
-#define	GLOBAL_DEFINE	/* extern�ϐ��ɂ����Ŏ��̂�^���� */
+#define	GLOBAL_DEFINE	/* extern変数にここで実体を与える */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm>	// min,max�p
+#include <algorithm>	// min,max用
 #include <math.h>
 #include <iostream>
 #include <vector>
@@ -24,7 +24,7 @@
 #pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
-// �l�b�g���[�N
+// ネットワーク
 #ifdef	WIN32
 #include <winsock2.h>	// socket
 #include "ws_cl.h"
@@ -89,30 +89,30 @@ int main( int argc, char **argv )
 	FILE *fp;
 	int random[1000];
 
-	// �������s�������̊i�[
+	// 検索失敗文書名の格納
 	vector<string> failure;
 
-	// �l�b�g���[�Nini�t�@�C���ǂݍ���
+	// ネットワークiniファイル読み込み
 	ReadIniFile();
-	// ������͏���
+	// 引数解析処理
 	if ( ( argi = AnalyzeArgAndSetExtern( argc, argv ) ) < 0 )	return 1;
 	unsigned long long int count=0;
 	unsigned long long int value=0;
 	switch ( eEntireMode ) {
-		/******************* �ʏ팟�����[�h *********************/
+		/******************* 通常検索モード *********************/
 	case RETRIEVE_MODE:
 		fprintf( stderr, "Retrieval from static image\n");
-		// �ݒ�t�@�C���̓ǂݍ���
+		// 設定ファイルの読み込み
 		LoadConfig();
-		// ���U���t�@�C���̓ǂݍ���
+		// 離散化ファイルの読み込み
 		LoadDisc( &disc );
 
-		// �����_�t�@�C���̓ǂݍ���
-		if ( eThinPs )	eDbDocs = LoadThinFile2( NULL, &dbcors );								// �T���v�����O�L��
-		//if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// �T���v�����O�L��
-		else			eDbDocs = LoadPointFile2( NULL, &dbcors );	// �T���v�����O����
+		// 特徴点ファイルの読み込み
+		if ( eThinPs )	eDbDocs = LoadThinFile2( NULL, &dbcors );								// サンプリング有り
+		//if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// サンプリング有り
+		else			eDbDocs = LoadPointFile2( NULL, &dbcors );	// サンプリング無し
 
-		// �n�b�V���̓ǂݍ���
+		// ハッシュの読み込み
 		//LoadHashCompress( &hash );
 		LoadHashCompressToStorage( &hash );
 
@@ -129,24 +129,24 @@ int main( int argc, char **argv )
 		//fclose(fp);
 
 
-		//else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// �T���v�����O����
+		//else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// サンプリング無し
 
 		CalculateAverageCollision(hash);
 		//RemoveListSameIndexAndQuotient(hash);
 		//CalculateAverageCollision(hash);
 
 
-		// �ߖT�\���ۑ��p�������m��
+		// 近傍構造保存用メモリ確保
 		SecureNears();
-		// ���[�e�[�u���m��
+		// 得票テーブル確保
 		score = (int *)calloc(eDbDocs, sizeof(int));
-		// �g�ݍ��킹�̍쐬
+		// 組み合わせの作成
 		GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
 		if ( eRmRedund ) {
 			eNumCom2 = 17;
-			LoadRmRedund();	// �����I��L
+			LoadRmRedund();	// 特徴選択有
 		}
-		// �����J�n
+		// 検索開始
 		args = argi;
 		//for ( i = 0; i < 1; i++ ) {
 		for ( eMultiNum = 1; eMultiNum < 17; eMultiNum+=2 ) {
@@ -158,15 +158,15 @@ int main( int argc, char **argv )
 			for ( ; argi < argc; argi++ ) {
 				if ( !eExperimentMode ) 
 					fprintf( stdout, "%s\n", argv[argi] );
-				// �����_�̒��o
+				// 特徴点の抽出
 				if ( IsDat( argv[argi] ) ) {
 					num = LoadQueryPointFile( argv[argi], &ps, &areas );
 				}
 				else {
-					// �����摜�̐���
+					// 結合画像の生成
 					img = GetConnectedImage( argv[argi] );
 					if ( img.empty() )	continue;
-					// �����_���o�E�A�������̖ʐόv�Z
+					// 特徴点抽出・連結成分の面積計算
 					num = MakeFeaturePoint( img, &ps, &areas, &size );	
 #ifdef CLRa
 					con_img = img.clone();
@@ -179,31 +179,31 @@ int main( int argc, char **argv )
 #endif
 					//cvReleaseImage( &img );
 				}
-				// �ߖT�\���̉��
+				// 近傍構造の解析
 				MakeNearsFromCentres( ps, num );
 
 #ifdef DRAW_COR_ALL
-				//�Ή��_�`��
+				//対応点描画
 				res = RetrieveCor( ps, areas, num, score, pcor, &pcornum, &disc, reg_nums, hash );
 				//res = 596+808;
 				//res = 3198;
-				// size����������
+				// sizeがおかしい
 				DrawCor( ps, num, reg_sizes[res], res, reg_pss[res], reg_nums[res], reg_sizes[res], pcor, pcornum );
 #else
-				// ����
+				// 検索
 				res = Retrieve( ps, areas, num, score, &disc, reg_nums, &ret_time, hash );
 				//printf("%d\n", res);
 #endif
-				// ��������
+				// 検索結果
 				if ( !eExperimentMode ) 
 					printf( "%s : %d\n\n", dbcors[res], score[res] );
-				// ���Ƃ��܂�
+				// あとしまつ
 				free( ps );
 				free( areas );
 				ClearNears( num );
 
-				// ���x�E�������Ԃ̏���
-				if ( eExperimentMode ) {	// �������[�h�Ȃ琸�x�v��
+				// 精度・処理時間の処理
+				if ( eExperimentMode ) {	// 実験モードなら精度計測
 					total_que++;
 					if ( IsSucceed( argv[argi], dbcors[res] ) )	suc_que++;
 					else {
@@ -238,8 +238,8 @@ int main( int argc, char **argv )
 			//	}
 			//}
 			//printf("%lf\n", (double)value/(double)count);
-			// ��������
-			if ( eExperimentMode ) {	// �������[�h�Ȃ猋�ʏo��
+			// 実験結果
+			if ( eExperimentMode ) {	// 実験モードなら結果出力
 				printf("Accuracy : %d/%d(%.2f)\n", suc_que, total_que, ((double)suc_que)/((double)total_que)*100.0 );
 				printf("Average Proc Time : %d micro sec\n", (int)(((double)total_time) / ((double)total_que)) );
 				printf("Average Top Vote : %.2f\n", (total_top / (double)total_que) );
@@ -256,8 +256,8 @@ int main( int argc, char **argv )
 		//ReleaseHash( hash );
 		ReleaseNears();
 
-		// ��������
-		if ( eExperimentMode ) {	// �������[�h�Ȃ猋�ʏo��
+		// 実験結果
+		if ( eExperimentMode ) {	// 実験モードなら結果出力
 			printf("Accuracy : %d/%d(%.2f)\n", suc_que, total_que, ((double)suc_que)/((double)total_que)*100.0 );
 			printf("Average Proc Time : %d micro sec\n", (int)(((double)total_time) / ((double)total_que)) );
 			printf("Average Top Vote : %.2f\n", (total_top / (double)total_que) );
@@ -266,36 +266,36 @@ int main( int argc, char **argv )
 		}
 
 		break;
-		/************************ USB�J�������[�h ************************/
+		/************************ USBカメラモード ************************/
 	case USBCAM_SERVER_MODE:
 		RetrieveUSBCamServer();
 		break;
-		//		/************************ �X�}�[�g�t�H���A�g���[�h ************************/
+		//		/************************ スマートフォン連携モード ************************/
 		//		case SMART_SERVER_MODE:
 		//			RetrieveSmartphoneServer();
 		//			break;
-		/********************** �n�b�V���\�z���[�h **********************/
+		/********************** ハッシュ構築モード **********************/
 	case CONST_HASH_MODE:
 		if ( !eExperimentMode )	fprintf( stderr, "Hash Constoraction\n" );
 
-		// �����_�t�@�C���̍쐬
+		// 特徴点ファイルの作成
 		if ( !eExperimentMode )	fprintf( stderr, "Extracting Feature Points...\n" );
 		CreatePointFile( &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
 const_rest:
-		// �ߖT�\���i�[�z��̊m��
+		// 近傍構造格納配列の確保
 		SecureNears();
 
 		if ( eLoadDiscHash ) {
-			// ���U���t�@�C���̓ǂݍ���
+			// 離散化ファイルの読み込み
 			if ( !eExperimentMode )	fprintf( stderr, "Load Disc File... \n" );
 			LoadDisc( &disc );
 		} else {
-			// ���U���t�@�C���̍쐬
+			// 離散化ファイルの作成
 			if ( !eExperimentMode )	fprintf( stderr, "Make Disc File... \n" );
 			MakeDiscFile( min( eDocNumForMakeDisc, eDbDocs ), reg_pss, reg_nums, &disc );
 		}
 
-		// �n�b�V���̍\�z
+		// ハッシュの構築
 		if ( !eExperimentMode )	fprintf( stderr, "Make Affine File... \n" );
 		//if ( eReHash )			ConstructHash3( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
 		if ( eReHash )			ConstructHash4( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
@@ -304,12 +304,12 @@ const_rest:
 		else					ConstructHash( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
 
 
-		// �ݒ�t�@�C���̕ۑ�
+		// 設定ファイルの保存
 		if ( !eExperimentMode )	fprintf( stderr, "Save Config File...\n" );
 		SaveConfig();
 
 		break;
-		/******************* point.dat����̃n�b�V���\�z���[�h ************************/
+		/******************* point.datからのハッシュ構築モード ************************/
 	case CONST_HASH_PF_MODE:
 		if ( !eExperimentMode ) fprintf( stderr, "Hash Construction using point.dat\n" );
 
@@ -327,31 +327,31 @@ const_rest:
 		goto const_rest;
 
 		break;
-		/******************* �����_�t�@�C���쐬���[�h ***********************/
+		/******************* 特徴点ファイル作成モード ***********************/
 	case CONST_POINT_MODE:
 		if ( !eExperimentMode )	fprintf( stderr, "Hash Constoraction\n" );
 
-		// �����_�t�@�C���̍쐬
+		// 特徴点ファイルの作成
 		if ( !eExperimentMode )	fprintf( stderr, "Extracting Feature Points...\n" );
 		CreatePointFile( &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
 		break;
-		/************************ DB�������[�h ************************/
+		/************************ DB結合モード ************************/
 	case COMBINE_DB_MODE:
 		fprintf( stderr, "Combine Point File\n" );
-		//LoadConfig();	// �ݒ�t�@�C���̓ǂݍ���
-		CombineDB();	// DB�̌���
+		//LoadConfig();	// 設定ファイルの読み込み
+		CombineDB();	// DBの結合
 		break;
-		/************************ �����_�t�@�C���������[�h ************************/
+		/************************ 特徴点ファイル結合モード ************************/
 	case COMBINE_PF_MODE:
 		fprintf( stderr, "Combine Point File\n" );
-		CombinePointFile();	// point.dat�̌���
+		CombinePointFile();	// point.datの結合
 		//fprintf( stderr, "Combine Thin File\n" );
-		//CombineThinFile();	// thin.dat�̌���
+		//CombineThinFile();	// thin.datの結合
 		break;
-		/************************ �����_�t�@�C���������[�h ************************/
+		/************************ 特徴点ファイル結合モード ************************/
 	case COMPRESS_PF_MODE:
 		fprintf( stderr, "Compress Point File\n" );
-		LoadConfig();	// �ݒ�t�@�C���̓ǂݍ���
+		LoadConfig();	// 設定ファイルの読み込み
 		if ( eThinPs ) {
 			eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
 			SaveThinFile2( eDbDocs, dbcors );
@@ -360,22 +360,22 @@ const_rest:
 			SavePointFile2( eDbDocs, dbcors );
 		}
 		break;
-		/************************ �n�b�V���������[�h ************************/
+		/************************ ハッシュ結合モード ************************/
 		//case COMBINE_HASH_MODE:
 		//	fprintf( stderr, "Combine Hash\n" );
-		//	LoadConfig();	// �ݒ�t�@�C���̓ǂݍ���
-		//	CombineHash();	// �n�b�V���̌���
-		//	SaveConfig();	// �ݒ�t�@�C���̕ۑ�
+		//	LoadConfig();	// 設定ファイルの読み込み
+		//	CombineHash();	// ハッシュの結合
+		//	SaveConfig();	// 設定ファイルの保存
 		//	break;
-		/************************* �N�G�������_���[�h ***********************/
+		/************************* クエリ特徴点モード ***********************/
 	case MAKE_QUERY_DAT_MODE:
 		for ( ; argi < argc; argi++ ) {
 			if ( !eExperimentMode ) fprintf( stdout, "%s\n", argv[argi] );
 
-			// �����摜�̐���
+			// 結合画像の生成
 			img = GetConnectedImage( argv[argi] );
 			if ( img.empty() )	continue;
-			// �����_���o�E�A�������̖ʐόv�Z
+			// 特徴点抽出・連結成分の面積計算
 			num = MakeFeaturePoint( img, &(ps), &(areas), &(size));
 #ifdef CLRa
 			con_img = img.clone();
@@ -390,7 +390,7 @@ const_rest:
 
 			SaveQueryPointFile( argv[argi], num, ps, areas );
 
-			// ���Ƃ��܂�
+			// あとしまつ
 			free( ps );
 			free( areas );
 		}

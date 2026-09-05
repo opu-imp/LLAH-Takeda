@@ -13,11 +13,11 @@
 #define	SOCKET	int
 #endif
 
-#define	kFileNameLen	(64)	/* �t�@�C�����̍ő咷 */
-#define	kMaxPathLen		(128)	/* �p�X�̕�����̍ő咷 */
-#define	kMaxLineLen		(1024)	/* fgets�œǂݍ��ޏꍇ�̃o�b�t�@�T�C�Y */
-#define	kDiscLineLen	(1024)	/* fgets�œǂݍ��ޏꍇ�̃o�b�t�@�T�C�Y */
-#define kBuffSize		(1024)	/* TCP/IP�ʐM�ł̃o�b�t�@�T�C�Y */
+#define	kFileNameLen	(64)	/* ファイル名の最大長 */
+#define	kMaxPathLen		(128)	/* パスの文字列の最大長 */
+#define	kMaxLineLen		(1024)	/* fgetsで読み込む場合のバッファサイズ */
+#define	kDiscLineLen	(1024)	/* fgetsで読み込む場合のバッファサイズ */
+#define kBuffSize		(1024)	/* TCP/IP通信でのバッファサイズ */
 
 #define PI (3.14159265358979323846L)
 
@@ -30,16 +30,16 @@
 #endif
 #endif
 
-// �l�b�g���[�N�֘A
+// ネットワーク関連
 #define	kIniFileName	"server.ini"
 #define	kDefaultTCPPort		(12345)
-#define	kDefaultProtocol	(2)	/* 1��TCP�C2��UDP */
+#define	kDefaultProtocol	(2)	/* 1はTCP，2はUDP */
 #define	kDefaultPointPort	(65431)
 #define	kDefaultResultPort	(65432)
 #define	kDefaultClientName	"localhost"
 #define	kDefaultServerName	"localhost"
 
-// �t�@�C���I�[�v���֘A
+// ファイルオープン関連
 #define	kDfltDataDir	"./"
 #define	kDfltSrcDir	"./"
 #define	kDfltSrcSuffix	"jpg"
@@ -55,31 +55,31 @@
 #define	kDfltGroup3Num	(4)
 #define	kDfltDiscNum	(15)
 
-// ���U��
+// 離散化
 #define	kDfltDocNumForMakeDisc	(10)
 
-// ���萔
+// 比例定数
 #define	kDfltPropMakeNum	(10)
 
-// ���
+// 一般
 #define	kConfigVerStr	"<config.dat 2.0>"
 
-// �n�b�V���̍\�z
-#define	kMaxHashCollision	(10)	// �ő�Փː�
-#define	kMaxDocNum	(1024*1024*128)	/* �o�^�ł���ő�h�L�������g�� */
-#define	kMaxPointNum	(2500)	/* �_�̍ő吔 */
-//#define	kHashSize	(1024*1024*1024*2-1)	/* �n�b�V���e�[�u���̑傫�� */
-//#define	kHashSize	(1024*1024*1024-1)	/* �n�b�V���e�[�u���̑傫�� */
-//#define	kHashSize	(1024*1024*8-1)	/* �n�b�V���e�[�u���̑傫�� */
-#define	kHashSize	(1024*1024*128-1)	/* �n�b�V���e�[�u���̑傫�� */
+// ハッシュの構築
+#define	kMaxHashCollision	(10)	// 最大衝突数
+#define	kMaxDocNum	(1024*1024*128)	/* 登録できる最大ドキュメント数 */
+#define	kMaxPointNum	(2500)	/* 点の最大数 */
+//#define	kHashSize	(1024*1024*1024*2-1)	/* ハッシュテーブルの大きさ */
+//#define	kHashSize	(1024*1024*1024-1)	/* ハッシュテーブルの大きさ */
+//#define	kHashSize	(1024*1024*8-1)	/* ハッシュテーブルの大きさ */
+#define	kHashSize	(1024*1024*128-1)	/* ハッシュテーブルの大きさ */
 #define	kBlockSize	(1000000)
 //#define	kBlockSize	(1024)
 
-// �S�̂̃��[�h
-#define	RETRIEVE_MODE		(0)		// �ʏ팟�����[�h
-#define	CONST_HASH_MODE		(1)		// �n�b�V���\�z���[�h
-#define CONST_HASH_PF_MODE	(2)		// �_�t�@�C������̃n�b�V���\�z���[�h
-#define	USBCAM_SERVER_MODE	(3)		// ���A���^�C���������[�h
+// 全体のモード
+#define	RETRIEVE_MODE		(0)		// 通常検索モード
+#define	CONST_HASH_MODE		(1)		// ハッシュ構築モード
+#define CONST_HASH_PF_MODE	(2)		// 点ファイルからのハッシュ構築モード
+#define	USBCAM_SERVER_MODE	(3)		// リアルタイム検索モード
 #define COMBINE_PF_MODE		(4)		// 
 #define COMBINE_DB_MODE		(5)
 #define COMBINE_HASH_MODE	(6)
@@ -88,7 +88,7 @@
 #define CONST_POINT_MODE	(9)
 #define COMPRESS_PF_MODE	(10)
 
-// パス区切り
+// パス操作
 #define kDelimiterChar '/'
 
 // OpenCV (for types used in headers)
@@ -102,24 +102,24 @@
 #define	cBlue	cv::Scalar( 255,0,0 )
 #define	cRandom	cv::Scalar( rand()%256, rand()%256, rand()%256 )
 
-// �A���l�̃A�t�B���s�ϗʂ𗣎U�l�ɕϊ����邽�߂̍\����
+// 連続値のアフィン不変量を離散値に変換するための構造体
 typedef struct _strDisc {
-	double min;	// �ŏ��l
-	double max;	// �ő�l
-	int num;	// ���U�����x��
-	int res;	// dat�̌�
-	int *dat;	// ���U�l������z��
+	double min;	// 最小値
+	double max;	// 最大値
+	int num;	// 離散化レベル
+	int res;	// datの個数
+	int *dat;	// 離散値を入れる配列
 } strDisc;
 
-//�A�t�B���s�ϗʂ̃q�X�g�O�����\�z�p�̍\����
+//アフィン不変量のヒストグラム構築用の構造体
 typedef struct _strHist {
-	int size;	// bin�̐�
-	int *bin;	// �f�[�^
-	double min;	// �f�[�^�̍ŏ��l
-	double max;	// �f�[�^�̍ő�l�Dmin��max�œ���bin�����߂�
+	int size;	// binの数
+	int *bin;	// データ
+	double min;	// データの最小値
+	double max;	// データの最大値．minとmaxで入るbinを決める
 } strHist;
 
-typedef unsigned char strHash; // �z��Ńn�b�V���\��
+typedef unsigned char strHash; // 配列でハッシュ構成
 
 typedef struct _strProjParam {
 	double a1;
