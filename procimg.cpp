@@ -60,6 +60,7 @@ cv::Mat GetConnectedImage( char *fname )
 
 		// 輪郭描画（ノイズ除去のため）
 		for ( size_t ci = 0; ci < contours.size(); ci++ ) {
+			if ( hierarchy[ci][3] != -1 )	continue;	// 最外輪郭のみ（旧 C API の h_next 巡回と同じ）
 			mom = cv::moments( contours[ci] );
 			d00 = mom.m00;
 			if ( d00 < 10 )	continue;
@@ -108,6 +109,7 @@ cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
 
 	// 輪郭描画（ノイズ除去のため）
 	for ( size_t ci = 0; ci < contours.size(); ci++ ) {
+		if ( hierarchy[ci][3] != -1 )	continue;	// 最外輪郭のみ（旧 C API の h_next 巡回と同じ）
 		mom = cv::moments( contours[ci] );
 		d00 = mom.m00;
 		if ( d00 < 10 )	continue;
@@ -169,8 +171,10 @@ int MakeFeaturePoint( cv::Mat img, cv::Point **ps0, double **areas0, cv::Size *s
 	// 輪郭抽出
 	cv::findContours( img, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// 特徴点候補数のカウント
-	num = ( (int)contours.size() >= kMaxPointNum ) ? kMaxPointNum - 1 : (int)contours.size();
+	// 特徴点候補数のカウント（最外輪郭のみ．旧 C API の h_next 巡回と同じ）
+	i = 0;
+	for ( size_t ci = 0; ci < contours.size(); ci++ )	if ( hierarchy[ci][3] == -1 )	i++;
+	num = ( i >= kMaxPointNum ) ? kMaxPointNum - 1 : i;
 	if ( num <= 0 )	return 0;
 
 	// 配列の確保
