@@ -23,71 +23,89 @@ Representative References:
  Real-Time Document Image Retrieval on a Smartphone  
  Proceedings of the 10th IAPR International Workshop on Document Analysis Systems (DAS2012), pp.225-229, Gold Coast, Queensland, Australia (2012-3)
 
-## macOS でのビルド・動作確認手順
+## Building and Running on macOS
 
-### 前提条件
+### Prerequisites
 
 ```bash
-# Homebrew で OpenCV 4 をインストール
+# Install OpenCV 4 with Homebrew
 brew install opencv
 
-# インストール確認
+# Check the installation
 pkg-config --modversion opencv4
 ```
 
-### ビルド
+Generating the test images also requires Python 3 with `opencv-python` and `numpy`.
+
+### Build
 
 ```bash
 make clean && make
 ```
 
-エラーなく `llahdoc` バイナリが生成されれば成功です（warning は無視して構いません）。
+The build has succeeded if the `llahdoc` binary is produced without errors (warnings can be ignored).
 
-### テスト用画像の生成
+### Generate test images
 
 ```bash
 python3 test/gen_test_images.py
 ```
 
-`test/db_images/` に DB 用画像 5 枚、`test/query_images/` にクエリ画像 3 枚が生成されます。
+This creates 5 database images in `test/db_images/` and 3 query images in `test/query_images/`.
 
-### DB 構築
+### Build the database
 
 ```bash
+mkdir -p test/db_data
 ./llahdoc -c test/db_images/ jpg -h test/db_data/
 ```
 
-`test/db_data/` に `config.dat`, `disc.dat`, `hash.dat`, `point.dat` が生成されます。
+`llahdoc` does not create the database directory, so create it first. This creates `config.dat`, `disc.dat`, `hash.dat`, and `point.dat` in `test/db_data/`.
 
-### 特徴点ファイル圧縮
+### Compress the feature point file
 
 ```bash
 ./llahdoc -f -h test/db_data/
 ```
 
-`test/db_data/point_comp.dat` が生成されます。検索実行に必要です。
+This creates `test/db_data/point_comp.dat`, which retrieval requires.
 
-### 検索実行
+### Run a query
 
 ```bash
 ./llahdoc -h test/db_data/ test/query_images/query_doc005.jpg
 ```
 
-以下のような出力が得られれば正常動作です：
+Output like the following means that everything is working:
 
 ```
 Retrieval from static image
 Config File ... Loaded
 Disc File ... Loaded
 Hash File ... Loaded
+1692, 1689, 1.001776
 test/query_images/query_doc005.jpg
-retrieval time : 22[milisec]
-/.../test/db_images/doc005.jpg : 39
+retrieval time : 323[milisec]
+test/db_images/doc005.jpg : 39
+
+test/query_images/query_doc005.jpg
+retrieval time : 278[milisec]
+test/db_images/doc005.jpg : 78
+...
 ```
 
-数秒以内に終了し、クエリと同じ文書（この例では doc005）が 0 より大きいスコアで返れば OK です。
+The query is processed 8 times in a row (the `eMultiNum` loop in `llahdoc.cpp`, kept from the original experiment code), so the result is printed 8 times and the score grows with each repetition. The command should finish within a few seconds, and every result should be the same document as the query (doc005 in this example) with a score greater than 0.
 
-### 注意事項
+### Run all steps at once
 
-- デフォルトのハッシュテーブルサイズ（512M エントリ）で約 4GB のメモリを使用します
-- macOS には `timeout` コマンドがないため、タイムアウトが必要な場合は `perl -e 'alarm 30; exec @ARGV' ./llahdoc ...` を使用してください
+```bash
+bash test/run_all_tests.sh
+```
+
+This runs every step above (build, test image generation, database construction, compression, and three queries) and reports PASS/FAIL for each. A step passes when its command exits successfully, so check the `-> docNNN.jpg : <score>` lines to confirm that each query returned its own document.
+
+### Notes
+
+- The default hash table size (512M entries) uses about 4 GB of memory.
+- macOS has no `timeout` command. If you need a timeout, use `perl -e 'alarm 30; exec @ARGV' ./llahdoc ...` instead.
+- Paths are limited to 128 bytes (`kMaxPathLen` in `def_general.h`). `llahdoc` crashes if an image or database path is longer, so work in a directory with a short path.
