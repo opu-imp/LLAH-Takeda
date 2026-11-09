@@ -14,7 +14,7 @@ RESULT = os.path.join(BASE, "minimal_result.txt")
 
 with open(RESULT, "w") as f:
     q = os.path.join(QUERY_DIR, "query_doc005.jpg")
-    cmd = [LLAHDOC, "-h", DB_DATA + "/", q]
+    cmd = [LLAHDOC, "-g", "53", "5", "15", "-h", DB_DATA + "/", q]
     f.write(f"CMD: {' '.join(cmd)}\n")
     f.write(f"START: {time.strftime('%H:%M:%S')}\n")
     f.flush()

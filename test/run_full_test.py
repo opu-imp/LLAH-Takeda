@@ -22,7 +22,7 @@ results = []
 
 # Step 1: Build DB
 results.append("=== STEP 1: DB Construction ===")
-cmd = [LLAHDOC, "-c", DB_IMG + "/", "jpg", "-h", DB_DATA + "/"]
+cmd = [LLAHDOC, "-z", "-c", DB_IMG + "/", "jpg", "-h", DB_DATA + "/"]
 try:
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=60, cwd=ROOT)
     results.append(f"EXIT: {r.returncode}")
@@ -63,7 +63,7 @@ queries = ["query_doc001.jpg", "query_doc003.jpg", "query_doc005.jpg"]
 for q in queries:
     results.append(f"\n=== STEP 2: Query {q} ===")
     qpath = os.path.join(QUERY_DIR, q)
-    cmd = [LLAHDOC, "-h", DB_DATA + "/", qpath]
+    cmd = [LLAHDOC, "-g", "53", "5", "15", "-h", DB_DATA + "/", qpath]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=120, cwd=ROOT)
         results.append(f"EXIT: {r.returncode}")

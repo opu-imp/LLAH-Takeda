@@ -90,9 +90,10 @@ echo "[Step 3] DB構築"
 rm -rf "$DB_DATA"
 mkdir -p "$DB_DATA"
 
+# -z: ハッシュをリスト圧縮形式で保存する（検索側の LoadHashCompressToStorage は圧縮形式のみ読める）
 rc=0
-run_with_timeout 60 "$LLAHDOC" -c "$DB_IMG/" jpg -h "$DB_DATA/" >> "$LOG" 2>&1 || rc=$?
-report "llahdoc -c (DB構築)" $rc
+run_with_timeout 60 "$LLAHDOC" -z -c "$DB_IMG/" jpg -h "$DB_DATA/" >> "$LOG" 2>&1 || rc=$?
+report "llahdoc -z -c (DB構築)" $rc
 
 # 必須ファイルの存在チェック
 for f in config.dat disc.dat hash.dat point.dat; do
@@ -136,8 +137,9 @@ for q in query_doc001.jpg query_doc003.jpg query_doc005.jpg; do
         continue
     fi
 
+    # -g: 二値化のブロックサイズ・定数 C・平滑化のマスクサイズ（マスクサイズに既定値はないので必須）
     rc=0
-    output=$(run_with_timeout 60 "$LLAHDOC" -h "$DB_DATA/" "$qpath" 2>> "$LOG") || rc=$?
+    output=$(run_with_timeout 60 "$LLAHDOC" -g 53 5 15 -h "$DB_DATA/" "$qpath" 2>> "$LOG") || rc=$?
     report "query: $q" $rc
 
     # 検索結果から res= 行を表示

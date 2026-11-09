@@ -12,7 +12,7 @@ QUERY_DIR = os.path.join(BASE, "query_images")
 
 q = "query_doc005.jpg"
 qpath = os.path.join(QUERY_DIR, q)
-cmd = [LLAHDOC, "-h", DB_DATA + "/", qpath]
+cmd = [LLAHDOC, "-g", "53", "5", "15", "-h", DB_DATA + "/", qpath]
 
 outpath = os.path.join(BASE, "single_result.txt")
 with open(outpath, "w") as f:

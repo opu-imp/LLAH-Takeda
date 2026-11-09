@@ -19,7 +19,7 @@ queries = [
 results = []
 for q in queries:
     qpath = os.path.join(QUERY_DIR, q)
-    cmd = [LLAHDOC, "-h", DB_DATA + "/", qpath]
+    cmd = [LLAHDOC, "-g", "53", "5", "15", "-h", DB_DATA + "/", qpath]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=30, cwd=ROOT)
         results.append(f"=== {q} ===\nSTDOUT:\n{r.stdout}\nSTDERR:\n{r.stderr}\nEXIT: {r.returncode}\n")
