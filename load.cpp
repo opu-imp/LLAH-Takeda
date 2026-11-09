@@ -361,11 +361,6 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	unsigned int index;
 	strHash **hash = NULL;
 	strHash *storage = NULL;
-	int len_list = 0;
-
-	// リスト1個の長さ（SaveHashと同じ）
-	if ( eCompressHash )	len_list = eHComp2DatByte;
-	else					len_list = eFByte;
 
 	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ハッシュファイルのオープン
 	if ( StartReadBlock(fname, kBlockSize) == 0 ) {
@@ -392,8 +387,8 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 		hash[index] = &(storage[location]);
 		ReadBlock( (unsigned char *)&n, sizeof(unsigned char) );
 		storage[location++] = n;
-		ReadBlock( (unsigned char *)&(storage[location]), n*len_list);
-		location += (n*len_list);
+		ReadBlock( (unsigned char *)&(storage[location]), n*eHComp2DatByte);
+		location += (n*eHComp2DatByte);
 	}
 
 	FinishReadBlock();
