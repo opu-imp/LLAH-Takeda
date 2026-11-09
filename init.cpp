@@ -63,7 +63,6 @@ int AnalyzeArgAndSetExtern( int argc, char *argv[] )
 	eReHash = 0;
 	eBlockSize = 53;
 	eC = 5.0;
-	eMask = 15;
 	eFeatureNum = 400;
 	eSampling = 0;
 
