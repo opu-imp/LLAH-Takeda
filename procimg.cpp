@@ -26,6 +26,18 @@
 
 using namespace std;
 
+static void ZeroImageBorder( cv::Mat &img )
+// 画像の外周 1 画素を 0 にする．
+// 旧 C API の cvFindContours は外周 1 画素を 0 にしてから輪郭を追跡していたが，
+// OpenCV 3.2 以降の cv::findContours は外周も輪郭に含めるため，呼び出し前にこれで旧挙動を再現する
+{
+	if ( img.empty() )	return;
+	img.row( 0 ).setTo( 0 );
+	img.row( img.rows - 1 ).setTo( 0 );
+	img.col( 0 ).setTo( 0 );
+	img.col( img.cols - 1 ).setTo( 0 );
+}
+
 cv::Mat GetConnectedImage( char *fname )
 // 結合画像生成
 {
@@ -56,6 +68,7 @@ cv::Mat GetConnectedImage( char *fname )
 		cv::bitwise_not( bin, inv );
 
 		// 輪郭抽出（ノイズ除去のため）
+		ZeroImageBorder( inv );
 		cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
 		// 輪郭描画（ノイズ除去のため）
@@ -105,6 +118,7 @@ cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
 	cv::bitwise_not( bin, inv );
 
 	// 輪郭抽出（ノイズ除去のため）
+	ZeroImageBorder( inv );
 	cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
 	// 輪郭描画（ノイズ除去のため）
@@ -121,6 +135,7 @@ cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
 	// 文字の大きさを調べる
 	contours.clear();
 	hierarchy.clear();
+	ZeroImageBorder( inv );
 	cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
 	// 連結成分を描画・重心を計算
@@ -169,6 +184,7 @@ int MakeFeaturePoint( cv::Mat img, cv::Point **ps0, double **areas0, cv::Size *s
 #endif
 
 	// 輪郭抽出
+	ZeroImageBorder( img );
 	cv::findContours( img, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
 	// 特徴点候補数のカウント（最外輪郭のみ．旧 C API の h_next 巡回と同じ）
