@@ -6,13 +6,13 @@
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
 
@@ -32,22 +32,22 @@
 
 #define CLRa
 
-void CreatePointFile( CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
-// “Á’¥“_’Šoˆ—
+void CreatePointFile( cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
+// ç‰¹å¾´ç‚¹æŠ½å‡ºå‡¦ç†
 {
 	char search_path[kMaxPathLen];
 	char **files=NULL, **dbcors=NULL;
 	int i;
 	int *reg_nums=NULL;
 	double **reg_areass=NULL;
-	CvPoint **reg_pss=NULL;
-	CvSize *reg_sizes=NULL;
-	IplImage *img;
+	cv::Point **reg_pss=NULL;
+	cv::Size *reg_sizes=NULL;
+	cv::Mat img;
 #ifdef CLR
-	IplImage *fp_img, *con_img, *orig_img;
+	cv::Mat fp_img, con_img, orig_img;
 #endif
 
-	sprintf( search_path, "%s*.%s", eSrcDir, eSrcSuffix );	// ŒŸõƒpƒX‚Ìì¬
+	sprintf( search_path, "%s*.%s", eSrcDir, eSrcSuffix );	// æ¤œç´¢ãƒ‘ã‚¹ã®ä½œæˆ
 	if ( !eExperimentMode)	fprintf( stdout, "search_path : %s\n", search_path );
 
 	eDbDocs = FindPath( search_path, &files );
@@ -60,25 +60,25 @@ void CreatePointFile( CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_r
 		exit(1);
 	}
 
-	// ƒƒ‚ƒŠ‚ÌŠm•Û
-	reg_pss = (CvPoint **)calloc(eDbDocs, sizeof(CvPoint *));
+	// ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿
+	reg_pss = (cv::Point **)calloc(eDbDocs, sizeof(cv::Point *));
 	reg_areass = (double **)calloc(eDbDocs, sizeof(double *));
-	reg_sizes = (CvSize *)calloc(eDbDocs, sizeof(CvSize));
+	reg_sizes = (cv::Size *)calloc(eDbDocs, sizeof(cv::Size));
 	reg_nums = (int *)calloc(eDbDocs, sizeof(int));
 	dbcors = (char **)calloc(eDbDocs, sizeof(char *));
 	for ( i = 0; i < eDbDocs; i++ )
 		dbcors[i] = (char *)calloc(kMaxPathLen, sizeof(char));
 
-	// “Á’¥“_’Šoˆ—
+	// ç‰¹å¾´ç‚¹æŠ½å‡ºå‡¦ç†
 	for ( i = 0; i < eDbDocs; i++ ) {
 		//if ( !eExperimentMode )	fprintf( stderr, "%d/%d %s\n", i+1, eDbDocs, files[i] );
 		
-		strcpy( dbcors[i], files[i] );		// Œ³‰æ‘œƒtƒ@ƒCƒ‹–¼‚Ì•Û‘¶
+		strcpy( dbcors[i], files[i] );		// å…ƒç”»åƒãƒ•ã‚¡ã‚¤ãƒ«åã®ä¿å­˜
 		
-		// Œ‹‡‰æ‘œ‚Ì¶¬
+		// çµåˆç”»åƒã®ç”Ÿæˆ
 		img = GetConnectedImage( files[i] );
-		if ( img == NULL )	continue;
-		// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+		if ( img.empty() )	continue;
+		// ç‰¹å¾´ç‚¹æŠ½å‡ºãƒ»é€£çµæˆåˆ†ã®é¢ç©è¨ˆç®—
 		reg_nums[i] = MakeFeaturePoint( img, &(reg_pss[i]), &(reg_areass[i]), &(reg_sizes[i]) );
 		//if ( i == 0 ) {
 		//	for ( int j = 0; j < reg_nums[i]; j++ ) {
@@ -86,18 +86,18 @@ void CreatePointFile( CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_r
 		//	}
 		//}
 #ifdef CLR
-		con_img = cvCloneImage( img );
-		orig_img = cvLoadImage( files[i], 0 );
+		con_img = img.clone();
+		orig_img = cv::imread( files[i], cv::IMREAD_GRAYSCALE );
 		fp_img = MakeFeaturePointImage( orig_img, con_img, reg_pss[i], reg_nums[i] );
 		OutPutImage( fp_img );
-		cvReleaseImage( &orig_img );
-		cvReleaseImage( &con_img );
-		cvReleaseImage( &fp_img );
+		// cvReleaseImage( &orig_img );  // cv::Mat handles memory automatically
+		// cvReleaseImage( &con_img );  // cv::Mat handles memory automatically
+		// cvReleaseImage( &fp_img );  // cv::Mat handles memory automatically
 #endif
-		cvReleaseImage( &img );
+		// cvReleaseImage( &img );  // cv::Mat handles memory automatically
 	}
 	//printf("%d, %d\n", reg_pss[0][0].x, reg_pss[0][0].y);
-	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì•Û‘¶iƒoƒCƒiƒŠj
+	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜ï¼ˆãƒã‚¤ãƒŠãƒªï¼‰
 	SavePointFile( eDbDocs, dbcors, reg_nums, reg_pss, reg_areass, reg_sizes );
 	//SavePointFileText( eDbDocs, dbcors, reg_nums, reg_pss, reg_areass, reg_sizes );
 
@@ -107,24 +107,24 @@ void CreatePointFile( CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_r
 	*p_reg_nums = reg_nums;
 	*p_dbcors = dbcors;
 	
-	// ‰ğ•ú
+	// è§£æ”¾
 	for ( i = 0; i < eDbDocs; i++ ) {
 		free( files[i] );
 	}
 	free( files );
 }
 
-void MakeDiscFile( int doc_num, CvPoint **pss, int *nums, strDisc *disc )
-// —£U‰»ƒtƒ@ƒCƒ‹ì¬
+void MakeDiscFile( int doc_num, cv::Point **pss, int *nums, strDisc *disc )
+// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆ
 {
 	int i;
 	strHist hist;
 
-	// ƒqƒXƒgƒOƒ‰ƒ€‚Ì‰Šú‰»
+	// ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ ã®åˆæœŸåŒ–
 	InitHist( &hist, eDiscRes, eDiscMin, eDiscMax );
-	// ‘g‡‚¹‚Ìì¬
+	// çµ„åˆã›ã®ä½œæˆ
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// “Á’¥‘I‘ğ—L
+	// ç‰¹å¾´é¸æŠæœ‰
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
@@ -132,27 +132,27 @@ void MakeDiscFile( int doc_num, CvPoint **pss, int *nums, strDisc *disc )
 
 	for ( i = 0; i < doc_num; i++ ) {
 		if ( !eExperimentMode )	fprintf( stdout, "%d/%d\n", i+1, doc_num );
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( pss[i], nums[i] );
-		// ƒqƒXƒgƒOƒ‰ƒ€‚Ìì¬
+		// ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ ã®ä½œæˆ
 		CalcAffineAndAddHist( pss[i], nums[i], &hist );
-		// ‚ ‚Æ‚µ‚Ü‚Â
+		// ã‚ã¨ã—ã¾ã¤
 		ClearNears( nums[i] );
 	}
 
-	// ‘g‡‚¹‚Ì‰ğ•ú
+	// çµ„åˆã›ã®è§£æ”¾
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 
-	// ƒAƒtƒBƒ“•s•Ï—ÊƒqƒXƒgƒOƒ‰ƒ€‚©‚ç—£U‰»‚Ìè‡’l‚ğ‹‚ß‚é
+	// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ ã‹ã‚‰é›¢æ•£åŒ–ã®é–¾å€¤ã‚’æ±‚ã‚ã‚‹
 	if ( eTrueHist )	Hist2Disc2( &hist, disc, eDiscNum );
 	else				Hist2Disc( &hist, disc, eDiscNum );
-	// —£U‰»ƒtƒ@ƒCƒ‹‚Ì•Û‘¶
+	// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜
 	SaveDisc( disc );
 }
 
-void ConstructHash( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// ƒnƒbƒVƒ…‚ğ\’z
+void ConstructHash( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
+// ãƒãƒƒã‚·ãƒ¥ã‚’æ§‹ç¯‰
 {
 	int i, j;
 	int **thinids = NULL, *thin_nums = NULL, *ids = NULL;
@@ -167,26 +167,26 @@ void ConstructHash( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, 
 		ids = (int *)calloc( kMaxPointNum, sizeof(int) );
 	}
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// ‘g‡‚¹‚Ìì¬i nCm, mC4 j
+	// çµ„åˆã›ã®ä½œæˆï¼ˆ nCm, mC4 ï¼‰
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// “Á’¥‘I‘ğ—L
+	// ç‰¹å¾´é¸æŠæœ‰
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+	// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 	for ( i = 0; i < doc_num; i++ ) {
 		if ( i % 10000 == 0 )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
 
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		if ( eThinPs ) {
@@ -199,11 +199,11 @@ void ConstructHash( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, 
 			memset( ids, 0, nums[i] );
 		}
 
-		// ‚ ‚Æ‚µ‚Ü‚Â
+		// ã‚ã¨ã—ã¾ã¤
 		ClearNears( nums[i] );
 	}
 
-	// ‘g‡‚¹‚Ì‰ğ•ú
+	// çµ„åˆã›ã®è§£æ”¾
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -222,8 +222,8 @@ void ConstructHash( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, 
 	//*ptr_hash = hash;
 }
 
-void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// ƒnƒbƒVƒ…‚ğ\’z
+void ConstructHash5( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
+// ãƒãƒƒã‚·ãƒ¥ã‚’æ§‹ç¯‰
 {
 	strHash **hash = NULL;
 	int *collision=NULL;
@@ -240,22 +240,22 @@ void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	for ( int i = 0; i < eDbDocs; i++ )	thin_ids[i] = (int *)calloc( kMaxPointNum, sizeof(int) );
 	thin_nums = (int *)calloc( eDbDocs, sizeof(int) );
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// ‘g‡‚¹‚Ìì¬i nCm, mC4 j
+	// çµ„åˆã›ã®ä½œæˆï¼ˆ nCm, mC4 ï¼‰
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// “Á’¥‘I‘ğ—L
+	// ç‰¹å¾´é¸æŠæœ‰
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// “Á’¥—ÊŠi”[”z—ñifeatures[“Á’¥“_][“Á’¥—Ê][ŸŒ³]j
+	// ç‰¹å¾´é‡æ ¼ç´é…åˆ—ï¼ˆfeatures[ç‰¹å¾´ç‚¹][ç‰¹å¾´é‡][æ¬¡å…ƒ]ï¼‰
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -267,11 +267,11 @@ void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 		}
 	}
 
-	// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+	// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( i % 10000 == 0 )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		thin_nums[i] = SearchMinNears( pss[i], areass[i], nums[i], thin_ids[i] );
@@ -281,13 +281,13 @@ void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 
 		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, 0, 0, NULL, NULL);
 
-		// ‚ ‚Æ‚µ‚Ü‚Â
+		// ã‚ã¨ã—ã¾ã¤
 		ClearNears( nums[i] );
 	}
 
 	//RemoveListSameIndexAndQuotient(hash);
 
-	// ‘g‡‚¹‚Ì‰ğ•ú
+	// çµ„åˆã›ã®è§£æ”¾
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -295,7 +295,7 @@ void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	if ( eCompressHash )	SaveHashCompress( hash );
 	else					SaveHash( hash );
 	SaveThinFile( eDbDocs, thin_ids, pss, thin_nums, sizes, dbcors );
-	// ƒƒ‚ƒŠ‰ğ•ú
+	// ãƒ¡ãƒ¢ãƒªè§£æ”¾
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(features[i][j]);
@@ -308,8 +308,8 @@ void ConstructHash5( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	free(area_features);
 }
 
-void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// ƒnƒbƒVƒ…‚ğ\’z
+void ConstructHash2( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
+// ãƒãƒƒã‚·ãƒ¥ã‚’æ§‹ç¯‰
 {
 	strHash **hash = NULL;
 	int *collision=NULL;
@@ -321,22 +321,22 @@ void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	char hindex;
 	int n=0, *id;
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// ‘g‡‚¹‚Ìì¬i nCm, mC4 j
+	// çµ„åˆã›ã®ä½œæˆï¼ˆ nCm, mC4 ï¼‰
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// “Á’¥‘I‘ğ—L
+	// ç‰¹å¾´é¸æŠæœ‰
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// “Á’¥—ÊŠi”[”z—ñifeatures[“Á’¥“_][“Á’¥—Ê][ŸŒ³]j
+	// ç‰¹å¾´é‡æ ¼ç´é…åˆ—ï¼ˆfeatures[ç‰¹å¾´ç‚¹][ç‰¹å¾´é‡][æ¬¡å…ƒ]ï¼‰
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -348,24 +348,24 @@ void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 		}
 	}
 
-	// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+	// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( i % 10000 == 0 )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		CalcAffineRotateOnce( pss[i], areass[i], i, nums[i], disc, hash, features, area_features );
 
 		RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, 0, 0, NULL, NULL, pss[i]);
 
-		// ‚ ‚Æ‚µ‚Ü‚Â
+		// ã‚ã¨ã—ã¾ã¤
 		ClearNears( nums[i] );
 	}
 
 	//RemoveListSameIndexAndQuotient(hash);
 
-	// ‘g‡‚¹‚Ì‰ğ•ú
+	// çµ„åˆã›ã®è§£æ”¾
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -373,7 +373,7 @@ void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	if ( eCompressHash )	SaveHashCompress( hash );
 	else					SaveHash( hash );
 
-	// ƒƒ‚ƒŠ‰ğ•ú
+	// ãƒ¡ãƒ¢ãƒªè§£æ”¾
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(features[i][j]);
@@ -386,8 +386,8 @@ void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	free(area_features);
 }
 
-void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// ƒnƒbƒVƒ…‚ğ\’z
+void ConstructHash4( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
+// ãƒãƒƒã‚·ãƒ¥ã‚’æ§‹ç¯‰
 {
 	strHash **hash = NULL;
 	int *collision=NULL;
@@ -399,22 +399,22 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	char hindex;
 	int n=0, *id;
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// ‘g‡‚¹‚Ìì¬i nCm, mC4 j
+	// çµ„åˆã›ã®ä½œæˆï¼ˆ nCm, mC4 ï¼‰
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	// “Á’¥‘I‘ğ—L
+	// ç‰¹å¾´é¸æŠæœ‰
 	if ( eRmRedund ) {
 		eNumCom2 = 17;
 		LoadRmRedund();
 	}
 
-	// “Á’¥—ÊŠi”[”z—ñifeatures[“Á’¥“_][“Á’¥—Ê][ŸŒ³]j
+	// ç‰¹å¾´é‡æ ¼ç´é…åˆ—ï¼ˆfeatures[ç‰¹å¾´ç‚¹][ç‰¹å¾´é‡][æ¬¡å…ƒ]ï¼‰
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -426,24 +426,24 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 		}
 	}
 
-	// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+	// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( !eExperimentMode )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		CalcAffineRotateOnce( pss[i], areass[i], i, nums[i], disc, hash, features, area_features );
 
 		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, 0, 0, NULL, NULL);
 
-		// ‚ ‚Æ‚µ‚Ü‚Â
+		// ã‚ã¨ã—ã¾ã¤
 		ClearNears( nums[i] );
 	}
 
 	RemoveListSameIndexAndQuotient(hash);
 
-	// ‘g‡‚¹‚Ì‰ğ•ú
+	// çµ„åˆã›ã®è§£æ”¾
 	ReleaseCombination();
 	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 	
@@ -451,7 +451,7 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	if ( eCompressHash )	SaveHashCompress( hash );
 	else					SaveHash( hash );
 
-	// ƒƒ‚ƒŠ‰ğ•ú
+	// ãƒ¡ãƒ¢ãƒªè§£æ”¾
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(features[i][j]);
@@ -465,7 +465,7 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 }
 
 //void ConstructHash2( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-//// ƒnƒbƒVƒ…‚ğ\’z
+//// ãƒãƒƒã‚·ãƒ¥ã‚’æ§‹ç¯‰
 //{
 //	int **thinids = NULL, *thin_nums = NULL, *ids = NULL;
 //	strHash **hash = NULL;
@@ -478,22 +478,22 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //	char hindex;
 //	int n=0, *id;
 //
-//	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+//	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 //	hash = InitHash();	
 //	if ( hash == NULL )	{
 //		fprintf( stderr, "error: hash allocation error\n" );
 //		exit(1);
 //	}
 //
-//	// ‘g‡‚¹‚Ìì¬i nCm, mC4 j
+//	// çµ„åˆã›ã®ä½œæˆï¼ˆ nCm, mC4 ï¼‰
 //	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-//	// “Á’¥‘I‘ğ—L
+//	// ç‰¹å¾´é¸æŠæœ‰
 //	if ( eRmRedund ) {
 //		eNumCom2 = 17;
 //		LoadRmRedund();
 //	}	//printf("%d, %d\n", eNumCom1, eNumCom2);
 //
-//	// “Á’¥—ÊŠi”[”z—ñifeatures[“Á’¥“_][“Á’¥—Ê][ŸŒ³]j
+//	// ç‰¹å¾´é‡æ ¼ç´é…åˆ—ï¼ˆfeatures[ç‰¹å¾´ç‚¹][ç‰¹å¾´é‡][æ¬¡å…ƒ]ï¼‰
 //	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 //	for ( int i = 0; i < kMaxPointNum; i++ ) {
 //		features[i] = (double **)calloc(eNumCom1-1, sizeof(double *));
@@ -503,7 +503,7 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //	}
 //
 //
-//	// –ÊÏ“Á’¥—ÊŠi”[”z—ñ
+//	// é¢ç©ç‰¹å¾´é‡æ ¼ç´é…åˆ—
 //	if ( eUseArea ) {
 //		area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 //		for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -513,13 +513,13 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //			}
 //		}
 //	}
-//	// Še—Ìˆæ‚Ì“Á’¥“_”
+//	// å„é ˜åŸŸã®ç‰¹å¾´ç‚¹æ•°
 //	int tx = 4, ty = 5;
 //	int **div_pnum = (int **)calloc( tx, sizeof(int*) );
 //	for ( int i = 0; i < tx; i++ ) {
 //		div_pnum[i] = (int *)calloc( ty, sizeof(int) );
 //	}
-//	// Še—Ìˆæ‚Ì“Á’¥“_ID
+//	// å„é ˜åŸŸã®ç‰¹å¾´ç‚¹ID
 //	int ***div_ps = (int ***)calloc( tx, sizeof(int*) );
 //	for ( int i = 0; i < tx; i++ ) {
 //		div_ps[i] = (int **)calloc( ty, sizeof(int*) );
@@ -528,12 +528,12 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //		}
 //	}
 //
-//	// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+//	// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 //	//for ( int i = 0; i < 1; i++ ) {
 //	for ( int i = 0; i < doc_num; i++ ) {
 //		if ( !eExperimentMode )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
 //
-//		// ‹ß–T\‘¢‚Ì‰ğÍ
+//		// è¿‘å‚æ§‹é€ ã®è§£æ
 //		MakeNearsFromCentres( pss[i], nums[i] );
 //
 //		if ( eThinPs ) {
@@ -545,7 +545,7 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //		}
 //
 //		//printf("%d\n", nums[i]);
-//		for ( int j = 0; j < nums[i]; j++ ) {	// “Á’¥“_‚Ì—Ìˆæ‚Ö‚Ì•ª—Ş
+//		for ( int j = 0; j < nums[i]; j++ ) {	// ç‰¹å¾´ç‚¹ã®é ˜åŸŸã¸ã®åˆ†é¡
 //			//puts("b");
 //			//printf("%3d: %3d, %3d\n", j, pss[i][j].x, pss[i][j].y);
 //			//printf("%d, %d, %d, %d\n", sizes->width, sizes->height, pss[i][j].x, pss[i][j].y);
@@ -569,7 +569,7 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //		RankFeatureAndAddHash3(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum);
 //		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum);
 //
-//		// ‚ ‚Æ‚µ‚Ü‚Â
+//		// ã‚ã¨ã—ã¾ã¤
 //		ClearNears( nums[i] );
 //		for ( int j = 0; j < tx; j++ ) {
 //			for ( int k = 0; k < ty; k++ ) {
@@ -578,7 +578,7 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //		}
 //	}
 //
-//	// ‘g‡‚¹‚Ì‰ğ•ú
+//	// çµ„åˆã›ã®è§£æ”¾
 //	ReleaseCombination();
 //	if ( eRmRedund )	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );
 //	
@@ -617,8 +617,8 @@ void ConstructHash4( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 //}
 
 
-void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
-// ƒnƒbƒVƒ…‚ğ\’z
+void ConstructHash3( cv::Point **pss, double **areass, cv::Size *sizes, int doc_num, int *nums, strDisc *disc, strHash ***ptr_hash, char **dbcors )
+// ãƒãƒƒã‚·ãƒ¥ã‚’æ§‹ç¯‰
 {
 	int **thinids = NULL, *thin_nums = NULL, *ids = NULL;
 	strHash **hash = NULL;
@@ -631,19 +631,19 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	char hindex;
 	int n=0, *id;
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();	
 	if ( hash == NULL )	{
 		fprintf( stderr, "error: hash allocation error\n" );
 		exit(1);
 	}
 
-	// ‘g‡‚¹‚Ìì¬i nCm, mC4 j
+	// çµ„åˆã›ã®ä½œæˆï¼ˆ nCm, mC4 ï¼‰
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	if ( eRmRedund )	LoadRmRedund();	// “Á’¥‘I‘ğ—L
+	if ( eRmRedund )	LoadRmRedund();	// ç‰¹å¾´é¸æŠæœ‰
 	//printf("%d, %d\n", eNumCom1, eNumCom2);
 
-	// “Á’¥—ÊŠi”[”z—ñifeatures[“Á’¥“_][“Á’¥—Ê][ŸŒ³]j
+	// ç‰¹å¾´é‡æ ¼ç´é…åˆ—ï¼ˆfeatures[ç‰¹å¾´ç‚¹][ç‰¹å¾´é‡][æ¬¡å…ƒ]ï¼‰
 	features = (double ***)calloc(kMaxPointNum, sizeof(double **));
 	for ( int i = 0; i < kMaxPointNum; i++ ) {
 		features[i] = (double **)calloc(eNumCom1-1, sizeof(double *));
@@ -652,7 +652,7 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 		}
 	}
 
-	// –ÊÏ“Á’¥—ÊŠi”[”z—ñ
+	// é¢ç©ç‰¹å¾´é‡æ ¼ç´é…åˆ—
 	if ( eUseArea ) {
 		area_features = (char ***)calloc(kMaxPointNum, sizeof(char **));
 		for ( int i = 0; i < kMaxPointNum; i++ ) {
@@ -662,13 +662,13 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 			}
 		}
 	}
-	// Še—Ìˆæ‚Ì“Á’¥“_”
+	// å„é ˜åŸŸã®ç‰¹å¾´ç‚¹æ•°
 	int tx = 4, ty = 5;
 	int **div_pnum = (int **)calloc( tx, sizeof(int*) );
 	for ( int i = 0; i < tx; i++ ) {
 		div_pnum[i] = (int *)calloc( ty, sizeof(int) );
 	}
-	// Še—Ìˆæ‚Ì“Á’¥“_ID
+	// å„é ˜åŸŸã®ç‰¹å¾´ç‚¹ID
 	int ***div_ps = (int ***)calloc( tx, sizeof(int*) );
 	for ( int i = 0; i < tx; i++ ) {
 		div_ps[i] = (int **)calloc( ty, sizeof(int*) );
@@ -681,18 +681,18 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 	char ***spare_features = (char ***)calloc(doc_num, sizeof(char **));
 	printf("doc_num : %d\n", sizeof(***spare_features));
 
-	// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+	// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 	//for ( int i = 0; i < 1; i++ ) {
 	for ( int i = 0; i < doc_num; i++ ) {
 		if ( !eExperimentMode )	fprintf( stderr, "%d/%d\n", i+1, doc_num );
 
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( pss[i], nums[i] );
 
 		CalcAffineRotateOnce( pss[i], areass[i], i, nums[i], disc, hash, features, area_features );
 
 		//printf("%d\n", nums[i]);
-		for ( int j = 0; j < nums[i]; j++ ) {	// “Á’¥“_‚Ì—Ìˆæ‚Ö‚Ì•ª—Ş
+		for ( int j = 0; j < nums[i]; j++ ) {	// ç‰¹å¾´ç‚¹ã®é ˜åŸŸã¸ã®åˆ†é¡
 			//printf("%3d: %3d, %3d\n", j, pss[i][j].x, pss[i][j].y);
 			//printf("%d, %d, %d, %d\n", sizes->width, sizes->height, pss[i][j].x, pss[i][j].y);
 			int div_x = (int)(((double)pss[i][j].x/(double)sizes->width)*tx);
@@ -713,7 +713,7 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 		//RankFeatureAndAddHash(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum);
 		//RankFeatureAndAddHash2(features, area_features, i, nums[i], disc, areass[i], hash, tx, ty, div_ps, div_pnum, spare_fnums, spare_features);
 
-		// ‚ ‚Æ‚µ‚Ü‚Â
+		// ã‚ã¨ã—ã¾ã¤
 		ClearNears( nums[i] );
 		for ( int j = 0; j < tx; j++ ) {
 			for ( int k = 0; k < ty; k++ ) {
@@ -724,7 +724,7 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 
 	//RefineHash( hash, spare_fnums, spare_features );
 
-	// ‘g‡‚¹‚Ì‰ğ•ú
+	// çµ„åˆã›ã®è§£æ”¾
 	ReleaseCombination();
 	
 	if ( !eExperimentMode )	fprintf( stderr, "Saving Hash Table...\n" );
@@ -772,14 +772,14 @@ void ConstructHash3( CvPoint **pss, double **areass, CvSize *sizes, int doc_num,
 }
 
 void CombineDB( void )
-// ƒnƒbƒVƒ…Œ‹‡
+// ãƒãƒƒã‚·ãƒ¥çµåˆ
 {
 	int i, j, k;
 	char hname[kMaxPathLen], pname[kMaxPathLen], cname[kMaxPathLen];
 	strHash **hash=NULL;
 	int doc_num1, doc_num2;
-	CvPoint **reg_pss, **tmp_pss;
-	CvSize *reg_sizes, *tmp_sizes;
+	cv::Point **reg_pss, **tmp_pss;
+	cv::Size *reg_sizes, *tmp_sizes;
 	int *reg_nums, *tmp_nums;
 	char **dbcors, **tmp_dbcors; 
 	double **reg_areass, **tmp_areass;
@@ -788,7 +788,7 @@ void CombineDB( void )
 	puts(cname);
 	LoadConfigForCombine(cname);
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();
 	if ( hash == NULL ) {
 		fprintf( stderr, "error: hash allocation error\n" );
@@ -821,23 +821,23 @@ void CombineDB( void )
 				dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 		}
 
-		// •Û‘¶
+		// ä¿å­˜
 		for ( j = 0; j < doc_num2; j++ ) {
 			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 		}
 		doc_num1 = eDbDocs;
 
-		// ƒ|ƒCƒ“ƒ^‚ÉŠi”[
+		// ãƒã‚¤ãƒ³ã‚¿ã«æ ¼ç´
 		for ( j = 0; j < doc_num2; j++ ) 	free( tmp_dbcors[j] );
 		free( tmp_dbcors );
 	}
 
-	// ƒnƒbƒVƒ…•Û‘¶
+	// ãƒãƒƒã‚·ãƒ¥ä¿å­˜
 	SaveHashCompress( hash );
-	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì•Û‘¶iƒoƒCƒiƒŠj
+	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜ï¼ˆãƒã‚¤ãƒŠãƒªï¼‰
 	if ( eThinPs )	SaveThinFile2( eDbDocs, dbcors );
 	else			SavePointFile2( eDbDocs, dbcors );
-	SaveConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì•Û‘¶
+	SaveConfig();	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜
 
 	for ( i = 0; i < doc_num1; i++ )	free( dbcors[i] );
 	free( dbcors );
@@ -845,7 +845,7 @@ void CombineDB( void )
 
 
 //void CombineDB( void )
-//// ƒnƒbƒVƒ…Œ‹‡
+//// ãƒãƒƒã‚·ãƒ¥çµåˆ
 //{
 //	int i, j, k;
 //	char hname[kMaxPathLen], pname[kMaxPathLen];
@@ -856,7 +856,7 @@ void CombineDB( void )
 //	int *reg_nums, *tmp_nums;
 //	char **dbcors, **tmp_dbcors; 
 //
-//	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+//	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 //	hash = InitHash();
 //	if ( hash == NULL ) {
 //		fprintf( stderr, "error: hash allocation error\n" );
@@ -864,12 +864,12 @@ void CombineDB( void )
 //	}
 //	eDbDocs = 0;
 //
-//	// ƒx[ƒXƒnƒbƒVƒ…‚Ì“Ç‚İ‚İ
+//	// ãƒ™ãƒ¼ã‚¹ãƒãƒƒã‚·ãƒ¥ã®èª­ã¿è¾¼ã¿
 //	sprintf( hname, "%s%s", eDataDir, eHashFileName );
 //	puts(hname);
 //	LoadHashCompressForCombine( hname, hash, eDbDocs );
 //
-//	// ƒx[ƒXƒ|ƒCƒ“ƒg‚Ì“Ç‚İ‚İ
+//	// ãƒ™ãƒ¼ã‚¹ãƒã‚¤ãƒ³ãƒˆã®èª­ã¿è¾¼ã¿
 //	sprintf( pname, "%s%s", eDataDir, eThinFileName );
 //	puts(pname);
 //	doc_num1 = LoadThinFile( pname, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
@@ -896,13 +896,13 @@ void CombineDB( void )
 //		for ( j = doc_num1; j < eDbDocs; j++ )
 //			dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 //
-//		// •Û‘¶
+//		// ä¿å­˜
 //		for ( j = 0; j < doc_num2; j++ ) {
 //			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 //			reg_nums[j+doc_num1] = tmp_nums[j];
 //			reg_sizes[j+doc_num1].width = tmp_sizes[j].width;
 //			reg_sizes[j+doc_num1].height = tmp_sizes[j].height;
-//			reg_pss[j+doc_num1] = (CvPoint *)calloc(reg_nums[j+doc_num1], sizeof(CvPoint));	// “Á’¥“_ƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
+//			reg_pss[j+doc_num1] = (CvPoint *)calloc(reg_nums[j+doc_num1], sizeof(CvPoint));	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
 //			for ( k = 0; k < reg_nums[j+doc_num1]; k++ ) {
 //				reg_pss[j+doc_num1][k].x = tmp_pss[j][k].x;
 //				reg_pss[j+doc_num1][k].y = tmp_pss[j][k].y;
@@ -910,7 +910,7 @@ void CombineDB( void )
 //		}
 //		doc_num1 = eDbDocs;
 //
-//		// ƒ|ƒCƒ“ƒ^‚ÉŠi”[
+//		// ãƒã‚¤ãƒ³ã‚¿ã«æ ¼ç´
 //		for ( j = 0; j < doc_num2; j++ )	free( tmp_pss[j] );
 //		free( tmp_pss );
 //		free( tmp_sizes );
@@ -919,9 +919,9 @@ void CombineDB( void )
 //		free( tmp_dbcors );
 //	}
 //
-//	// ƒnƒbƒVƒ…•Û‘¶
+//	// ãƒãƒƒã‚·ãƒ¥ä¿å­˜
 //	SaveHashCompress( hash );
-//	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì•Û‘¶iƒoƒCƒiƒŠj
+//	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜ï¼ˆãƒã‚¤ãƒŠãƒªï¼‰
 //	SaveThinFileForCombine( eDbDocs, reg_pss, reg_sizes, reg_nums, dbcors );
 //
 //	for ( i = 0; i < doc_num1; i++ )	free( reg_pss[i] );
@@ -933,20 +933,20 @@ void CombineDB( void )
 //}
 
 void CombinePointFile( void )
-// ƒnƒbƒVƒ…Œ‹‡
+// ãƒãƒƒã‚·ãƒ¥çµåˆ
 {
 	int i, j, k;
 	char pname[kMaxPathLen];
 	int doc_num1, doc_num2;
-	CvPoint **reg_pss, **tmp_pss;
+	cv::Point **reg_pss, **tmp_pss;
 	double **reg_areass, **tmp_areass;
-	CvSize *reg_sizes, *tmp_sizes;
+	cv::Size *reg_sizes, *tmp_sizes;
 	int *reg_nums, *tmp_nums;
 	char **dbcors, **tmp_dbcors; 
 
 	eDbDocs = 0;
 
-	// ƒx[ƒXƒ|ƒCƒ“ƒg‚Ì“Ç‚İ‚İ
+	// ãƒ™ãƒ¼ã‚¹ãƒã‚¤ãƒ³ãƒˆã®èª­ã¿è¾¼ã¿
 	sprintf( pname, "%s%s", eDataDir, ePointFileName );
 	puts(pname);
 	doc_num1 = LoadPointFile( pname, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
@@ -962,22 +962,22 @@ void CombinePointFile( void )
 		eDbDocs += doc_num2;
 		printf("%d\n", eDbDocs);
 
-		reg_pss = (CvPoint **)realloc( reg_pss, sizeof(CvPoint *)*eDbDocs );
+		reg_pss = (cv::Point **)realloc( reg_pss, sizeof(cv::Point *)*eDbDocs );
 		reg_areass = (double **)realloc( reg_areass, sizeof(double *)*eDbDocs );
-		reg_sizes = (CvSize *)realloc( reg_sizes, sizeof(CvSize)*eDbDocs );
+		reg_sizes = (cv::Size *)realloc( reg_sizes, sizeof(cv::Size)*eDbDocs );
 		reg_nums = (int *)realloc( reg_nums, sizeof(int)*eDbDocs );
 		dbcors = (char **)realloc( dbcors, sizeof(char *)*eDbDocs );
 		for ( j = doc_num1; j < eDbDocs; j++ )
 			dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-		// •Û‘¶
+		// ä¿å­˜
 		for ( j = 0; j < doc_num2; j++ ) {
 			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 			reg_nums[j+doc_num1] = tmp_nums[j];
 			reg_sizes[j+doc_num1].width = tmp_sizes[j].width;
 			reg_sizes[j+doc_num1].height = tmp_sizes[j].height;
-			reg_pss[j+doc_num1] = (CvPoint *)calloc(reg_nums[j+doc_num1], sizeof(CvPoint));	// “Á’¥“_ƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
-			reg_areass[j+doc_num1] = (double *)calloc(reg_nums[j+doc_num1], sizeof(double));	// “Á’¥“_ƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
+			reg_pss[j+doc_num1] = (cv::Point *)calloc(reg_nums[j+doc_num1], sizeof(cv::Point));	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
+			reg_areass[j+doc_num1] = (double *)calloc(reg_nums[j+doc_num1], sizeof(double));	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
 			for ( k = 0; k < reg_nums[j+doc_num1]; k++ ) {
 				reg_pss[j+doc_num1][k].x = tmp_pss[j][k].x;
 				reg_pss[j+doc_num1][k].y = tmp_pss[j][k].y;
@@ -986,7 +986,7 @@ void CombinePointFile( void )
 		}
 		doc_num1 = eDbDocs;
 
-		// ƒ|ƒCƒ“ƒ^‚ÉŠi”[
+		// ãƒã‚¤ãƒ³ã‚¿ã«æ ¼ç´
 		for ( j = 0; j < doc_num2; j++ )	free( tmp_pss[j] );
 		free( tmp_pss );
 		for ( j = 0; j < doc_num2; j++ )	free( tmp_areass[j] );
@@ -997,7 +997,7 @@ void CombinePointFile( void )
 		free( tmp_dbcors );
 	}
 
-	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì•Û‘¶iƒoƒCƒiƒŠj
+	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜ï¼ˆãƒã‚¤ãƒŠãƒªï¼‰
 	SavePointFile( eDbDocs, dbcors, reg_nums, reg_pss, reg_areass, reg_sizes );
 
 	for ( i = 0; i < doc_num1; i++ )	free( reg_pss[i] );
@@ -1011,19 +1011,19 @@ void CombinePointFile( void )
 }
 
 void CombineThinFile( void )
-// ƒnƒbƒVƒ…Œ‹‡
+// ãƒãƒƒã‚·ãƒ¥çµåˆ
 {
 	int i, j, k;
 	char pname[kMaxPathLen];
 	int doc_num1, doc_num2;
-	CvPoint **reg_pss, **tmp_pss;
-	CvSize *reg_sizes, *tmp_sizes;
+	cv::Point **reg_pss, **tmp_pss;
+	cv::Size *reg_sizes, *tmp_sizes;
 	int *reg_nums, *tmp_nums;
 	char **dbcors, **tmp_dbcors; 
 
 	eDbDocs = 0;
 
-	// ƒx[ƒXƒ|ƒCƒ“ƒg‚Ì“Ç‚İ‚İ
+	// ãƒ™ãƒ¼ã‚¹ãƒã‚¤ãƒ³ãƒˆã®èª­ã¿è¾¼ã¿
 	sprintf( pname, "%s%s", eDataDir, eThinFileName );
 	puts(pname);
 	doc_num1 = LoadThinFile( pname, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
@@ -1038,20 +1038,20 @@ void CombineThinFile( void )
 		eDbDocs += doc_num2;
 		printf("%d\n", eDbDocs);
 
-		reg_pss = (CvPoint **)realloc( reg_pss, sizeof(CvPoint *)*eDbDocs );
-		reg_sizes = (CvSize *)realloc( reg_sizes, sizeof(CvSize)*eDbDocs );
+		reg_pss = (cv::Point **)realloc( reg_pss, sizeof(cv::Point *)*eDbDocs );
+		reg_sizes = (cv::Size *)realloc( reg_sizes, sizeof(cv::Size)*eDbDocs );
 		reg_nums = (int *)realloc( reg_nums, sizeof(int)*eDbDocs );
 		dbcors = (char **)realloc( dbcors, sizeof(char *)*eDbDocs );
 		for ( j = doc_num1; j < eDbDocs; j++ )
 			dbcors[j] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-		// •Û‘¶
+		// ä¿å­˜
 		for ( j = 0; j < doc_num2; j++ ) {
 			memcpy( dbcors[j+doc_num1], tmp_dbcors[j], kMaxPathLen );
 			reg_nums[j+doc_num1] = tmp_nums[j];
 			reg_sizes[j+doc_num1].width = tmp_sizes[j].width;
 			reg_sizes[j+doc_num1].height = tmp_sizes[j].height;
-			reg_pss[j+doc_num1] = (CvPoint *)calloc(reg_nums[j+doc_num1], sizeof(CvPoint));	// “Á’¥“_ƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
+			reg_pss[j+doc_num1] = (cv::Point *)calloc(reg_nums[j+doc_num1], sizeof(cv::Point));	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
 			for ( k = 0; k < reg_nums[j+doc_num1]; k++ ) {
 				reg_pss[j+doc_num1][k].x = tmp_pss[j][k].x;
 				reg_pss[j+doc_num1][k].y = tmp_pss[j][k].y;
@@ -1059,7 +1059,7 @@ void CombineThinFile( void )
 		}
 		doc_num1 = eDbDocs;
 
-		// ƒ|ƒCƒ“ƒ^‚ÉŠi”[
+		// ãƒã‚¤ãƒ³ã‚¿ã«æ ¼ç´
 		for ( j = 0; j < doc_num2; j++ )	free( tmp_pss[j] );
 		free( tmp_pss );
 		free( tmp_nums );
@@ -1067,7 +1067,7 @@ void CombineThinFile( void )
 		free( tmp_dbcors );
 	}
 
-	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì•Û‘¶iƒoƒCƒiƒŠj
+	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜ï¼ˆãƒã‚¤ãƒŠãƒªï¼‰
 	SaveThinFileForCombine( eDbDocs, reg_pss, reg_sizes, reg_nums, dbcors );
 
 	for ( i = 0; i < doc_num1; i++ )	free( reg_pss[i] );
@@ -1079,13 +1079,13 @@ void CombineThinFile( void )
 }
 
 void CombineHash( void )
-// ƒnƒbƒVƒ…Œ‹‡
+// ãƒãƒƒã‚·ãƒ¥çµåˆ
 {
 	int i, doc_num;
 	char hname[kMaxPathLen], pname[kMaxPathLen];
 	strHash **hash=NULL;
 
-	// ƒnƒbƒVƒ…‚Ì‰Šú‰»
+	// ãƒãƒƒã‚·ãƒ¥ã®åˆæœŸåŒ–
 	hash = InitHash();
 	if ( hash == NULL ) {
 		fprintf( stderr, "error: hash allocation error\n" );
@@ -1093,12 +1093,12 @@ void CombineHash( void )
 	}
 	eDbDocs = 0;
 
-	// ƒx[ƒXƒnƒbƒVƒ…‚Ì“Ç‚İ‚İ
+	// ãƒ™ãƒ¼ã‚¹ãƒãƒƒã‚·ãƒ¥ã®èª­ã¿è¾¼ã¿
 	sprintf( hname, "%s%s", eDataDir, eHashFileName );
 	puts(hname);
 	LoadHashCompressForCombine( hname, hash, eDbDocs );
 
-	// ƒx[ƒXƒ|ƒCƒ“ƒg‚Ì“Ç‚İ‚İ
+	// ãƒ™ãƒ¼ã‚¹ãƒã‚¤ãƒ³ãƒˆã®èª­ã¿è¾¼ã¿
 	sprintf( pname, "%s%s", eDataDir, ePointFileName );
 	puts(pname);
 	doc_num = LoadDocNum( pname );
@@ -1119,6 +1119,6 @@ void CombineHash( void )
 		printf("%d\n", eDbDocs);
 	}
 
-	// ƒnƒbƒVƒ…•Û‘¶
+	// ãƒãƒƒã‚·ãƒ¥ä¿å­˜
 	SaveHashCompress( hash );
 }

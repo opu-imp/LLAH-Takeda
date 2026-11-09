@@ -1,8 +1,8 @@
 #define	kTCP	(1)
 #define	kUDP	(2)
 
-#define	kDivX	4	/* MakeNearsFromCentresDiv—p */
-#define	kDivY	5	/* MakeNearsFromCentresDiv—p */
+#define	kDivX	4	/* MakeNearsFromCentresDivç”¨ */
+#define	kDivY	5	/* MakeNearsFromCentresDivç”¨ */
 
 #define	SEND_FLAG	0
 #ifdef	WIN32
@@ -11,26 +11,26 @@
 #define	RECV_FLAG	MSG_WAITALL
 #endif
 
-#define	kMaxNameLen	(20)	/* ƒNƒ‰ƒCƒAƒ“ƒg–¼‚ÌÅ‘å’·‚³ */
-#define	kMaxDocNameLen	(20)	/* ‰æ‘œ–¼‚ÌÅ‘å’· */
-#define	kMinPoints	(20)	/* USBƒJƒƒ‰ƒ‚[ƒh‚Å‚ÌÅ¬“Á’¥“_” */
-#define	kTopThr	3	/* 08/09/14 ƒ‰[ƒIŒê‚Åreject‚µ‚·‚¬‚È‚Ì‚Å•ÏX */
-#define	kMinPointsToCalcParam	(4)	/* Ë‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚ğŒvZ‚·‚éÛ‚ÌÅ¬‘Î‰“_”i4ˆÈã‚É‚·‚é‚±‚Æj*/
+#define	kMaxNameLen	(20)	/* ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆåã®æœ€å¤§é•·ã• */
+#define	kMaxDocNameLen	(20)	/* ç”»åƒåã®æœ€å¤§é•· */
+#define	kMinPoints	(20)	/* USBã‚«ãƒ¡ãƒ©ãƒ¢ãƒ¼ãƒ‰ã§ã®æœ€å°ç‰¹å¾´ç‚¹æ•° */
+#define	kTopThr	3	/* 08/09/14 ãƒ©ãƒ¼ã‚ªèªã§rejectã—ã™ããªã®ã§å¤‰æ›´ */
+#define	kMinPointsToCalcParam	(4)	/* å°„å½±å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨ˆç®—ã™ã‚‹éš›ã®æœ€å°å¯¾å¿œç‚¹æ•°ï¼ˆ4ä»¥ä¸Šã«ã™ã‚‹ã“ã¨ï¼‰*/
 
-#define	kRecvBuffSize	(sizeof(CvSize) + sizeof(int) + sizeof(CvPoint) * kMaxPointNum)	/* óM‚Ìƒoƒbƒtƒ@‚ÌƒTƒCƒY */
-#define	kRecvBuffSizeAreas	(sizeof(CvSize) + sizeof(int) + (sizeof(CvPoint) + sizeof(unsigned short)) * kMaxPointNum)	/* óM‚Ìƒoƒbƒtƒ@‚ÌƒTƒCƒYi–ÊÏ‚àóMƒo[ƒWƒ‡ƒ“j */
-#define	kSendBuffSize	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(CvSize))
-#define	kSendBuffSize3D	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(CvSize) + sizeof(float)*16)
-#define kSendBuffSizeCor	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(CvSize) + sizeof(int) + sizeof(CvPoint)*kMaxPointNum*2 )
+#define	kRecvBuffSize	(sizeof(cv::Size) + sizeof(int) + sizeof(cv::Point) * kMaxPointNum)	/* å—ä¿¡æ™‚ã®ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º */
+#define	kRecvBuffSizeAreas	(sizeof(cv::Size) + sizeof(int) + (sizeof(cv::Point) + sizeof(unsigned short)) * kMaxPointNum)	/* å—ä¿¡æ™‚ã®ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚ºï¼ˆé¢ç©ã‚‚å—ä¿¡ãƒãƒ¼ã‚¸ãƒ§ãƒ³ï¼‰ */
+#define	kSendBuffSize	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size))
+#define	kSendBuffSize3D	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size) + sizeof(float)*16)
+#define kSendBuffSizeCor	(kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size) + sizeof(int) + sizeof(cv::Point)*kMaxPointNum*2 )
 int RecvComSetting( SOCKET sid, int *ptc, int *pt_port, int *res_port, char *cl_name );
 void SendResultName( SOCKET sock, char *result_name );
-int SendResultParam( SOCKET sid, char *doc_name, int len, strProjParam *param, CvSize *img_size, struct sockaddr_in *addr, int ptc );
-int RecvPointsAreas( SOCKET sid, CvPoint **ps0, double **areas0, CvSize *size );
+int SendResultParam( SOCKET sid, char *doc_name, int len, strProjParam *param, cv::Size *img_size, struct sockaddr_in *addr, int ptc );
+int RecvPointsAreas( SOCKET sid, cv::Point **ps0, double **areas0, cv::Size *size );
 void RetrieveUSBCamServer( void );
-int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, CvSize size, int pcor[][2], int pcornum, CvPoint *ps, CvPoint *psall, struct sockaddr_in *addr, int ptc );
+int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, cv::Size size, int pcor[][2], int pcornum, cv::Point *ps, cv::Point *psall, struct sockaddr_in *addr, int ptc );
 int RecvFlag( SOCKET sid );
 int SendDoc( SOCKET sid, char *doc_name, struct sockaddr_in *addr, int ptc );
 void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *tranceParam2);
 void ExtractRAndTFromP2(strProjParam param, float *tranceParam);
-int SendResultParam3D( SOCKET sid, char *doc_name, int len, strProjParam *param, float *tranceParam1, float *tranceParam2, CvSize *img_size, struct sockaddr_in *addr, int ptc );
-void CalcRotationAndTranslation( CvPoint *ps, CvPoint *reg_ps, int corres[][2], int cor_num, float *tranceParam1 );
+int SendResultParam3D( SOCKET sid, char *doc_name, int len, strProjParam *param, float *tranceParam1, float *tranceParam2, cv::Size *img_size, struct sockaddr_in *addr, int ptc );
+void CalcRotationAndTranslation( cv::Point *ps, cv::Point *reg_ps, int corres[][2], int cor_num, float *tranceParam1 );

@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_core231d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
 #else
-#pragma comment( lib, "opencv_core231.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
 #endif
 #endif
 
@@ -20,14 +20,14 @@
 
 using namespace std;
 
-int LoadPointFile( char *fname, CvPoint ***p_reg_pss, double ***p_reg_areass, CvSize **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğƒ[ƒh‚·‚é
+int LoadPointFile( char *fname, cv::Point ***p_reg_pss, double ***p_reg_areass, cv::Size **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
+// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
 	fprintf( stderr, "Point File ... ");
     int i, j;
 	int doc_num;
-	CvPoint **reg_pss;
-	CvSize *reg_sizes;
+	cv::Point **reg_pss;
+	cv::Size *reg_sizes;
 	double **reg_areass;
 	int *reg_nums;
 	char **dbcors, pname[kMaxPathLen];
@@ -48,24 +48,24 @@ int LoadPointFile( char *fname, CvPoint ***p_reg_pss, double ***p_reg_areass, Cv
 	
 	cout << doc_num << endl;
 
-	// ƒƒ‚ƒŠ‚ÌŠm•Û
-	reg_pss = (CvPoint **)calloc( doc_num, sizeof(CvPoint *) );
+	// ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿
+	reg_pss = (cv::Point **)calloc( doc_num, sizeof(cv::Point *) );
 	reg_areass = (double **)calloc( doc_num, sizeof(double *) );
-	reg_sizes = (CvSize *)calloc( doc_num, sizeof(CvSize) );
+	reg_sizes = (cv::Size *)calloc( doc_num, sizeof(cv::Size) );
 	reg_nums = (int *)calloc( doc_num, sizeof(int) );
 	dbcors = (char **)calloc( doc_num, sizeof(char *) );
 	for ( i = 0; i < doc_num; i++ )
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-	// •Û‘¶
+	// ä¿å­˜
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		ReadBlock( (unsigned char *)&reg_sizes[i].width, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_sizes[i].height, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_nums[i], sizeof(int) );
 		//cout << dbcors[i] << ":" << reg_nums[i] << ":";
-		reg_pss[i] = (CvPoint *)calloc( reg_nums[i], sizeof(CvPoint) );	// “Á’¥“_ƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
-		reg_areass[i] = (double *)calloc( reg_nums[i], sizeof(double) );	// –ÊÏƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
+		reg_pss[i] = (cv::Point *)calloc( reg_nums[i], sizeof(cv::Point) );	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
+		reg_areass[i] = (double *)calloc( reg_nums[i], sizeof(double) );	// é¢ç©ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		double max=0;
 		for ( j = 0; j < reg_nums[i]; j++ ) {
 			ReadBlock( (unsigned char *)&reg_pss[i][j].x, sizeof(int) );
@@ -96,7 +96,7 @@ int LoadPointFile( char *fname, CvPoint ***p_reg_pss, double ***p_reg_areass, Cv
 }
 
 int LoadPointFile2( char *fname, char ***p_dbcors )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğƒ[ƒh‚·‚é
+// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
 	//fprintf( stderr, "Point File ... ");
     int i, j;
@@ -116,13 +116,13 @@ int LoadPointFile2( char *fname, char ***p_dbcors )
 		fprintf( stderr, "error: %s registered nothing\n", fname );
 		exit(1);
 	}
-	// ƒƒ‚ƒŠ‚ÌŠm•Û
+	// ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿
 	dbcors = (char **)calloc( doc_num, sizeof(char *) );
 	for ( i = 0; i < doc_num; i++ ) {
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 	}
 
-	// •Û‘¶
+	// ä¿å­˜
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		//cout << dbcors[i] << endl;
@@ -135,13 +135,13 @@ int LoadPointFile2( char *fname, char ***p_dbcors )
 	return doc_num;
 }
 
-int LoadThinFile( char *fname, CvPoint ***p_reg_pss, CvSize **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğƒ[ƒh‚·‚é
+int LoadThinFile( char *fname, cv::Point ***p_reg_pss, cv::Size **p_reg_sizes, int **p_reg_nums, char ***p_dbcors )
+// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
     int i, j;
 	int doc_num;
-	CvPoint **reg_pss;
-	CvSize *reg_sizes;
+	cv::Point **reg_pss;
+	cv::Size *reg_sizes;
 	int *reg_nums;
 	char **dbcors, tname[kMaxPathLen];
 	
@@ -161,21 +161,21 @@ int LoadThinFile( char *fname, CvPoint ***p_reg_pss, CvSize **p_reg_sizes, int *
 		exit(1);
 	}
 
-	// ƒƒ‚ƒŠ‚ÌŠm•Û
-	reg_pss = (CvPoint **)calloc( doc_num, sizeof(CvPoint *) );
-	reg_sizes = (CvSize *)calloc( doc_num, sizeof(CvSize) );
+	// ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿
+	reg_pss = (cv::Point **)calloc( doc_num, sizeof(cv::Point *) );
+	reg_sizes = (cv::Size *)calloc( doc_num, sizeof(cv::Size) );
 	reg_nums = (int *)calloc( doc_num, sizeof(int) );
 	dbcors = (char **)calloc( doc_num, sizeof(char *) );
 	for ( i = 0; i < doc_num; i++ )
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 
-	// •Û‘¶
+	// ä¿å­˜
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		ReadBlock( (unsigned char *)&reg_sizes[i].width, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_sizes[i].height, sizeof(int) );
 		ReadBlock( (unsigned char *)&reg_nums[i], sizeof(int) );
-		reg_pss[i] = (CvPoint *)calloc( reg_nums[i], sizeof(CvPoint) );	// “Á’¥“_ƒf[ƒ^‚Ìƒƒ‚ƒŠŠm•Û
+		reg_pss[i] = (cv::Point *)calloc( reg_nums[i], sizeof(cv::Point) );	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã®ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		for ( j = 0; j < reg_nums[i]; j++ ) {
 			ReadBlock( (unsigned char *)&reg_pss[i][j].x, sizeof(int) );
 			ReadBlock( (unsigned char *)&reg_pss[i][j].y, sizeof(int) );
@@ -197,12 +197,12 @@ int LoadThinFile( char *fname, CvPoint ***p_reg_pss, CvSize **p_reg_sizes, int *
 
 
 int LoadThinFile2( char *fname, char ***p_dbcors )
-// “Á’¥“_ƒtƒ@ƒCƒ‹‚ğƒ[ƒh‚·‚é
+// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
     int i, j;
 	int doc_num;
-	CvPoint **reg_pss;
-	CvSize *reg_sizes;
+	cv::Point **reg_pss;
+	cv::Size *reg_sizes;
 	int *reg_nums;
 	char **dbcors, tname[kMaxPathLen];
 	
@@ -222,12 +222,12 @@ int LoadThinFile2( char *fname, char ***p_dbcors )
 		exit(1);
 	}
 
-	// ƒƒ‚ƒŠ‚ÌŠm•Û
+	// ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿
 	dbcors = (char **)calloc( doc_num, sizeof(char *) );
 	for ( i = 0; i < doc_num; i++ ) {
 		dbcors[i] = (char *)calloc( kMaxPathLen, sizeof(char) );
 	}
-	// •Û‘¶
+	// ä¿å­˜
 	for ( i = 0; i < doc_num; i++ ) {
 		ReadBlock( (unsigned char *)dbcors[i], kMaxPathLen );
 		//cout << dbcors[i] << endl;
@@ -240,12 +240,12 @@ int LoadThinFile2( char *fname, char ***p_dbcors )
 	return doc_num;
 }
 
-int LoadQueryPointFile( char *fname, CvPoint **ps0, double **areas0 )
-// ƒNƒGƒŠ“Á’¥“_ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+int LoadQueryPointFile( char *fname, cv::Point **ps0, double **areas0 )
+// ã‚¯ã‚¨ãƒªç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 {
     int i, num;
 	double *areas;
-	CvPoint *ps;
+	cv::Point *ps;
 
 	if ( StartReadBlock(fname, kBlockSize) == 0 ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
@@ -257,8 +257,8 @@ int LoadQueryPointFile( char *fname, CvPoint **ps0, double **areas0 )
 	}
 	//printf("%d\n", doc_num);
 	
-	// ƒƒ‚ƒŠ‚ÌŠm•Û
-	ps = (CvPoint *)calloc( num, sizeof(CvPoint) );
+	// ãƒ¡ãƒ¢ãƒªã®ç¢ºä¿
+	ps = (cv::Point *)calloc( num, sizeof(cv::Point) );
 	areas = (double *)calloc( num, sizeof(double) );
 
 	for ( i = 0; i < num; i++ ) {
@@ -277,7 +277,7 @@ int LoadQueryPointFile( char *fname, CvPoint **ps0, double **areas0 )
 }
 
 int LoadDocNum( char *fname )
-// “o˜^•¶‘‰æ‘œ”‚Ì“Ç‚İ‚İ
+// ç™»éŒ²æ–‡æ›¸ç”»åƒæ•°ã®èª­ã¿è¾¼ã¿
 {
 	int doc_num;
 	char tname[kMaxPathLen];
@@ -296,7 +296,7 @@ int LoadDocNum( char *fname )
 }
 
 void LoadDisc( strDisc *disc )
-// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 {
 	fprintf( stderr, "Disc File ... ");
 	int i;
@@ -328,7 +328,7 @@ void LoadDisc( strDisc *disc )
 }
 
 void LoadRmRedund( void )
-// “Á’¥‘I‘ğƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+// ç‰¹å¾´é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 {
 	int i, j;
 	char line[kMaxLineLen], fname[kMaxPathLen];
@@ -351,7 +351,7 @@ void LoadRmRedund( void )
 }
 
 void LoadHashCompressToStorage( strHash ***p_hash )
-// ƒnƒbƒVƒ…‚ğƒ[ƒh‚·‚é
+// ãƒãƒƒã‚·ãƒ¥ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
 	fprintf( stderr, "Hash File ... ");
 //	int start_mem=0, end_mem=0, memsize=0;
@@ -362,7 +362,7 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	strHash **hash = NULL;
 	strHash *storage = NULL;
 
-	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ƒnƒbƒVƒ…ƒtƒ@ƒCƒ‹‚ÌƒI[ƒvƒ“
+	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ãƒãƒƒã‚·ãƒ¥ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚ªãƒ¼ãƒ—ãƒ³
 	if ( StartReadBlock(fname, kBlockSize) == 0 ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
@@ -375,7 +375,7 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	}
 
 #ifndef WIN32	
-	// ƒƒ‚ƒŠŒv‘ªŠJn
+	// ãƒ¡ãƒ¢ãƒªè¨ˆæ¸¬é–‹å§‹
 	//start_mem = CalcMemory();
 #endif
 
@@ -393,7 +393,7 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 
 	FinishReadBlock();
 
-	// ƒ|ƒCƒ“ƒ^“n‚µ
+	// ãƒã‚¤ãƒ³ã‚¿æ¸¡ã—
 	*p_hash = hash;
 	if ( *p_hash == NULL ) {
 		fprintf( stderr, "error: failed to pass hash table" );
@@ -401,10 +401,10 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 	}
 
 #ifndef WIN32	
-	// ƒƒ‚ƒŠŒv‘ªI—¹
+	// ãƒ¡ãƒ¢ãƒªè¨ˆæ¸¬çµ‚äº†
 	//end_mem = CalcMemory();
 	//memsize = end_mem - start_mem;
-	// g—pƒƒ‚ƒŠ•\¦
+	// ä½¿ç”¨ãƒ¡ãƒ¢ãƒªè¡¨ç¤º
 	//printf("Used Memory Size\t: %15lf KB, %15lf MB, %15lf GB\n", ((double)memsize), ((double)memsize/1024), ((double)memsize/1024/1024) );
 #endif
 	fprintf( stderr, "Loaded\n");
@@ -412,14 +412,14 @@ void LoadHashCompressToStorage( strHash ***p_hash )
 
 
 void LoadHashCompress( strHash ***p_hash )
-// ƒnƒbƒVƒ…‚ğƒ[ƒh‚·‚é
+// ãƒãƒƒã‚·ãƒ¥ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
 	unsigned char n;
 	unsigned int i, index;
 	unsigned char *dat;
 	unsigned int pdoc;
 	unsigned short ppoint;
-	unsigned char pquotient;	// ¤
+	unsigned char pquotient;	// å•†
 	char fname[kMaxPathLen];
 	strHash **hash = NULL;
 
@@ -431,7 +431,7 @@ void LoadHashCompress( strHash ***p_hash )
 		exit(1);
 	}
 
-	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ƒnƒbƒVƒ…ƒtƒ@ƒCƒ‹‚ÌƒI[ƒvƒ“
+	sprintf( fname, "%s%s", eDataDir, eHashFileName );	// ãƒãƒƒã‚·ãƒ¥ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚ªãƒ¼ãƒ—ãƒ³
 	if ( StartReadBlock(fname, kBlockSize) == 0 ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
@@ -448,7 +448,7 @@ void LoadHashCompress( strHash ***p_hash )
 	FinishReadBlock();
 	free( dat );
 
-	// ƒ|ƒCƒ“ƒ^“n‚µ
+	// ãƒã‚¤ãƒ³ã‚¿æ¸¡ã—
 	*p_hash = hash;
 	if ( *p_hash == NULL ) {
 		fprintf( stderr, "error: failed to pass hash table" );
@@ -459,14 +459,14 @@ void LoadHashCompress( strHash ***p_hash )
 
 
 void LoadHashCompressForCombine( char *fname, strHash **hash, int doc_num )
-// ƒnƒbƒVƒ…‚ğƒ[ƒh‚·‚é
+// ãƒãƒƒã‚·ãƒ¥ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
 {
 	unsigned char n;
 	unsigned int i, index;
 	unsigned char *dat;
 	unsigned int pdoc;
 	unsigned short ppoint;
-	unsigned char pquotient;	// ¤
+	unsigned char pquotient;	// å•†
 
 	dat = (unsigned char *)calloc( eHComp2DatByte, sizeof(unsigned char) );
 
@@ -488,26 +488,26 @@ void LoadHashCompressForCombine( char *fname, strHash **hash, int doc_num )
 }
 
 void LoadConfig( void )
-// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 {
 	fprintf( stderr, "Config File ... ");
 	char fname[kMaxPathLen], line[kMaxLineLen], ch, *fgets_ret=NULL;
 	FILE *fp=NULL;
 
-	sprintf( fname, "%s%s", eDataDir, eConfigFileName );	// config.dat‚Ìâ‘ÎƒpƒX‚ğì¬‚µ‚Ä
-	if ( (fp = fopen(fname, "r")) == NULL ) {				// ŠJ‚­
+	sprintf( fname, "%s%s", eDataDir, eConfigFileName );	// config.datã®çµ¶å¯¾ãƒ‘ã‚¹ã‚’ä½œæˆã—ã¦
+	if ( (fp = fopen(fname, "r")) == NULL ) {				// é–‹ã
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
 	}
 
-	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1s“Ç‚İ‚İ
-	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// “Ç‚İ‚İ¸”s‚Ü‚½‚Íƒo[ƒWƒ‡ƒ“ˆá‚¢
+	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1è¡Œèª­ã¿è¾¼ã¿
+	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// èª­ã¿è¾¼ã¿å¤±æ•—ã¾ãŸã¯ãƒãƒ¼ã‚¸ãƒ§ãƒ³é•ã„
 		fprintf( stderr, "error: %s version error\n", eConfigFileName );
 		exit(1);
 	}
 
-	// Šes‚ğ‰ğÍ‚µ‚Äİ’è
-	/*	—á:	n 7
+	// å„è¡Œã‚’è§£æã—ã¦è¨­å®š
+	/*	ä¾‹:	n 7
 			m 6
 			d 15	*/
 	while ( fgets( line, kMaxLineLen, fp ) != NULL ) {
@@ -518,25 +518,25 @@ void LoadConfig( void )
 			case 'm':	// m
 				sscanf( line, "%c %d", &ch, &eGroup2Num );
 				break;
-			case 'd':	// —£U‰»ƒŒƒxƒ‹
+			case 'd':	// é›¢æ•£åŒ–ãƒ¬ãƒ™ãƒ«
 				sscanf( line, "%c %d", &ch, &eDiscNum );
 				break;
-			case 'p':	// ”ä—á’è”
+			case 'p':	// æ¯”ä¾‹å®šæ•°
 				sscanf( line, "%c %lf", &ch, &eProp );
 				break;
-			case 'H':	// ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚ÌƒTƒCƒY
+			case 'H':	// ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã®ã‚µã‚¤ã‚º
 				sscanf( line, "%c %llu %lld", &ch, &eHashSize, &eHashStorageNum );
 				break;
-			case 'a':	// –ÊÏ”ä“Á’¥—Êg—p
+			case 'a':	// é¢ç©æ¯”ç‰¹å¾´é‡ä½¿ç”¨
 				eUseArea = 1;
 				break;
-			case 'r':	// “Á’¥—Ê‘I‘ğ—Liç’·«œ‹j
+			case 'r':	// ç‰¹å¾´é‡é¸æŠæœ‰ï¼ˆå†—é•·æ€§é™¤å»ï¼‰
 				eRmRedund = 1;
 				break;
-			case 't':	// “Á’¥“_ƒTƒ“ƒvƒŠƒ“ƒO—L
+			case 't':	// ç‰¹å¾´ç‚¹ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æœ‰
 				eThinPs = 1;
 				break;
-			case 'z':	// ƒŠƒXƒgˆ³k
+			case 'z':	// ãƒªã‚¹ãƒˆåœ§ç¸®
 				eCompressHash = 1;
 				sscanf( line, "%c %d %d %d %d", &ch, &eDocBit, &ePointBit, &eQuotBit, &eHComp2DatByte );
 				break;
@@ -546,34 +546,34 @@ void LoadConfig( void )
 	}
 	fclose( fp );
 
-	// ‘g‡‚¹ŒvZ
+	// çµ„åˆã›è¨ˆç®—
 	eNumCom1 = CalcnCr( eGroup1Num, eGroup2Num );	// nCm
 	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );	// mCf
 
-	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// ˆ³k–³‚µ‚ÌƒŠƒXƒgƒTƒCƒYiˆê‰j
+	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// åœ§ç¸®ç„¡ã—ã®ãƒªã‚¹ãƒˆã‚µã‚¤ã‚ºï¼ˆä¸€å¿œï¼‰
 	fprintf( stderr, "Loaded\n");
 }
 
 void LoadConfigForCombine( char *fname )
-// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 {
 	fprintf( stderr, "Config File ... ");
 	char line[kMaxLineLen], ch, *fgets_ret=NULL;
 	FILE *fp=NULL;
 
-	if ( (fp = fopen(fname, "r")) == NULL ) {				// ŠJ‚­
+	if ( (fp = fopen(fname, "r")) == NULL ) {				// é–‹ã
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
 		exit(1);
 	}
 
-	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1s“Ç‚İ‚İ
-	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// “Ç‚İ‚İ¸”s‚Ü‚½‚Íƒo[ƒWƒ‡ƒ“ˆá‚¢
+	fgets_ret = fgets( line, kMaxLineLen, fp );					// 1è¡Œèª­ã¿è¾¼ã¿
+	if ( fgets_ret == NULL || !strcmp( line, kConfigVerStr ) ) {	// èª­ã¿è¾¼ã¿å¤±æ•—ã¾ãŸã¯ãƒãƒ¼ã‚¸ãƒ§ãƒ³é•ã„
 		fprintf( stderr, "error: %s version error\n", eConfigFileName );
 		exit(1);
 	}
 
-	// Šes‚ğ‰ğÍ‚µ‚Äİ’è
-	/*	—á:	n 7
+	// å„è¡Œã‚’è§£æã—ã¦è¨­å®š
+	/*	ä¾‹:	n 7
 			m 6
 			d 15	*/
 	while ( fgets( line, kMaxLineLen, fp ) != NULL ) {
@@ -584,25 +584,25 @@ void LoadConfigForCombine( char *fname )
 			case 'm':	// m
 				sscanf( line, "%c %d", &ch, &eGroup2Num );
 				break;
-			case 'd':	// —£U‰»ƒŒƒxƒ‹
+			case 'd':	// é›¢æ•£åŒ–ãƒ¬ãƒ™ãƒ«
 				sscanf( line, "%c %d", &ch, &eDiscNum );
 				break;
-			case 'p':	// ”ä—á’è”
+			case 'p':	// æ¯”ä¾‹å®šæ•°
 				sscanf( line, "%c %lf", &ch, &eProp );
 				break;
-			case 'H':	// ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚ÌƒTƒCƒY
+			case 'H':	// ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã®ã‚µã‚¤ã‚º
 				sscanf( line, "%c %llu %lld", &ch, &eHashSize, &eHashStorageNum );
 				break;
-			case 'a':	// –ÊÏ”ä“Á’¥—Êg—p
+			case 'a':	// é¢ç©æ¯”ç‰¹å¾´é‡ä½¿ç”¨
 				eUseArea = 1;
 				break;
-			case 'r':	// “Á’¥—Ê‘I‘ğ—Liç’·«œ‹j
+			case 'r':	// ç‰¹å¾´é‡é¸æŠæœ‰ï¼ˆå†—é•·æ€§é™¤å»ï¼‰
 				eRmRedund = 1;
 				break;
-			case 't':	// “Á’¥“_ƒTƒ“ƒvƒŠƒ“ƒO—L
+			case 't':	// ç‰¹å¾´ç‚¹ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æœ‰
 				eThinPs = 1;
 				break;
-			case 'z':	// ƒŠƒXƒgˆ³k
+			case 'z':	// ãƒªã‚¹ãƒˆåœ§ç¸®
 				eCompressHash = 1;
 				sscanf( line, "%c %d %d %d %d", &ch, &eDocBit, &ePointBit, &eQuotBit, &eHComp2DatByte );
 				break;
@@ -612,10 +612,10 @@ void LoadConfigForCombine( char *fname )
 	}
 	fclose( fp );
 
-	// ‘g‡‚¹ŒvZ
+	// çµ„åˆã›è¨ˆç®—
 	eNumCom1 = CalcnCr( eGroup1Num, eGroup2Num );	// nCm
 	eNumCom2 = CalcnCr( eGroup2Num, eGroup3Num );	// mCf
 
-	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// ˆ³k–³‚µ‚ÌƒŠƒXƒgƒTƒCƒYiˆê‰j
+	eFByte = sizeof(int) + sizeof(short) + sizeof(unsigned char);	// åœ§ç¸®ç„¡ã—ã®ãƒªã‚¹ãƒˆã‚µã‚¤ã‚ºï¼ˆä¸€å¿œï¼‰
 	fprintf( stderr, "Loaded\n");
 }

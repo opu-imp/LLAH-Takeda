@@ -1,66 +1,62 @@
 #include <stdio.h>
 #include "def_general.h"
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 #include "procimg.h"
 #include "outputimg.h"
 
 
-int OutPutImage(IplImage *img)
-// ‰æ‘œ‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚éDƒtƒ@ƒCƒ‹–¼‚Í©“®“I‚É˜A”Ô‚É‚È‚é
+int OutPutImage(cv::Mat img)
+// ç”»åƒã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ï¼ãƒ•ã‚¡ã‚¤ãƒ«åã¯è‡ªå‹•çš„ã«é€£ç•ªã«ãªã‚‹
 {
 	static int n = 0;
 	char filename[1024];
 
 	sprintf(filename, "output%03d.jpg", n++);
 
-	cvSaveImage( filename, img );
+	cv::imwrite( filename, img );
 	return 0;
 }
 
-int SetPixU( IplImage *img, int x, int y, unsigned char *val )
-// img‚Ì(x,y)‚Éval‚ğƒZƒbƒg‚·‚é(unsigned)
+int SetPixU( cv::Mat &img, int x, int y, unsigned char *val )
 {
-	int i, ws, bpp;
+	int i, bpp;
 
-	if ( x < 0 || x >= img->width || y < 0 || y >= img->height )	return 0;	// ‰æ‘œ‚Ì”ÍˆÍ‚ğ’´‚¦‚é
-	ws = img->widthStep;
-	bpp = (int)((img->depth & 0x0ff) / 8) * img->nChannels;	// ƒsƒNƒZƒ‹‚ ‚½‚è‚ÌƒoƒCƒg”
+	if ( x < 0 || x >= img.cols || y < 0 || y >= img.rows )	return 0;
+	bpp = img.elemSize();
 	for ( i = 0; i < bpp; i++ )
-		img->imageData[ws*y + x*bpp + i] = val[i];
+		img.data[img.step[0]*y + x*bpp + i] = val[i];
 	return 1;
 }
 
-int GetPixU( IplImage *img, int x, int y, unsigned char *val )
-// img‚Ì(x,y)‚ğval‚ÉƒZƒbƒg‚·‚é(unsigned)
+int GetPixU( cv::Mat &img, int x, int y, unsigned char *val )
 {
-	int i, ws, bpp;
+	int i, bpp;
 
-	if ( x < 0 || x >= img->width || y < 0 || y >= img->height )	return 0;	// ‰æ‘œ‚Ì”ÍˆÍ‚ğ’´‚¦‚é
-	ws = img->widthStep;
-	bpp = (int)((img->depth & 0x0ff) / 8) * img->nChannels;	// ƒsƒNƒZƒ‹‚ ‚½‚è‚ÌƒoƒCƒg”
+	if ( x < 0 || x >= img.cols || y < 0 || y >= img.rows )	return 0;
+	bpp = img.elemSize();
 	for ( i = 0; i < bpp; i++ )
-		val[i] = img->imageData[ws*y + x*bpp + i];
+		val[i] = img.data[img.step[0]*y + x*bpp + i];
 	return 1;
 }
 
-IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *ps, int num )
-// “Á’¥“_‰æ‘œ‚Ìì¬i“ü—Í‰æ‘œ‚ÍƒOƒŒƒCƒXƒP[ƒ‹j
+cv::Mat MakeFeaturePointImage( cv::Mat orig, cv::Mat connected, cv::Point *ps, int num )
+// ç‰¹å¾´ç‚¹ç”»åƒã®ä½œæˆï¼ˆå…¥åŠ›ç”»åƒã¯ã‚°ãƒ¬ã‚¤ã‚¹ã‚±ãƒ¼ãƒ«ï¼‰
 {
 	int i, j, p, con_flag = 0;
-	IplImage *fp_img, *fp;
+	cv::Mat fp_img, fp;
 	unsigned char val[4];
-	cvNot( connected, connected );
-	fp_img = cvCreateImage( cvGetSize( orig ), IPL_DEPTH_8U, 3 );
-	fp = cvCreateImage( cvGetSize( orig ), IPL_DEPTH_8U, 3 );
-	cvZero( fp_img );
-	cvNot( fp_img, fp_img );
-	if ( fp_img == NULL )	return NULL;
-	for ( j = 0; j < orig->height; j++ ) {
-		for ( i = 0; i < orig->width; i++ ) {
+	cv::bitwise_not( connected, connected );
+	fp_img = cv::Mat(orig.size(), CV_8UC3);
+	fp = cv::Mat(orig.size(), CV_8UC3);
+	fp_img.setTo(0);
+	cv::bitwise_not( fp_img, fp_img );
+	if ( fp_img.empty() )	return cv::Mat();
+	for ( j = 0; j < orig.rows; j++ ) {
+		for ( i = 0; i < orig.cols; i++ ) {
 			con_flag = 0;
 			GetPixU( connected, i, j, val );
 			if ( val[0] != 255 ) {
@@ -88,12 +84,9 @@ IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *p
 	}
 
 	for ( p = 0; p < num; p++ ) {
-		cvCircle( fp_img, ps[p], 4, cRed, CV_FILLED, CV_AA, 0 );
-//		cvCircle( fp_img, ps[p], 4, cWhite, CV_FILLED, CV_AA, 0 );
-		//cvCircle( fp, ps[p], 5, cWhite, CV_FILLED, CV_AA, 0 );
+		cv::circle( fp_img, ps[p], 4, cRed, cv::FILLED, cv::LINE_AA, 0 );
 	}
-	cvNot( fp, fp );
-	//OutPutImage(fp);
+	cv::bitwise_not( fp, fp );
 
 	return fp_img;
 }
@@ -106,10 +99,9 @@ IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *p
 #define	kDrawCorPtRad	(4)
 #define	kDrawCorLineThick	(4)
 
-void DrawCor( CvPoint *ps, int num, CvSize img_size, int res, CvPoint *corps, int cornum, CvSize corsize, int pcor[][2], int pcornum )
+void DrawCor( cv::Point *ps, int num, cv::Size img_size, int res, cv::Point *corps, int cornum, cv::Size corsize, int pcor[][2], int pcornum )
 {
 	int i, width_all, height_all;
-	IplImage *img;
 
 	img_size.height = 4368;
 	img_size.width = 2912;
@@ -118,34 +110,26 @@ void DrawCor( CvPoint *ps, int num, CvSize img_size, int res, CvPoint *corps, in
 	
 	width_all = kDrawCorHMargin * 2 + kDrawCorSpace + img_size.width + (int)(corsize.width * kDrawCorScale);
 	height_all = kDrawCorVMargin * 2 + std::max( img_size.height, (int)(corsize.height * kDrawCorScale) );
-//	printf( "%d,%d\n", width_all, height_all );
-	img = cvCreateImage( cvSize( width_all, height_all ), IPL_DEPTH_8U, 3 );
-	cvSet( img, cWhite, NULL );	// ”’‚Å“h‚è‚Â‚Ô‚·
+	cv::Mat img( cv::Size( width_all, height_all ), CV_8UC3 );
+	img.setTo( cWhite );	// ç™½ã§å¡—ã‚Šã¤ã¶ã—
 
-	// ŒŸõ¿–â‚Ì˜g‚ğ•`‰æ
-	cvRectangle( img, cvPoint( kDrawCorHMargin, kDrawCorVMargin ), \
-		cvPoint( kDrawCorHMargin + img_size.width, kDrawCorVMargin + img_size.height ), \
-		cBlack, kDrawCorRectThick, CV_AA, 0 );
+	// æ¤œç´¢è³ªå•ã®æ ã‚’æç”»
+	cv::rectangle( img, cv::Point( kDrawCorHMargin, kDrawCorVMargin ), \
+		cv::Point( kDrawCorHMargin + img_size.width, kDrawCorVMargin + img_size.height ), \
+		cBlack, kDrawCorRectThick, cv::LINE_AA, 0 );
 	
-	// ŒŸõ¿–â‚Ì“Á’¥“_‚Ì•`‰æ
+	// æ¤œç´¢è³ªå•ã®ç‰¹å¾´ç‚¹ã®æç”»
 	for ( i = 0; i < num; i++ ) {
-		cvCircle( img, cvPoint( kDrawCorHMargin + ps[i].x, kDrawCorVMargin + ps[i].y ), kDrawCorPtRad, cBlack, -1, CV_AA, 0 );
+		cv::circle( img, cv::Point( kDrawCorHMargin + ps[i].x, kDrawCorVMargin + ps[i].y ), kDrawCorPtRad, cBlack, -1, cv::LINE_AA, 0 );
 	}
-	// “o˜^‰æ‘œ‚Ì˜g‚ğ•`‰æ
-	cvRectangle( img, cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace, kDrawCorVMargin), \
-		cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corsize.width * kDrawCorScale), kDrawCorVMargin + (int)(corsize.height * kDrawCorScale) ), \
-		cBlack, kDrawCorRectThick, CV_AA, 0 );
-	// “o˜^‰æ‘œ‚Ì“Á’¥“_‚Ì•`‰æ
+	// ç™»éŒ²ç”»åƒã®æ ã‚’æç”»
+	cv::rectangle( img, cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace, kDrawCorVMargin), \
+		cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corsize.width * kDrawCorScale), kDrawCorVMargin + (int)(corsize.height * kDrawCorScale) ), \
+		cBlack, kDrawCorRectThick, cv::LINE_AA, 0 );
+	// ç™»éŒ²ç”»åƒã®ç‰¹å¾´ç‚¹ã®æç”»
 	for ( i = 0; i < cornum; i++ ) {
-		cvCircle( img, cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[i].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[i].y * kDrawCorScale) ), \
-		kDrawCorPtRad, cBlack, -1, CV_AA, 0 );
+		cv::circle( img, cv::Point( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[i].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[i].y * kDrawCorScale) ), \
+		kDrawCorPtRad, cBlack, -1, cv::LINE_AA, 0 );
 	}
-	// ‘Î‰ŠÖŒW‚Ì•`‰æ
-	//for ( i = 0; i < pcornum; i++ ) {
-	//	cvLine( img, cvPoint( kDrawCorHMargin + ps[pcor[i][0]].x, kDrawCorVMargin + ps[pcor[i][0]].y ), 
-	//	cvPoint( kDrawCorHMargin + img_size.width + kDrawCorSpace + (int)(corps[pcor[i][1]].x * kDrawCorScale), kDrawCorVMargin + (int)(corps[pcor[i][1]].y * kDrawCorScale) ), 
-	//	cRed, kDrawCorLineThick, CV_AA, 0 );
-	//}
 	OutPutImage( img );
-	cvReleaseImage( &img );
 }

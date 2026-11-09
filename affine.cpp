@@ -3,16 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui_c.h>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 
-#ifdef WIN32
-#ifdef _DEBUG
-#pragma comment( lib, "opencv_core231d.lib" )
-#else
-#pragma comment( lib, "opencv_core231.lib" )
-#endif
-#endif
+// pkg-config is used for OpenCV linking now
+// #ifdef WIN32
+// #ifdef _DEBUG
+// #pragma comment( lib, "opencv_core231d.lib" )
+// #else
+// #pragma comment( lib, "opencv_core231.lib" )
+// #endif
+// #endif
 
 #include "extern.h"
 #include "hist.h"
@@ -22,14 +23,14 @@
 
 extern int **nears;
 
-long double GetPointsAngle(CvPoint p1, CvPoint p2)
-// p1‚©‚çŒ©‚½p2‚ÌŠp“x‚ğŒvZ‚·‚éi–ñ-3.14‚©‚ç–ñ3.14j
+long double GetPointsAngle(cv::Point p1, cv::Point p2)
+// p1ã‹ã‚‰è¦‹ãŸp2ã®è§’åº¦ã‚’è¨ˆç®—ã™ã‚‹ï¼ˆç´„-3.14ã‹ã‚‰ç´„3.14ï¼‰
 {
 	return atan2((double)(p2.y-p1.y), (double)(p2.x-p1.x));
 }
 
-void CalcOrderCWN( int pt, CvPoint *ps, int idx[], int num )
-// Œv‰ñ‚è‚É‹ß–T“_‚ğ”z—ñ‚É“ü‚ê‚éi‚“_ƒo[ƒWƒ‡ƒ“j
+void CalcOrderCWN( int pt, cv::Point *ps, int idx[], int num )
+// æ™‚è¨ˆå›ã‚Šã«è¿‘å‚ç‚¹ã‚’é…åˆ—ã«å…¥ã‚Œã‚‹ï¼ˆï½ç‚¹ãƒãƒ¼ã‚¸ãƒ§ãƒ³ï¼‰
 {
 	int i, j, tmp_i;
 	double *angs, tmp_a;
@@ -56,14 +57,14 @@ void CalcOrderCWN( int pt, CvPoint *ps, int idx[], int num )
 }
 
 int FindStartPoint( char *inv_array, int st_num )
-// ŠJn“_‚ğŒ©‚Â‚¯‚é
+// é–‹å§‹ç‚¹ã‚’è¦‹ã¤ã‘ã‚‹
 {
 	int i, j, min;
 
 	for ( i = 1, min = 0; i < st_num; i++ ) {
-		// ‚Ü‚¸inv_array[min]‚Æinv_array[i]‚ğ”äŠr‚µC
-		// Ÿ‚Éinv_array[min+1]‚Æinv_array[i+1]‚Æ‚¢‚¤‚æ‚¤‚É‡‚É”äŠr‚µ‚Ä¬‚³‚¢‚Ù‚¤‚ğmin‚Æ‚·‚éD
-		// Ü‚è•Ô‚µ‚Ì‚½‚ßeGroup2Num‚Åmod‚ğæ‚é
+		// ã¾ãšinv_array[min]ã¨inv_array[i]ã‚’æ¯”è¼ƒã—ï¼Œ
+		// æ¬¡ã«inv_array[min+1]ã¨inv_array[i+1]ã¨ã„ã†ã‚ˆã†ã«é †ã«æ¯”è¼ƒã—ã¦å°ã•ã„ã»ã†ã‚’minã¨ã™ã‚‹ï¼
+		// æŠ˜ã‚Šè¿”ã—ã®ãŸã‚eGroup2Numã§modã‚’å–ã‚‹
 		for ( j = 0; j < st_num; j++ ) {
 			if ( inv_array[(min+j)%st_num] < inv_array[(i+j)%st_num] ) {
 				break;
@@ -76,14 +77,14 @@ int FindStartPoint( char *inv_array, int st_num )
 	return min;
 }
 
-double CalcArea( CvPoint p1, CvPoint p2, CvPoint p3 )
-// w’è‚³‚ê‚½3“_‚ÅˆÍ‚Ü‚ê‚½OŠpŒ`‚Ì–ÊÏ‚ğŒvZ‚·‚é
+double CalcArea( cv::Point p1, cv::Point p2, cv::Point p3 )
+// æŒ‡å®šã•ã‚ŒãŸ3ç‚¹ã§å›²ã¾ã‚ŒãŸä¸‰è§’å½¢ã®é¢ç©ã‚’è¨ˆç®—ã™ã‚‹
 {
 	return fabs((double)((p1.x-p3.x)*(p2.y-p3.y)-(p1.y-p3.y)*(p2.x-p3.x))) / (double)2.0L;
 }
 
-double CalcAffineInv( CvPoint p1, CvPoint p2, CvPoint p3, CvPoint p4 )
-// •½–Êã‚Ì4“_‚ÅƒAƒtƒBƒ“•ÏŠ·‚Ì•s•Ï—Ê‚ğŒvZ‚·‚é
+double CalcAffineInv( cv::Point p1, cv::Point p2, cv::Point p3, cv::Point p4 )
+// å¹³é¢ä¸Šã®4ç‚¹ã§ã‚¢ãƒ•ã‚£ãƒ³å¤‰æ›ã®ä¸å¤‰é‡ã‚’è¨ˆç®—ã™ã‚‹
 {
 	double s;
 	if ( (s = CalcArea(p1, p2, p3)) < 0.0001 )	s = 0.0001;
@@ -91,8 +92,8 @@ double CalcAffineInv( CvPoint p1, CvPoint p2, CvPoint p3, CvPoint p4 )
 }
 
 void CalcHindexAreaRatio( int *idxcom1, double *areas, char *hindex_area )
-// –ÊÏ‚©‚çƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-// –ÊÏ”ä‚Ì‡ˆÊƒo[ƒWƒ‡ƒ“
+// é¢ç©ã‹ã‚‰ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+// é¢ç©æ¯”ã®é †ä½ãƒãƒ¼ã‚¸ãƒ§ãƒ³
 // 
 {
 	int i, j;
@@ -131,18 +132,18 @@ void CalcHindexAreaRatio( int *idxcom1, double *areas, char *hindex_area )
 }
 
 
-void CalcAffineAndAddHist( CvPoint *ps, int num, strHist *hist )
-// ƒAƒtƒBƒ“•s•Ï—Ê‚ğŒvZ‚µ‚ÄƒqƒXƒgƒOƒ‰ƒ€‚É“ü‚ê‚é
+void CalcAffineAndAddHist( cv::Point *ps, int num, strHist *hist )
+// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’è¨ˆç®—ã—ã¦ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ ã«å…¥ã‚Œã‚‹
 /****************************************************************/
-/*	•¡”“Á’¥ƒxƒNƒgƒ‹‚ğŒvZ‚·‚é‚Ì‚ÍC“Á’¥“_‚Ì‰B‚ê‚É‘Î‰‚·‚é‚½‚ß	*/
-/*  ’†S“_‚Í‰B‚ê‚È‚¢‚Ì‚ÅC’†S“_‚ğŠÜ‚Ü‚È‚¢‘g‡‚¹‚Í•K—v‚È‚¢H	*/
+/*	è¤‡æ•°ç‰¹å¾´ãƒ™ã‚¯ãƒˆãƒ«ã‚’è¨ˆç®—ã™ã‚‹ã®ã¯ï¼Œç‰¹å¾´ç‚¹ã®éš ã‚Œã«å¯¾å¿œã™ã‚‹ãŸã‚	*/
+/*  ä¸­å¿ƒç‚¹ã¯éš ã‚Œãªã„ã®ã§ï¼Œä¸­å¿ƒç‚¹ã‚’å«ã¾ãªã„çµ„åˆã›ã¯å¿…è¦ãªã„ï¼Ÿ	*/
 /****************************************************************/
 {
 	int i, j, k, l, st, tmp, vec_num, st_num;
 	int *idx, *idxcom1, *idxcom2;
 	double cr;
 
-	// ”z—ñ‚ÌŠm•Û
+	// é…åˆ—ã®ç¢ºä¿
 	idx		= (int *)calloc( eGroup1Num, sizeof(int) );
 	idxcom1	= (int *)calloc( eGroup2Num, sizeof(int) );
 	idxcom2	= (int *)calloc( eGroup3Num, sizeof(int) );
@@ -150,21 +151,21 @@ void CalcAffineAndAddHist( CvPoint *ps, int num, strHist *hist )
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	for ( i = 0; i < num; i++ ) {	// ‘S‚Ä‚Ì“Á’¥“_‚É‚Â‚¢‚Ä
-		// ‹ß–T“_‚ğŒv‰ñ‚è‚É®—ñ
+	for ( i = 0; i < num; i++ ) {	// å…¨ã¦ã®ç‰¹å¾´ç‚¹ã«ã¤ã„ã¦
+		// è¿‘å‚ç‚¹ã‚’æ™‚è¨ˆå›ã‚Šã«æ•´åˆ—
 		CalcOrderCWN( i, ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ ) {	// nCm-1
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m“_‚Ì’Šo
-			for ( st = 0; st < st_num; st++ ) {	// ŠJn“_
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// mç‚¹ã®æŠ½å‡º
+			for ( st = 0; st < st_num; st++ ) {	// é–‹å§‹ç‚¹
 				for ( k = 0; k < eNumCom2; k++ ) {	// mC4
 					for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 					cr = CalcAffineInv( ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
-					// ƒqƒXƒgƒOƒ‰ƒ€‚É’Ç‰Á
+					// ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ ã«è¿½åŠ 
 					if (eTrueHist)	Add2Hist2( hist, cr );
 					else			Add2Hist( hist, cr );
 				}
 
-				// ‰ñ“]
+				// å›è»¢
 				tmp = idxcom1[1];
 				for ( k = 1; k < st_num; k++ )	idxcom1[k] = idxcom1[k+1];
 				idxcom1[st_num] = tmp;
@@ -172,15 +173,15 @@ void CalcAffineAndAddHist( CvPoint *ps, int num, strHist *hist )
 		}
 	}
 
-	// ‰ğ•ú
+	// è§£æ”¾
 	free( idx );
 	free( idxcom1 );
 	free( idxcom2 );
 }
 
-void CalcAffineRotateOnceAndAddHash( CvPoint *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, int *pids, int *collision )
-// ƒAƒtƒBƒ“•s•Ï—ÊŒvZ
-// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+void CalcAffineRotateOnceAndAddHash( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, int *pids, int *collision )
+// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡è¨ˆç®—
+// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 {
 	char *hindex = NULL, *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -192,7 +193,7 @@ void CalcAffineRotateOnceAndAddHash( CvPoint *ps, double *areas, int n, int num,
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// ”z—ñ‚ÌŠm•Û
+	// é…åˆ—ã®ç¢ºä¿
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -207,29 +208,29 @@ void CalcAffineRotateOnceAndAddHash( CvPoint *ps, double *areas, int n, int num,
 	//}
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// ‹ß–T“_‚ğŒv‰ñ‚è‚É®—ñ
+		// è¿‘å‚ç‚¹ã‚’æ™‚è¨ˆå›ã‚Šã«æ•´åˆ—
 		CalcOrderCWN( pids[i], ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ )	{	// nCm
 		//for ( j = 0; j < 2; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m“_‚Ì’Šo
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// mç‚¹ã®æŠ½å‡º
 
-			/************** ŠJn“_‚Ì’Tõ **************************************************/
-			// •s•Ï—Ê‚ÌŒvZ
+			/************** é–‹å§‹ç‚¹ã®æ¢ç´¢ **************************************************/
+			// ä¸å¤‰é‡ã®è¨ˆç®—
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
-				//fprintf( fp, "%lf\n", cr );	// Œ³‰æ‘œƒtƒ@ƒCƒ‹–¼‚Ìo—Í
+				//fprintf( fp, "%lf\n", cr );	// å…ƒç”»åƒãƒ•ã‚¡ã‚¤ãƒ«åã®å‡ºåŠ›
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// •s•Ï—Ê‚©‚çŠJn“_‚ğŒ©‚Â‚¯‚é
+			// ä¸å¤‰é‡ã‹ã‚‰é–‹å§‹ç‚¹ã‚’è¦‹ã¤ã‘ã‚‹
 			st = FindStartPoint( inv_array, st_num );
-			// st‚ğŠJn“_‚Æ‚µ‚Ä‰ñ“]‚³‚¹‚é
+			// stã‚’é–‹å§‹ç‚¹ã¨ã—ã¦å›è»¢ã•ã›ã‚‹
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** ’Tõ‚ÌI—¹ ****************************************************/
+			/************** æ¢ç´¢ã®çµ‚äº† ****************************************************/
 
-			// ƒAƒtƒBƒ“•s•Ï—Ê‚ğ—£U‰»
+			// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’é›¢æ•£åŒ–
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				cr = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
@@ -238,8 +239,8 @@ void CalcAffineRotateOnceAndAddHash( CvPoint *ps, double *areas, int n, int num,
 				//printf("%d ", hindex[k]);
 			}
 			//puts("");
-			// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-			if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+			// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+			if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				index = HashFuncArea( hindex, hindex_area, disc->num, &quotient );
 			}
@@ -263,9 +264,9 @@ void CalcAffineRotateOnceAndAddHash( CvPoint *ps, double *areas, int n, int num,
 	free( inv_array );
 }
 
-void AdditionalAffineToHash( CvPoint *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, int *pids, int *collision )
-// ƒAƒtƒBƒ“•s•Ï—ÊŒvZ
-// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+void AdditionalAffineToHash( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, int *pids, int *collision )
+// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡è¨ˆç®—
+// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 {
 	char *hindex = NULL, *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -277,7 +278,7 @@ void AdditionalAffineToHash( CvPoint *ps, double *areas, int n, int num, strDisc
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// ”z—ñ‚ÌŠm•Û
+	// é…åˆ—ã®ç¢ºä¿
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -292,29 +293,29 @@ void AdditionalAffineToHash( CvPoint *ps, double *areas, int n, int num, strDisc
 	//}
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// ‹ß–T“_‚ğŒv‰ñ‚è‚É®—ñ
+		// è¿‘å‚ç‚¹ã‚’æ™‚è¨ˆå›ã‚Šã«æ•´åˆ—
 		CalcOrderCWN( pids[i], ps, idx, eGroup1Num );
 		//for ( j = 0; j < vec_num; j++ )	{	// nCm
 		for ( j = 0; j < 2; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m“_‚Ì’Šo
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// mç‚¹ã®æŠ½å‡º
 
-			/************** ŠJn“_‚Ì’Tõ **************************************************/
-			// •s•Ï—Ê‚ÌŒvZ
+			/************** é–‹å§‹ç‚¹ã®æ¢ç´¢ **************************************************/
+			// ä¸å¤‰é‡ã®è¨ˆç®—
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
-				//fprintf( fp, "%lf\n", cr );	// Œ³‰æ‘œƒtƒ@ƒCƒ‹–¼‚Ìo—Í
+				//fprintf( fp, "%lf\n", cr );	// å…ƒç”»åƒãƒ•ã‚¡ã‚¤ãƒ«åã®å‡ºåŠ›
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// •s•Ï—Ê‚©‚çŠJn“_‚ğŒ©‚Â‚¯‚é
+			// ä¸å¤‰é‡ã‹ã‚‰é–‹å§‹ç‚¹ã‚’è¦‹ã¤ã‘ã‚‹
 			st = FindStartPoint( inv_array, st_num );
-			// st‚ğŠJn“_‚Æ‚µ‚Ä‰ñ“]‚³‚¹‚é
+			// stã‚’é–‹å§‹ç‚¹ã¨ã—ã¦å›è»¢ã•ã›ã‚‹
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** ’Tõ‚ÌI—¹ ****************************************************/
+			/************** æ¢ç´¢ã®çµ‚äº† ****************************************************/
 
-			// ƒAƒtƒBƒ“•s•Ï—Ê‚ğ—£U‰»
+			// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’é›¢æ•£åŒ–
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				cr = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
@@ -323,8 +324,8 @@ void AdditionalAffineToHash( CvPoint *ps, double *areas, int n, int num, strDisc
 				//printf("%d ", hindex[k]);
 			}
 			//puts("");
-			// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-			if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+			// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+			if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				index = HashFuncArea( hindex, hindex_area, disc->num, &quotient );
 			}
@@ -347,9 +348,9 @@ void AdditionalAffineToHash( CvPoint *ps, double *areas, int n, int num, strDisc
 	free( inv_array );
 }
 
-void CalcAffineRotateOnce( CvPoint *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, double ***features, char ***area_features )
-// ƒAƒtƒBƒ“•s•Ï—ÊŒvZ
-// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+void CalcAffineRotateOnce( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, double ***features, char ***area_features )
+// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡è¨ˆç®—
+// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 {
 	char *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -359,7 +360,7 @@ void CalcAffineRotateOnce( CvPoint *ps, double *areas, int n, int num, strDisc *
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// ”z—ñ‚ÌŠm•Û
+	// é…åˆ—ã®ç¢ºä¿
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -368,34 +369,34 @@ void CalcAffineRotateOnce( CvPoint *ps, double *areas, int n, int num, strDisc *
 	inv_array = ( char * )calloc( st_num, sizeof(char) );
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// ‹ß–T“_‚ğŒv‰ñ‚è‚É®—ñ
+		// è¿‘å‚ç‚¹ã‚’æ™‚è¨ˆå›ã‚Šã«æ•´åˆ—
 		CalcOrderCWN( i, ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m“_‚Ì’Šo
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// mç‚¹ã®æŠ½å‡º
 
-			/************** ŠJn“_‚Ì’Tõ **************************************************/
-			// •s•Ï—Ê‚ÌŒvZ
+			/************** é–‹å§‹ç‚¹ã®æ¢ç´¢ **************************************************/
+			// ä¸å¤‰é‡ã®è¨ˆç®—
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// •s•Ï—Ê‚©‚çŠJn“_‚ğŒ©‚Â‚¯‚é
+			// ä¸å¤‰é‡ã‹ã‚‰é–‹å§‹ç‚¹ã‚’è¦‹ã¤ã‘ã‚‹
 			st = FindStartPoint( inv_array, st_num );
-			// st‚ğŠJn“_‚Æ‚µ‚Ä‰ñ“]‚³‚¹‚é
+			// stã‚’é–‹å§‹ç‚¹ã¨ã—ã¦å›è»¢ã•ã›ã‚‹
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** ’Tõ‚ÌI—¹ ****************************************************/
+			/************** æ¢ç´¢ã®çµ‚äº† ****************************************************/
 
-			// ƒAƒtƒBƒ“•s•Ï—Ê
+			// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				features[i][j][k] = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
 				//if ( features[i][j][k] > 10.0 )	features[i][j][k] = 10.0;
 			}
-			// –ÊÏ“Á’¥—ÊŒvZ
-			if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+			// é¢ç©ç‰¹å¾´é‡è¨ˆç®—
+			if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				memcpy(area_features[i][j], hindex_area, eGroup2Num);
 			}
@@ -411,9 +412,9 @@ void CalcAffineRotateOnce( CvPoint *ps, double *areas, int n, int num, strDisc *
 }
 
 
-void CalcAffineRotateOnce2( CvPoint *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, double ***features, char ***area_features, int *pids )
-// ƒAƒtƒBƒ“•s•Ï—ÊŒvZ
-// Õ“Ë‰ñ”ƒJƒEƒ“ƒg
+void CalcAffineRotateOnce2( cv::Point *ps, double *areas, int n, int num, strDisc *disc, strHash **hash, double ***features, char ***area_features, int *pids )
+// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡è¨ˆç®—
+// è¡çªå›æ•°ã‚«ã‚¦ãƒ³ãƒˆ
 {
 	char *hindex_area = NULL, *inv_array = NULL;
 	int i, j, k, l, st, vec_num, st_num;
@@ -423,7 +424,7 @@ void CalcAffineRotateOnce2( CvPoint *ps, double *areas, int n, int num, strDisc 
 	vec_num = eNumCom1-1;
 	st_num = eGroup2Num-1;
 
-	// ”z—ñ‚ÌŠm•Û
+	// é…åˆ—ã®ç¢ºä¿
 	idx = ( int * )calloc( eGroup1Num, sizeof(int) );
 	idxcom1 = ( int * )calloc( eGroup2Num, sizeof(int) );
 	idxcom1bak = ( int * )calloc( st_num, sizeof(int) );
@@ -432,34 +433,34 @@ void CalcAffineRotateOnce2( CvPoint *ps, double *areas, int n, int num, strDisc 
 	inv_array = ( char * )calloc( st_num, sizeof(char) );
 
 	for ( i = 0; i < num; i++ ) {	// for all points
-		// ‹ß–T“_‚ğŒv‰ñ‚è‚É®—ñ
+		// è¿‘å‚ç‚¹ã‚’æ™‚è¨ˆå›ã‚Šã«æ•´åˆ—
 		CalcOrderCWN( pids[i], ps, idx, eGroup1Num );
 		for ( j = 0; j < vec_num; j++ )	{	// nCm
-			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// m“_‚Ì’Šo
+			for ( k = 0; k < eGroup2Num; k++ )	idxcom1[k] = idx[com1[j][k]];	// mç‚¹ã®æŠ½å‡º
 
-			/************** ŠJn“_‚Ì’Tõ **************************************************/
-			// •s•Ï—Ê‚ÌŒvZ
+			/************** é–‹å§‹ç‚¹ã®æ¢ç´¢ **************************************************/
+			// ä¸å¤‰é‡ã®è¨ˆç®—
 			for ( st = 0; st < st_num; st++ ) {
 				cr = CalcAffineInv( ps[idxcom1[0]], ps[idxcom1[(st%st_num)+1]], ps[idxcom1[((st+1)%st_num)+1]], ps[idxcom1[((st+2)%st_num)+1]]);
 				if ( eTrueHist )	inv_array[st] = Affine2Disc2( cr, disc );
 				else				inv_array[st] = Affine2Disc( cr, disc );
 			}
 			
-			// •s•Ï—Ê‚©‚çŠJn“_‚ğŒ©‚Â‚¯‚é
+			// ä¸å¤‰é‡ã‹ã‚‰é–‹å§‹ç‚¹ã‚’è¦‹ã¤ã‘ã‚‹
 			st = FindStartPoint( inv_array, st_num );
-			// st‚ğŠJn“_‚Æ‚µ‚Ä‰ñ“]‚³‚¹‚é
+			// stã‚’é–‹å§‹ç‚¹ã¨ã—ã¦å›è»¢ã•ã›ã‚‹
 			for ( k = 0; k < st_num; k++ )	idxcom1bak[k] = idxcom1[k+1];
 			for ( k = 0; k < st_num; k++ )	idxcom1[k+1] = idxcom1bak[(k+st)%st_num];
-			/************** ’Tõ‚ÌI—¹ ****************************************************/
+			/************** æ¢ç´¢ã®çµ‚äº† ****************************************************/
 
-			// ƒAƒtƒBƒ“•s•Ï—Ê
+			// ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡
 			for ( k = 0; k < eNumCom2; k++ ) {
 				for ( l = 0; l < eGroup3Num; l++ )	idxcom2[l] = idxcom1[com2[k][l]];
 				features[i][j][k] = CalcAffineInv(ps[idxcom2[0]], ps[idxcom2[1]], ps[idxcom2[2]], ps[idxcom2[3]]);
 				//if ( features[i][j][k] > 10.0 )	features[i][j][k] = 10.0;
 			}
-			// –ÊÏ“Á’¥—ÊŒvZ
-			if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+			// é¢ç©ç‰¹å¾´é‡è¨ˆç®—
+			if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 				CalcHindexAreaRatio( idxcom1, areas, hindex_area );
 				memcpy(area_features[i][j], hindex_area, eGroup2Num);
 			}
@@ -477,11 +478,11 @@ void CalcAffineRotateOnce2( CvPoint *ps, double *areas, int n, int num, strDisc 
 double CalcFeatureScore(double feature, double *border, strDisc *disc)
 {
 	double x=0.0;
-	if ( feature < border[0] ) {					// —£U‰»—Ìˆæ‚ª¶’[‚Ìê‡
+	if ( feature < border[0] ) {					// é›¢æ•£åŒ–é ˜åŸŸãŒå·¦ç«¯ã®å ´åˆ
 		if ( feature < border[0]/2.0 )	x = 0.0;
 		else										x = (feature / border[0] * 2 - 1.0) * 3.0;
 	}
-	else if ( feature > border[disc->num-2] ) {		// —£U‰»—Ìˆæ‚ª‰E’[‚Ìê‡
+	else if ( feature > border[disc->num-2] ) {		// é›¢æ•£åŒ–é ˜åŸŸãŒå³ç«¯ã®å ´åˆ
 		if ( feature > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 		else	x = ((feature - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 	} else {
@@ -497,7 +498,7 @@ double CalcFeatureScore(double feature, double *border, strDisc *disc)
 	return score;
 }
 
-void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id, int p_num, strDisc *disc, double *areas, strHash **hash, int tx, int ty, int ***div_ps, int **div_pnum, CvPoint *ps)
+void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id, int p_num, strDisc *disc, double *areas, strHash **hash, int tx, int ty, int ***div_ps, int **div_pnum, cv::Point *ps)
 {
 	unsigned long long int index;
 	unsigned char quotient;
@@ -505,24 +506,24 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	//IplImage *img;
 	//img = cvLoadImage("/home/takeda/code/llahdoc/0606/test/cvpr01p1010.jpg", 1);
 	//img = cvCreateImage( cvSize(1700,2200), IPL_DEPTH_8U, 3 );
-	//cvSet( img, cWhite, NULL );	// ”’‚Å“h‚è‚Â‚Ô‚·
+	//cvSet( img, cWhite, NULL );	// ç™½ã§å¡—ã‚Šã¤ã¶ã™
 
-	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lID
-	double *border = (double *)calloc(disc->num-1, sizeof(double));			// è‡’lID‚É‚¨‚¯‚é•s•Ï—Ê’l
+	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ID
+	double *border = (double *)calloc(disc->num-1, sizeof(double));			// é–¾å€¤IDã«ãŠã‘ã‚‹ä¸å¤‰é‡å€¤
 
-	// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lƒCƒ“ƒfƒbƒNƒX‚Ìæ“¾
+	// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®å–å¾—
 	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 		if( disc->dat[i] != j ) {
 			bindex[j] = i;
 			j++;
 		}
 	}
-	// è‡’lƒCƒ“ƒfƒbƒNƒX‚ÌƒAƒtƒBƒ“•s•Ï—Ê‚ğZo
+	// é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’ç®—å‡º
 	for ( int i = 0; i < disc->num-1; i++ ) {
 		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 	}
 
-	// “Á’¥—Ê‚ÌŠeŸŒ³‚Ì“¾“_”z—ñ
+	// ç‰¹å¾´é‡ã®å„æ¬¡å…ƒã®å¾—ç‚¹é…åˆ—
 	double ***f_score = (double ***)calloc(p_num, sizeof(double **));
 	for ( int i = 0; i < p_num; i++ ) {
 		f_score[i] = (double **)calloc(eNumCom1-1, sizeof(double *));
@@ -531,16 +532,16 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 		}
 	}
 
-	// “Á’¥—Ê‚Ìíœƒtƒ‰ƒO
+	// ç‰¹å¾´é‡ã®å‰Šé™¤ãƒ•ãƒ©ã‚°
 	char **f_flag = (char **)calloc(p_num, sizeof(char *));
 	for ( int i = 0; i < p_num; i++ ) {
 		f_flag[i] = (char *)calloc(eNumCom1-1, sizeof(char));
 	}
 	int f_num=p_num*(eNumCom1-1);
-	// “Á’¥—Ê‚Ì“¾“_ŒvZ
-	for ( int i = 0; i < p_num; i++ ) {				// Še“Á’¥“_
-		for ( int j = 0; j < eNumCom1-1; j++ ) {	// “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
-			for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
+	// ç‰¹å¾´é‡ã®å¾—ç‚¹è¨ˆç®—
+	for ( int i = 0; i < p_num; i++ ) {				// å„ç‰¹å¾´ç‚¹
+		for ( int j = 0; j < eNumCom1-1; j++ ) {	// ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
+			for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
 				f_score[i][j][k] = CalcFeatureScore( features[i][j][k], border, disc );
 				if ( features[i][j][k] > 100.0 || features[i][j][k] < 0.001 ) {
 					f_flag[i][j] = 1;
@@ -552,8 +553,8 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	}
 	//int flag = 0;
 	//int size = eNumCom2*sizeof(double);
-	//for ( int i = 0; i < p_num-1; i++ ) {				// Še“Á’¥“_
-	//	for ( int j = 0; j < eNumCom1-2; j++ ) {	// “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+	//for ( int i = 0; i < p_num-1; i++ ) {				// å„ç‰¹å¾´ç‚¹
+	//	for ( int j = 0; j < eNumCom1-2; j++ ) {	// ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 	//		flag = 0;
 	//		for ( int k = i+1; k < p_num; k++ ) {
 	//			for ( int l = j+1; l < eNumCom1-1; l++ ) {
@@ -579,10 +580,10 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	double rate = 0.01;
 	while ( 1 ) {
 		f_num = f_num_bak;
-		for ( int i = 0; i < p_num; i++ ) {				// Še“Á’¥“_
-			for ( int j = 0; j < eNumCom1-1; j++ ) {	// “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+		for ( int i = 0; i < p_num; i++ ) {				// å„ç‰¹å¾´ç‚¹
+			for ( int j = 0; j < eNumCom1-1; j++ ) {	// ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 				if ( f_flag[i][j] == 0 ) {
-					for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
+					for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
 						if ( f_score[i][j][k] < threshold ) {
 							f_num--;
 							break;
@@ -603,10 +604,10 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 		threshold += rate;
 	}
 
-	for ( int i = 0; i < p_num; i++ ) {				// Še“Á’¥“_
-		for ( int j = 0; j < eNumCom1-1; j++ ) {	// “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+	for ( int i = 0; i < p_num; i++ ) {				// å„ç‰¹å¾´ç‚¹
+		for ( int j = 0; j < eNumCom1-1; j++ ) {	// ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 			if ( f_flag[i][j] == 0 ) {
-				for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
+				for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
 					if ( f_score[i][j][k] < threshold ) {
 						f_flag[i][j] = 1;
 						break;
@@ -617,15 +618,15 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	}
 
 	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
-	for ( int i = 0; i < p_num; i++ ) {				// Še“Á’¥“_
-		for ( int j = 0; j < eNumCom1-1; j++ ) {	// “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+	for ( int i = 0; i < p_num; i++ ) {				// å„ç‰¹å¾´ç‚¹
+		for ( int j = 0; j < eNumCom1-1; j++ ) {	// ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 			if ( f_flag[i][j] == 0 ) {
 				//cvCircle( img, ps[i], 12, cRed, CV_FILLED, CV_AA, 0 );
-				for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
+				for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
 					if (eTrueHist)	hindex[k] = Affine2Disc2( features[i][j][k], disc );
 					else			hindex[k] = Affine2Disc( features[i][j][k], disc );
 				}
-				// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
+				// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
 				if ( eUseArea )	index = HashFuncArea( hindex, area_features[i][j], disc->num, &quotient );
 				else			index = HashFunc( hindex, disc->num, &quotient );
 			//printf("%llu, %u\n", index, quotient);
@@ -639,7 +640,7 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	//OutPutImage(img);
 
 	//cvReleaseImage( &img );
-	// ƒƒ‚ƒŠ‰ğ•ú
+	// ãƒ¡ãƒ¢ãƒªè§£æ”¾
 	for ( int i = 0; i < p_num; i++ ) {
 		for ( int j = 0; j < eNumCom1-1; j++ ) {
 			free(f_score[i][j]);
@@ -649,8 +650,8 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 	}
 	free(f_score);
 	free(f_flag);
-	free( bindex );	// “Á’¥—Ê‚Ì“¾“_
-	free( border );	// “Á’¥—Ê‚Ì“¾“_
+	free( bindex );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( border );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
 	free( hindex );
 }
 
@@ -661,11 +662,11 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	unsigned int index;
 //	unsigned char quotient;
 //
-//	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// “Á’¥—Ê‚Ì“¾“_
-//	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// “Á’¥—Ê‚Ì“Á’¥“_ID
-//	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// “Á’¥—Ê‚Ì“Á’¥“_ID
-//	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lID
-//	double *border = (double *)calloc(disc->num-1, sizeof(double));			// è‡’lID‚É‚¨‚¯‚é•s•Ï—Ê’l
+//	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// ç‰¹å¾´é‡ã®å¾—ç‚¹
+//	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+//	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+//	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ID
+//	double *border = (double *)calloc(disc->num-1, sizeof(double));			// é–¾å€¤IDã«ãŠã‘ã‚‹ä¸å¤‰é‡å€¤
 //	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
 //
 //	//for ( int i = 0; i < p_num; i++ ) {
@@ -681,14 +682,14 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	//}
 //
 //
-//	// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lƒCƒ“ƒfƒbƒNƒX‚Ìæ“¾
+//	// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®å–å¾—
 //	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 //		if( disc->dat[i] != j ) {
 //			bindex[j] = i;
 //			j++;
 //		}
 //	}
-//	// è‡’lƒCƒ“ƒfƒbƒNƒX‚ÌƒAƒtƒBƒ“•s•Ï—Ê‚ğZo
+//	// é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’ç®—å‡º
 //	for ( int i = 0; i < disc->num-1; i++ ) {
 //		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 //	}
@@ -696,18 +697,18 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	int all = 0;
 //	int flag = 0;
 //	double fxt = 0.0;
-//	// “Á’¥—Ê‚Ì“¾“_ŒvZ
-//	for ( int i = 0; i < p_num; i++ ) {	// Še“Á’¥“_
-//		for ( int j = 0; j < eNumCom1-1; j++ ) { // “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+//	// ç‰¹å¾´é‡ã®å¾—ç‚¹è¨ˆç®—
+//	for ( int i = 0; i < p_num; i++ ) {	// å„ç‰¹å¾´ç‚¹
+//		for ( int j = 0; j < eNumCom1-1; j++ ) { // ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 //			//printf("%d: %d: ", i, j);
 //			flag = 0;
 //			fx[n] = 0.0;
-//			for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
-//				if ( features[i][j][k] < border[0] ) {					// —£U‰»—Ìˆæ‚ª¶’[‚Ìê‡
+//			for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
+//				if ( features[i][j][k] < border[0] ) {					// é›¢æ•£åŒ–é ˜åŸŸãŒå·¦ç«¯ã®å ´åˆ
 //					if ( features[i][j][k] < border[0]/2.0 )	x = 0.0;
 //					else										x = (features[i][j][k] / border[0] * 2 - 1.0) * 3.0;
 //				}
-//				else if ( features[i][j][k] > border[disc->num-2] ) {	// —£U‰»—Ìˆæ‚ª‰E’[‚Ìê‡
+//				else if ( features[i][j][k] > border[disc->num-2] ) {	// é›¢æ•£åŒ–é ˜åŸŸãŒå³ç«¯ã®å ´åˆ
 //					if ( features[i][j][k] > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 //					else	x = ((features[i][j][k] - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 //				} else {
@@ -719,38 +720,38 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //					}
 //				}
 //
-//				// f(x)‚ÌŒvZ
+//				// f(x)ã®è¨ˆç®—
 //				fxt = exp((double)(-x*x/2));
 //				//printf("%9.6lf ", fxt);
 //				if ( fxt < 0.02 ) {
 //					flag = 1;
 //				}
-//				// ŠeŸŒ³‚Ìf(x)‚ğ‡Z
+//				// å„æ¬¡å…ƒã®f(x)ã‚’åˆç®—
 //				fx[n] += fxt;
 //				//printf("%9.6lf ", fxt);
 //			}
 //			//puts("");
 //			if ( flag == 0 ) {
 //				//puts("no flag");
-//				f_id[n] = j;	// “Á’¥—ÊID•Û‘¶
-//				p_id[n] = i;	// “Á’¥“_ID•Û‘¶
+//				f_id[n] = j;	// ç‰¹å¾´é‡IDä¿å­˜
+//				p_id[n] = i;	// ç‰¹å¾´ç‚¹IDä¿å­˜
 //				//printf("%3d: %2d: %09.6lf\n", p_id[n], f_id[n], fx[n]);
 //				n++;
 //			}
 //		}
 //	}
 //
-//	// ‰æ‘œ‚ğ•ªŠ„‚µCŠe—Ìˆæ‚Å•Û‘¶“Á’¥—Ê”‚ğ•Ï‚¦‚é
+//	// ç”»åƒã‚’åˆ†å‰²ã—ï¼Œå„é ˜åŸŸã§ä¿å­˜ç‰¹å¾´é‡æ•°ã‚’å¤‰ãˆã‚‹
 //	for ( int i = 0; i < tx; i++ ) {
 //		for ( int j = 0; j < ty; j++ ) {
-//			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// “Á’¥—Ê‚Ì“¾“_
-//			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// “Á’¥“_ID
-//			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// “Á’¥“_“à‚Ì“Á’¥—ÊID
+//			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+//			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// ç‰¹å¾´ç‚¹ID
+//			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// ç‰¹å¾´ç‚¹å†…ã®ç‰¹å¾´é‡ID
 //			int m=0;
-//			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// —Ìˆæ (i,j)‚Ì
-//				int id = div_ps[i][j][k];					// k”Ô–Ú‚Ì“_ID‚É‘Î‚µ‚Ä
-//				for ( int l = 0; l < n; l++ ) {				// íœ‚³‚ê‚¸‚Éc‚Á‚½“Á’¥—Ê‚Ì’†‚É
-//					if ( id == p_id[l] ) {					// “_ID‚ªˆê’v‚·‚é‚à‚Ì‚ª‚ ‚ê‚Î
+//			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// é ˜åŸŸ (i,j)ã®
+//				int id = div_ps[i][j][k];					// kç•ªç›®ã®ç‚¹IDã«å¯¾ã—ã¦
+//				for ( int l = 0; l < n; l++ ) {				// å‰Šé™¤ã•ã‚Œãšã«æ®‹ã£ãŸç‰¹å¾´é‡ã®ä¸­ã«
+//					if ( id == p_id[l] ) {					// ç‚¹IDãŒä¸€è‡´ã™ã‚‹ã‚‚ã®ãŒã‚ã‚Œã°
 //						div_pid[m] = p_id[l];
 //						div_fid[m] = f_id[l];
 //						div_fx[m] = fx[l];
@@ -764,8 +765,8 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //			int tid;
 //			for (int k = 0; k < m - 1; k++) {
 //				for (int l = m - 1; l > k; l--) {
-//					if (div_fx[l - 1] < div_fx[l]) {  /* ‘O‚Ì—v‘f‚Ì•û‚ª‘å‚«‚©‚Á‚½‚ç */
-//						temp = div_fx[l];        /* ŒğŠ·‚·‚é */
+//					if (div_fx[l - 1] < div_fx[l]) {  /* å‰ã®è¦ç´ ã®æ–¹ãŒå¤§ãã‹ã£ãŸã‚‰ */
+//						temp = div_fx[l];        /* äº¤æ›ã™ã‚‹ */
 //						div_fx[l] = div_fx[l - 1];
 //						div_fx[l - 1]= temp;
 //
@@ -784,14 +785,14 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //			int f_num = std::min(m,(int)((double)div_pnum[i][j]/(double)p_num*400.0));
 //			//printf("%d\n", f_num);
 //
-//			for ( int k = 0; k < f_num; k++ ) {	// Še“Á’¥“_
+//			for ( int k = 0; k < f_num; k++ ) {	// å„ç‰¹å¾´ç‚¹
 //
 //				for ( int l = 0; l < eNumCom2; l++ ) {
 //					if (eTrueHist)	hindex[l] = Affine2Disc2( features[div_pid[k]][div_fid[k]][l], disc );
 //					else			hindex[l] = Affine2Disc( features[div_pid[k]][div_fid[k]][l], disc );
 //				}
-//				// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-//				if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+//				// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+//				if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 //					index = HashFuncArea( hindex, area_features[div_pid[k]][div_fid[k]], disc->num, &quotient );
 //				}
 //				else {
@@ -809,13 +810,13 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	}
 //
 //
-//	//// “¾“_‚É‚æ‚é“Á’¥—Ê‚Ìƒ\[ƒg
+//	//// å¾—ç‚¹ã«ã‚ˆã‚‹ç‰¹å¾´é‡ã®ã‚½ãƒ¼ãƒˆ
 //	//double temp;
 //	//int tid;
 //	//for (int i = 0; i < n - 1; i++) {
 //	//	for (int j = n - 1; j > i; j--) {
-//	//		if (fx[j - 1] < fx[j]) {  /* ‘O‚Ì—v‘f‚Ì•û‚ª‘å‚«‚©‚Á‚½‚ç */
-//	//			temp = fx[j];        /* ŒğŠ·‚·‚é */
+//	//		if (fx[j - 1] < fx[j]) {  /* å‰ã®è¦ç´ ã®æ–¹ãŒå¤§ãã‹ã£ãŸã‚‰ */
+//	//			temp = fx[j];        /* äº¤æ›ã™ã‚‹ */
 //	//			fx[j] = fx[j - 1];
 //	//			fx[j - 1]= temp;
 //
@@ -837,12 +838,12 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	//printf("%d\n", n);
 //	//int f_num = std::min(n,400);
 //
-//	//for ( int i = 0; i < f_num; i++ ) {	// Še“Á’¥“_
+//	//for ( int i = 0; i < f_num; i++ ) {	// å„ç‰¹å¾´ç‚¹
 //	//	for ( int j = 0; j < eNumCom2; j++ ) {
 //	//		hindex[j] = Affine2Disc( features[p_id[i]][f_id[i]][j], disc );
 //	//	}
-//	//	// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-//	//	if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+//	//	// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+//	//	if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 //	//		index = HashFuncArea( hindex, area_features[p_id[i]][f_id[i]], disc->num, &quotient );
 //	//	}
 //	//	else {
@@ -853,10 +854,10 @@ void RankFeatureAndAddHash(double ***features, char ***area_features, int doc_id
 //	//	else 					AddHash( index, doc_id, p_id[i], quotient, hash );
 //	//}
 //
-//	free( fx );	// “Á’¥—Ê‚Ì“¾“_
-//	free( p_id );	// “Á’¥—Ê‚Ì“¾“_
-//	free( bindex );	// “Á’¥—Ê‚Ì“¾“_
-//	free( border );	// “Á’¥—Ê‚Ì“¾“_
+//	free( fx );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+//	free( p_id );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+//	free( bindex );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+//	free( border );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
 //	free( hindex );
 //}
 
@@ -868,11 +869,11 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 	unsigned int index;
 	unsigned char quotient;
 
-	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// “Á’¥—Ê‚Ì“¾“_
-	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// “Á’¥—Ê‚Ì“Á’¥“_ID
-	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// “Á’¥—Ê‚Ì“Á’¥“_ID
-	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lID
-	double *border = (double *)calloc(disc->num-1, sizeof(double));			// è‡’lID‚É‚¨‚¯‚é•s•Ï—Ê’l
+	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ID
+	double *border = (double *)calloc(disc->num-1, sizeof(double));			// é–¾å€¤IDã«ãŠã‘ã‚‹ä¸å¤‰é‡å€¤
 	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
 
 	//for ( int i = 0; i < p_num; i++ ) {
@@ -888,31 +889,31 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 	//}
 
 
-	// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lƒCƒ“ƒfƒbƒNƒX‚Ìæ“¾
+	// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®å–å¾—
 	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 		if( disc->dat[i] != j ) {
 			bindex[j] = i;
 			j++;
 		}
 	}
-	// è‡’lƒCƒ“ƒfƒbƒNƒX‚ÌƒAƒtƒBƒ“•s•Ï—Ê‚ğZo
+	// é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’ç®—å‡º
 	for ( int i = 0; i < disc->num-1; i++ ) {
 		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 	}
 	int flag = 0;
 	double fxt = 0.0;
-	// “Á’¥—Ê‚Ì“¾“_ŒvZ
-	for ( int i = 0; i < p_num; i++ ) {	// Še“Á’¥“_
-		for ( int j = 0; j < eNumCom1-1; j++ ) { // “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+	// ç‰¹å¾´é‡ã®å¾—ç‚¹è¨ˆç®—
+	for ( int i = 0; i < p_num; i++ ) {	// å„ç‰¹å¾´ç‚¹
+		for ( int j = 0; j < eNumCom1-1; j++ ) { // ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 			//printf("%d: %d: ", i, j);
 			flag = 0;
 			fx[n] = 0.0;
-			for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
-				if ( features[i][j][k] < border[0] ) {					// —£U‰»—Ìˆæ‚ª¶’[‚Ìê‡
+			for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
+				if ( features[i][j][k] < border[0] ) {					// é›¢æ•£åŒ–é ˜åŸŸãŒå·¦ç«¯ã®å ´åˆ
 					if ( features[i][j][k] < border[0]/2.0 )	x = 0.0;
 					else										x = (features[i][j][k] / border[0] * 2 - 1.0) * 3.0;
 				}
-				else if ( features[i][j][k] > border[disc->num-2] ) {	// —£U‰»—Ìˆæ‚ª‰E’[‚Ìê‡
+				else if ( features[i][j][k] > border[disc->num-2] ) {	// é›¢æ•£åŒ–é ˜åŸŸãŒå³ç«¯ã®å ´åˆ
 					if ( features[i][j][k] > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 					else	x = ((features[i][j][k] - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 				} else {
@@ -924,43 +925,43 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 					}
 				}
 
-				// f(x)‚ÌŒvZ
+				// f(x)ã®è¨ˆç®—
 				fxt = exp((double)(-x*x/2));
 				//printf("%9.6lf ", fxt);
 				if ( fxt < 0.025 ) {
 					flag = 1;
 				}
-				// ŠeŸŒ³‚Ìf(x)‚ğ‡Z
+				// å„æ¬¡å…ƒã®f(x)ã‚’åˆç®—
 				fx[n] += fxt;
 				//printf("%9.6lf ", fxt);
 			}
 			//puts("");
 			if ( flag == 0 ) {
 				//puts("no flag");
-				f_id[n] = j;	// “Á’¥—ÊID•Û‘¶
-				p_id[n] = i;	// “Á’¥“_ID•Û‘¶
+				f_id[n] = j;	// ç‰¹å¾´é‡IDä¿å­˜
+				p_id[n] = i;	// ç‰¹å¾´ç‚¹IDä¿å­˜
 				//printf("%3d: %2d: %09.6lf\n", p_id[n], f_id[n], fx[n]);
 				n++;
 			}
 		}
 	}
 
-	double *spare_fx	= (double *)calloc(n, sizeof(double));	// “Á’¥—Ê‚Ì“¾“_
-	int    *spare_pid	= (int *)	calloc(n, sizeof(int));		// “Á’¥—Ê‚Ì“Á’¥“_ID
-	int    *spare_fid	= (int *)	calloc(n, sizeof(int));		// “Á’¥—Ê‚Ì“Á’¥“_ID
+	double *spare_fx	= (double *)calloc(n, sizeof(double));	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	int    *spare_pid	= (int *)	calloc(n, sizeof(int));		// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+	int    *spare_fid	= (int *)	calloc(n, sizeof(int));		// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
 	int count = 0;
 
-	// ‰æ‘œ‚ğ•ªŠ„‚µCŠe—Ìˆæ‚Å•Û‘¶“Á’¥—Ê”‚ğ•Ï‚¦‚é
+	// ç”»åƒã‚’åˆ†å‰²ã—ï¼Œå„é ˜åŸŸã§ä¿å­˜ç‰¹å¾´é‡æ•°ã‚’å¤‰ãˆã‚‹
 	for ( int i = 0; i < tx; i++ ) {
 		for ( int j = 0; j < ty; j++ ) {
-			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// “Á’¥—Ê‚Ì“¾“_
-			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// “Á’¥“_ID
-			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// “Á’¥“_“à‚Ì“Á’¥—ÊID
+			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// ç‰¹å¾´ç‚¹ID
+			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// ç‰¹å¾´ç‚¹å†…ã®ç‰¹å¾´é‡ID
 			int m=0;
-			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// —Ìˆæ (i,j)‚Ì
-				int id = div_ps[i][j][k];					// k”Ô–Ú‚Ì“_ID‚É‘Î‚µ‚Ä
-				for ( int l = 0; l < n; l++ ) {				// íœ‚³‚ê‚¸‚Éc‚Á‚½“Á’¥—Ê‚Ì’†‚É
-					if ( id == p_id[l] ) {					// “_ID‚ªˆê’v‚·‚é‚à‚Ì‚ª‚ ‚ê‚Î
+			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// é ˜åŸŸ (i,j)ã®
+				int id = div_ps[i][j][k];					// kç•ªç›®ã®ç‚¹IDã«å¯¾ã—ã¦
+				for ( int l = 0; l < n; l++ ) {				// å‰Šé™¤ã•ã‚Œãšã«æ®‹ã£ãŸç‰¹å¾´é‡ã®ä¸­ã«
+					if ( id == p_id[l] ) {					// ç‚¹IDãŒä¸€è‡´ã™ã‚‹ã‚‚ã®ãŒã‚ã‚Œã°
 						div_pid[m] = p_id[l];
 						div_fid[m] = f_id[l];
 						div_fx[m] = fx[l];
@@ -974,8 +975,8 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 			int tid;
 			for (int k = 0; k < m - 1; k++) {
 				for (int l = m - 1; l > k; l--) {
-					if (div_fx[l - 1] < div_fx[l]) {  /* ‘O‚Ì—v‘f‚Ì•û‚ª‘å‚«‚©‚Á‚½‚ç */
-						temp = div_fx[l];        /* ŒğŠ·‚·‚é */
+					if (div_fx[l - 1] < div_fx[l]) {  /* å‰ã®è¦ç´ ã®æ–¹ãŒå¤§ãã‹ã£ãŸã‚‰ */
+						temp = div_fx[l];        /* äº¤æ›ã™ã‚‹ */
 						div_fx[l] = div_fx[l - 1];
 						div_fx[l - 1]= temp;
 
@@ -994,13 +995,13 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 			int f_num = std::min( m, (int)((double)div_pnum[i][j]/(double)p_num*400.0));
 			//printf("%d\n", f_num);
 
-			for ( int k = 0; k < f_num; k++ ) {	// Še“Á’¥“_
+			for ( int k = 0; k < f_num; k++ ) {	// å„ç‰¹å¾´ç‚¹
 
 				for ( int l = 0; l < eNumCom2; l++ ) {
 					hindex[l] = Affine2Disc( features[div_pid[k]][div_fid[k]][l], disc );
 				}
-				// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-				if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+				// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+				if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 					index = HashFuncArea( hindex, area_features[div_pid[k]][div_fid[k]], disc->num, &quotient );
 				}
 				else {
@@ -1011,7 +1012,7 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 				else 					AddHash( index, doc_id, div_pid[k], quotient, hash );
 			}
 
-			// ƒXƒyƒA‚ğ•Û‘¶
+			// ã‚¹ãƒšã‚¢ã‚’ä¿å­˜
 			for ( int k = f_num; k < m; k++ ) {
 				spare_pid[count] = div_pid[k];
 				spare_fid[count] = div_fid[k];
@@ -1029,8 +1030,8 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 	int tid;
 	for (int i = 0; i < count - 1; i++) {
 		for (int j = count - 1; j > i; j--) {
-			if (spare_fx[j - 1] < spare_fx[j]) {  /* ‘O‚Ì—v‘f‚Ì•û‚ª‘å‚«‚©‚Á‚½‚ç */
-				temp = spare_fx[j];        /* ŒğŠ·‚·‚é */
+			if (spare_fx[j - 1] < spare_fx[j]) {  /* å‰ã®è¦ç´ ã®æ–¹ãŒå¤§ãã‹ã£ãŸã‚‰ */
+				temp = spare_fx[j];        /* äº¤æ›ã™ã‚‹ */
 				spare_fx[j] = spare_fx[j - 1];
 				spare_fx[j - 1]= temp;
 
@@ -1056,8 +1057,8 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 		for ( int j = 0; j < eNumCom2; j++ ) {
 			hindex[j] = Affine2Disc( features[spare_pid[i]][spare_fid[i]][j], disc );
 		}
-		// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-		if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+		// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+		if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 			index = HashFuncArea( hindex, area_features[spare_pid[i]][spare_fid[i]], disc->num, &quotient );
 		}
 		else {
@@ -1077,10 +1078,10 @@ void RankFeatureAndAddHash2(double ***features, char ***area_features, int doc_i
 
 	}
 
-	free( fx );	// “Á’¥—Ê‚Ì“¾“_
-	free( p_id );	// “Á’¥—Ê‚Ì“¾“_
-	free( bindex );	// “Á’¥—Ê‚Ì“¾“_
-	free( border );	// “Á’¥—Ê‚Ì“¾“_
+	free( fx );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( p_id );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( bindex );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( border );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
 	free( hindex );
 	free( spare_fx );
 	free( spare_pid );
@@ -1094,21 +1095,21 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 	unsigned int index;
 	unsigned char quotient;
 
-	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// “Á’¥—Ê‚Ì“¾“_
-	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// “Á’¥—Ê‚Ì“Á’¥“_ID
-	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// “Á’¥—Ê‚Ì“Á’¥“_ID
-	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lID
-	double *border = (double *)calloc(disc->num-1, sizeof(double));			// è‡’lID‚É‚¨‚¯‚é•s•Ï—Ê’l
+	double *fx	= (double *)calloc(p_num*(eNumCom1-1), sizeof(double));		// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	int *p_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+	int *f_id		= (int *)	calloc(p_num*(eNumCom1-1), sizeof(int));	// ç‰¹å¾´é‡ã®ç‰¹å¾´ç‚¹ID
+	int *bindex = (int *)calloc(disc->num-1, sizeof(int));					// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ID
+	double *border = (double *)calloc(disc->num-1, sizeof(double));			// é–¾å€¤IDã«ãŠã‘ã‚‹ä¸å¤‰é‡å€¤
 	char *hindex = ( char * )calloc( eNumCom2, sizeof(char) );
 
-	// —£U‰»ƒe[ƒuƒ‹‚Ìè‡’lƒCƒ“ƒfƒbƒNƒX‚Ìæ“¾
+	// é›¢æ•£åŒ–ãƒ†ãƒ¼ãƒ–ãƒ«ã®é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®å–å¾—
 	for ( int i = 0, j = 0; i < disc->res; i++ ) {
 		if( disc->dat[i] != j ) {
 			bindex[j] = i;
 			j++;
 		}
 	}
-	// è‡’lƒCƒ“ƒfƒbƒNƒX‚ÌƒAƒtƒBƒ“•s•Ï—Ê‚ğZo
+	// é–¾å€¤ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’ç®—å‡º
 	for ( int i = 0; i < disc->num-1; i++ ) {
 		border[i] = bindex[i] * (disc->max-disc->min)/disc->res + disc->min;
 	}
@@ -1116,18 +1117,18 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 	int all = 0;
 	int flag = 0;
 	double fxt = 0.0;
-	// “Á’¥—Ê‚Ì“¾“_ŒvZ
-	for ( int i = 0; i < p_num; i++ ) {	// Še“Á’¥“_
-		for ( int j = 0; j < eNumCom1-1; j++ ) { // “Á’¥“_‚²‚Æ‚Ì“Á’¥—Ê
+	// ç‰¹å¾´é‡ã®å¾—ç‚¹è¨ˆç®—
+	for ( int i = 0; i < p_num; i++ ) {	// å„ç‰¹å¾´ç‚¹
+		for ( int j = 0; j < eNumCom1-1; j++ ) { // ç‰¹å¾´ç‚¹ã”ã¨ã®ç‰¹å¾´é‡
 			//printf("%d: %d: ", i, j);
 			flag = 0;
 			fx[n] = 0.0;
-			for ( int k = 0; k < eNumCom2; k++ ) {	// “Á’¥—Ê–ˆ‚ÌŠeŸŒ³
-				if ( features[i][j][k] < border[0] ) {					// —£U‰»—Ìˆæ‚ª¶’[‚Ìê‡
+			for ( int k = 0; k < eNumCom2; k++ ) {	// ç‰¹å¾´é‡æ¯ã®å„æ¬¡å…ƒ
+				if ( features[i][j][k] < border[0] ) {					// é›¢æ•£åŒ–é ˜åŸŸãŒå·¦ç«¯ã®å ´åˆ
 					if ( features[i][j][k] < border[0]/2.0 )	x = 0.0;
 					else										x = (features[i][j][k] / border[0] * 2 - 1.0) * 3.0;
 				}
-				else if ( features[i][j][k] > border[disc->num-2] ) {	// —£U‰»—Ìˆæ‚ª‰E’[‚Ìê‡
+				else if ( features[i][j][k] > border[disc->num-2] ) {	// é›¢æ•£åŒ–é ˜åŸŸãŒå³ç«¯ã®å ´åˆ
 					if ( features[i][j][k] > (disc->max + border[disc->num-2])/2.0 )	x = 0.0;
 					else	x = ((features[i][j][k] - border[disc->num-2]) / (disc->max-border[disc->num-2]) * 2 - 1.0)*3.0;
 				} else {
@@ -1139,38 +1140,38 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 					}
 				}
 
-				// f(x)‚ÌŒvZ
+				// f(x)ã®è¨ˆç®—
 				fxt = exp((double)(-x*x/2));
 				//printf("%9.6lf ", fxt);
 				if ( fxt < 0.02 ) {
 					flag += 1;
 				}
-				// ŠeŸŒ³‚Ìf(x)‚ğ‡Z
+				// å„æ¬¡å…ƒã®f(x)ã‚’åˆç®—
 				fx[n] += fxt;
 				//printf("%9.6lf ", fxt);
 			}
 			//puts("");
 			if ( flag < 2 ) {
 				//puts("no flag");
-				f_id[n] = j;	// “Á’¥—ÊID•Û‘¶
-				p_id[n] = i;	// “Á’¥“_ID•Û‘¶
+				f_id[n] = j;	// ç‰¹å¾´é‡IDä¿å­˜
+				p_id[n] = i;	// ç‰¹å¾´ç‚¹IDä¿å­˜
 				//printf("%3d: %2d: %09.6lf\n", p_id[n], f_id[n], fx[n]);
 				n++;
 			}
 		}
 	}
 
-	// ‰æ‘œ‚ğ•ªŠ„‚µCŠe—Ìˆæ‚Å•Û‘¶“Á’¥—Ê”‚ğ•Ï‚¦‚é
+	// ç”»åƒã‚’åˆ†å‰²ã—ï¼Œå„é ˜åŸŸã§ä¿å­˜ç‰¹å¾´é‡æ•°ã‚’å¤‰ãˆã‚‹
 	for ( int i = 0; i < tx; i++ ) {
 		for ( int j = 0; j < ty; j++ ) {
-			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// “Á’¥—Ê‚Ì“¾“_
-			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// “Á’¥“_ID
-			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// “Á’¥“_“à‚Ì“Á’¥—ÊID
+			double *div_fx	= (double *)calloc(div_pnum[i][j]*eNumCom1, sizeof(double));	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+			int *div_pid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// ç‰¹å¾´ç‚¹ID
+			int *div_fid	= (int *)	calloc(div_pnum[i][j]*eNumCom1, sizeof(int));		// ç‰¹å¾´ç‚¹å†…ã®ç‰¹å¾´é‡ID
 			int m=0;
-			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// —Ìˆæ (i,j)‚Ì
-				int id = div_ps[i][j][k];					// k”Ô–Ú‚Ì“_ID‚É‘Î‚µ‚Ä
-				for ( int l = 0; l < n; l++ ) {				// íœ‚³‚ê‚¸‚Éc‚Á‚½“Á’¥—Ê‚Ì’†‚É
-					if ( id == p_id[l] ) {					// “_ID‚ªˆê’v‚·‚é‚à‚Ì‚ª‚ ‚ê‚Î
+			for ( int k = 0; k < div_pnum[i][j]; k++ ) {	// é ˜åŸŸ (i,j)ã®
+				int id = div_ps[i][j][k];					// kç•ªç›®ã®ç‚¹IDã«å¯¾ã—ã¦
+				for ( int l = 0; l < n; l++ ) {				// å‰Šé™¤ã•ã‚Œãšã«æ®‹ã£ãŸç‰¹å¾´é‡ã®ä¸­ã«
+					if ( id == p_id[l] ) {					// ç‚¹IDãŒä¸€è‡´ã™ã‚‹ã‚‚ã®ãŒã‚ã‚Œã°
 						div_pid[m] = p_id[l];
 						div_fid[m] = f_id[l];
 						div_fx[m] = fx[l];
@@ -1184,8 +1185,8 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 			int tid;
 			for (int k = 0; k < m - 1; k++) {
 				for (int l = m - 1; l > k; l--) {
-					if (div_fx[l - 1] < div_fx[l]) {  /* ‘O‚Ì—v‘f‚Ì•û‚ª‘å‚«‚©‚Á‚½‚ç */
-						temp = div_fx[l];        /* ŒğŠ·‚·‚é */
+					if (div_fx[l - 1] < div_fx[l]) {  /* å‰ã®è¦ç´ ã®æ–¹ãŒå¤§ãã‹ã£ãŸã‚‰ */
+						temp = div_fx[l];        /* äº¤æ›ã™ã‚‹ */
 						div_fx[l] = div_fx[l - 1];
 						div_fx[l - 1]= temp;
 
@@ -1204,14 +1205,14 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 			int f_num = std::min(m,(int)((double)div_pnum[i][j]/(double)p_num*400.0));
 			//printf("%d\n", f_num);
 
-			for ( int k = 0; k < f_num; k++ ) {	// Še“Á’¥“_
+			for ( int k = 0; k < f_num; k++ ) {	// å„ç‰¹å¾´ç‚¹
 
 				for ( int l = 0; l < eNumCom2; l++ ) {
 					if (eTrueHist)	hindex[l] = Affine2Disc2( features[div_pid[k]][div_fid[k]][l], disc );
 					else			hindex[l] = Affine2Disc( features[div_pid[k]][div_fid[k]][l], disc );
 				}
-				// ƒnƒbƒVƒ…•\‚ÌƒCƒ“ƒfƒbƒNƒX‚ğŒvZ
-				if ( eUseArea ) {	// –ÊÏ“Á’¥—Ê’Ç‰Á
+				// ãƒãƒƒã‚·ãƒ¥è¡¨ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¨ˆç®—
+				if ( eUseArea ) {	// é¢ç©ç‰¹å¾´é‡è¿½åŠ 
 					index = HashFuncArea( hindex, area_features[div_pid[k]][div_fid[k]], disc->num, &quotient );
 				}
 				else {
@@ -1228,9 +1229,9 @@ void RankFeatureAndAddHash3(double ***features, char ***area_features, int doc_i
 		}
 	}
 
-	free( fx );	// “Á’¥—Ê‚Ì“¾“_
-	free( p_id );	// “Á’¥—Ê‚Ì“¾“_
-	free( bindex );	// “Á’¥—Ê‚Ì“¾“_
-	free( border );	// “Á’¥—Ê‚Ì“¾“_
+	free( fx );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( p_id );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( bindex );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
+	free( border );	// ç‰¹å¾´é‡ã®å¾—ç‚¹
 	free( hindex );
 }

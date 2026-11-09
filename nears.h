@@ -1,18 +1,18 @@
-typedef struct _strDiv {	// •ªŠ„—Ìˆæ
-	int xindex;	// x²‚ÌƒCƒ“ƒfƒbƒNƒX
-	int yindex;	// y²‚ÌƒCƒ“ƒfƒbƒNƒX
-	double dist;	// ’–Ú‚µ‚Ä‚¢‚é“Á’¥“_‚Æ‚ÌÅ¬‹——£
+typedef struct _strDiv {	// åˆ†å‰²é ˜åŸŸ
+	int xindex;	// xè»¸ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+	int yindex;	// yè»¸ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+	double dist;	// æ³¨ç›®ã—ã¦ã„ã‚‹ç‰¹å¾´ç‚¹ã¨ã®æœ€å°è·é›¢
 } strDiv;
 
-typedef struct _strPointDist {	// ƒ\[ƒg‚Ì‚½‚ß‚Ì“Á’¥“_‚Æ‹——£‚Ì\‘¢‘Ì
-	int pindex;	// “_‚ÌƒCƒ“ƒfƒbƒNƒX
-	double	dist;	// “_‚Ü‚Å‚Ì‹——£
+typedef struct _strPointDist {	// ã‚½ãƒ¼ãƒˆã®ãŸã‚ã®ç‰¹å¾´ç‚¹ã¨è·é›¢ã®æ§‹é€ ä½“
+	int pindex;	// ç‚¹ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+	double	dist;	// ç‚¹ã¾ã§ã®è·é›¢
 } strPointDist;
 
 void SecureNears( void );
 void ClearNears( int num );
 void ReleaseNears( void );
-void MakeNearsFromCentres( CvPoint *ps, int num );
-int SearchMinAreas( CvPoint *ps, double *areas, int num, int *reg_thinids );
-void MakeNearsFromCentresDiv( CvPoint *ps, int pnum, CvSize *size, int tx, int ty, int kn );
-int SearchMinNears( CvPoint *ps, double *areas, int num, int *reg_thinids );
+void MakeNearsFromCentres( cv::Point *ps, int num );
+int SearchMinAreas( cv::Point *ps, double *areas, int num, int *reg_thinids );
+void MakeNearsFromCentresDiv( cv::Point *ps, int pnum, cv::Size *size, int tx, int ty, int kn );
+int SearchMinNears( cv::Point *ps, double *areas, int num, int *reg_thinids );

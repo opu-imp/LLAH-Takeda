@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_core231d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
 #else
-#pragma comment( lib, "opencv_core231.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
 #endif
 #endif
 
@@ -16,49 +16,49 @@
 #include "hist.h"
 
 char Affine2Disc( double cr, strDisc *disc )
-// A‘±’l‚МѓAѓtѓBѓ“•s•П—К‚р—ЈЋU’l‚Й•ПЉ·‚·‚й
+// йЂЈз¶љеЂ¤гЃ®г‚ўгѓ•г‚ЈгѓідёЌе¤‰й‡Џг‚’й›ўж•ЈеЂ¤гЃ«е¤‰жЏ›гЃ™г‚‹
 {
-	if ( cr <= disc->min )		return 0;	// min‚ж‚иЏ¬‚і‚Ї‚к‚ОЌЕЏ¬’l‚Е‚ ‚й0‚р
-	else if ( cr >= disc->max )	return disc->num-1;	// max‚ж‚и‘е‚«‚Ї‚к‚ОЌЕ‘е’l‚Е‚ ‚йnum-1‚р•Ф‚·
-	else						return disc->dat[(int)(((cr - disc->min)/(disc->max-disc->min))*(double)disc->res)];	// ‚»‚¤‚Е‚И‚Ї‚к‚ОЉY“–‚·‚йdat‚М’l‚р•Ф‚·
+	if ( cr <= disc->min )		return 0;	// minг‚€г‚Ље°ЏгЃ•гЃ‘г‚ЊгЃ°жњЂе°ЏеЂ¤гЃ§гЃ‚г‚‹0г‚’
+	else if ( cr >= disc->max )	return disc->num-1;	// maxг‚€г‚Ље¤§гЃЌгЃ‘г‚ЊгЃ°жњЂе¤§еЂ¤гЃ§гЃ‚г‚‹num-1г‚’иї”гЃ™
+	else						return disc->dat[(int)(((cr - disc->min)/(disc->max-disc->min))*(double)disc->res)];	// гЃќгЃ†гЃ§гЃЄгЃ‘г‚ЊгЃ°и©ІеЅ“гЃ™г‚‹datгЃ®еЂ¤г‚’иї”гЃ™
 }
 
 char Affine2Disc2( double cr, strDisc *disc )
-// A‘±’l‚МѓAѓtѓBѓ“•s•П—К‚р—ЈЋU’l‚Й•ПЉ·‚·‚й
+// йЂЈз¶љеЂ¤гЃ®г‚ўгѓ•г‚ЈгѓідёЌе¤‰й‡Џг‚’й›ўж•ЈеЂ¤гЃ«е¤‰жЏ›гЃ™г‚‹
 {
 	if ( cr > 1.0 )	{
 		cr = 1.0/cr;
-		if ( cr <= disc->min )		return 0;	// min‚ж‚иЏ¬‚і‚Ї‚к‚ОЌЕЏ¬’l‚Е‚ ‚й0‚р
-		else if ( cr >= disc->max )	return disc->num-1;	// max‚ж‚и‘е‚«‚Ї‚к‚ОЌЕ‘е’l‚Е‚ ‚йnum-1‚р•Ф‚·
-		else						return disc->dat[disc->res - 1 - (int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// ‚»‚¤‚Е‚И‚Ї‚к‚ОЉY“–‚·‚йdat‚М’l‚р•Ф‚·
+		if ( cr <= disc->min )		return 0;	// minг‚€г‚Ље°ЏгЃ•гЃ‘г‚ЊгЃ°жњЂе°ЏеЂ¤гЃ§гЃ‚г‚‹0г‚’
+		else if ( cr >= disc->max )	return disc->num-1;	// maxг‚€г‚Ље¤§гЃЌгЃ‘г‚ЊгЃ°жњЂе¤§еЂ¤гЃ§гЃ‚г‚‹num-1г‚’иї”гЃ™
+		else						return disc->dat[disc->res - 1 - (int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// гЃќгЃ†гЃ§гЃЄгЃ‘г‚ЊгЃ°и©ІеЅ“гЃ™г‚‹datгЃ®еЂ¤г‚’иї”гЃ™
 	} else {
-		if ( cr <= disc->min )		return 0;	// min‚ж‚иЏ¬‚і‚Ї‚к‚ОЌЕЏ¬’l‚Е‚ ‚й0‚р
-		else if ( cr >= disc->max )	return disc->num-1;	// max‚ж‚и‘е‚«‚Ї‚к‚ОЌЕ‘е’l‚Е‚ ‚йnum-1‚р•Ф‚·
-		else						return disc->dat[(int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// ‚»‚¤‚Е‚И‚Ї‚к‚ОЉY“–‚·‚йdat‚М’l‚р•Ф‚·
+		if ( cr <= disc->min )		return 0;	// minг‚€г‚Ље°ЏгЃ•гЃ‘г‚ЊгЃ°жњЂе°ЏеЂ¤гЃ§гЃ‚г‚‹0г‚’
+		else if ( cr >= disc->max )	return disc->num-1;	// maxг‚€г‚Ље¤§гЃЌгЃ‘г‚ЊгЃ°жњЂе¤§еЂ¤гЃ§гЃ‚г‚‹num-1г‚’иї”гЃ™
+		else						return disc->dat[(int)(((cr - disc->min)/(1.0-disc->min))*(double)disc->res/2.0)];	// гЃќгЃ†гЃ§гЃЄгЃ‘г‚ЊгЃ°и©ІеЅ“гЃ™г‚‹datгЃ®еЂ¤г‚’иї”гЃ™
 	}
 }
 
 //char Affine2Disc2( double cr, strDisc *disc )
-//// A‘±’l‚МѓAѓtѓBѓ“•s•П—К‚р—ЈЋU’l‚Й•ПЉ·‚·‚й
+//// йЂЈз¶љеЂ¤гЃ®г‚ўгѓ•г‚ЈгѓідёЌе¤‰й‡Џг‚’й›ўж•ЈеЂ¤гЃ«е¤‰жЏ›гЃ™г‚‹
 //{
-//	if ( cr <= disc->min )		return 0;	// min‚ж‚иЏ¬‚і‚Ї‚к‚ОЌЕЏ¬’l‚Е‚ ‚й0‚р
-//	else if ( cr >= disc->max )	return disc->num-1;	// max‚ж‚и‘е‚«‚Ї‚к‚ОЌЕ‘е’l‚Е‚ ‚йnum-1‚р•Ф‚·
-//	else if ( cr < 1.0 )		return disc->dat[(int)( (cr - disc->min) / (1.0 - disc->min) * ((double)disc->res / 2.0))];	// ‚»‚¤‚Е‚И‚Ї‚к‚ОЉY“–‚·‚йdat‚М’l‚р•Ф‚·
-//	else						return disc->dat[(int)( (cr - 1.0) / (disc->max - 1.0) * ((double)disc->res / 2.0))];	// ‚»‚¤‚Е‚И‚Ї‚к‚ОЉY“–‚·‚йdat‚М’l‚р•Ф‚·
+//	if ( cr <= disc->min )		return 0;	// minг‚€г‚Ље°ЏгЃ•гЃ‘г‚ЊгЃ°жњЂе°ЏеЂ¤гЃ§гЃ‚г‚‹0г‚’
+//	else if ( cr >= disc->max )	return disc->num-1;	// maxг‚€г‚Ље¤§гЃЌгЃ‘г‚ЊгЃ°жњЂе¤§еЂ¤гЃ§гЃ‚г‚‹num-1г‚’иї”гЃ™
+//	else if ( cr < 1.0 )		return disc->dat[(int)( (cr - disc->min) / (1.0 - disc->min) * ((double)disc->res / 2.0))];	// гЃќгЃ†гЃ§гЃЄгЃ‘г‚ЊгЃ°и©ІеЅ“гЃ™г‚‹datгЃ®еЂ¤г‚’иї”гЃ™
+//	else						return disc->dat[(int)( (cr - 1.0) / (disc->max - 1.0) * ((double)disc->res / 2.0))];	// гЃќгЃ†гЃ§гЃЄгЃ‘г‚ЊгЃ°и©ІеЅ“гЃ™г‚‹datгЃ®еЂ¤г‚’иї”гЃ™
 //}
 
 char Affine2DiscForRetrieve( double cr, strDisc *disc, char *vecflag )
-// A‘±’l‚МѓAѓtѓBѓ“•s•П—К‚р—ЈЋU’l‚Й•ПЉ· & •Ўђ”ѓxѓNѓgѓ‹”­Ќs‚Мѓtѓ‰ѓO—§‚Д
+// йЂЈз¶љеЂ¤гЃ®г‚ўгѓ•г‚ЈгѓідёЌе¤‰й‡Џг‚’й›ўж•ЈеЂ¤гЃ«е¤‰жЏ› & и¤‡ж•°гѓ™г‚Їгѓ€гѓ«з™єиЎЊгЃ®гѓ•гѓ©г‚°з«‹гЃ¦
 {
 	int idx;
-	if ( cr <= disc->min )		return 0;	// min‚ж‚иЏ¬‚і‚Ї‚к‚ОЌЕЏ¬’l‚Е‚ ‚й0‚р
-	else if ( cr >= disc->max )	return disc->num-1;	// max‚ж‚и‘е‚«‚Ї‚к‚ОЌЕ‘е’l‚Е‚ ‚йnum-1‚р•Ф‚·
+	if ( cr <= disc->min )		return 0;	// minг‚€г‚Ље°ЏгЃ•гЃ‘г‚ЊгЃ°жњЂе°ЏеЂ¤гЃ§гЃ‚г‚‹0г‚’
+	else if ( cr >= disc->max )	return disc->num-1;	// maxг‚€г‚Ље¤§гЃЌгЃ‘г‚ЊгЃ°жњЂе¤§еЂ¤гЃ§гЃ‚г‚‹num-1г‚’иї”гЃ™
 	else {
-		idx = (int)((cr - disc->min)/((disc->max-disc->min)/(double)disc->res));	// ‚»‚¤‚Е‚И‚Ї‚к‚ОЉY“–‚·‚йdat‚М’l‚р•Ф‚·
+		idx = (int)((cr - disc->min)/((disc->max-disc->min)/(double)disc->res));	// гЃќгЃ†гЃ§гЃЄгЃ‘г‚ЊгЃ°и©ІеЅ“гЃ™г‚‹datгЃ®еЂ¤г‚’иї”гЃ™
 		if ( idx > eBounds && idx < (disc->res - eBounds) ) {
-			if ( disc->dat[idx] > disc->dat[idx-eBounds] ) 		// eBounds‚ѕ‚Ї‰є‚Мbin‚М—ЈЋU’l‚Є€Щ‚И‚Б‚Д‚ў‚Ѕ‚з
+			if ( disc->dat[idx] > disc->dat[idx-eBounds] ) 		// eBoundsгЃ гЃ‘дё‹гЃ®binгЃ®й›ўж•ЈеЂ¤гЃЊз•°гЃЄгЃЈгЃ¦гЃ„гЃџг‚‰
 				*vecflag = -1;
-			else if ( disc->dat[idx] < disc->dat[idx+eBounds] ) 	// eBounds‚ѕ‚ЇЏг‚Мbin‚М—ЈЋU’l‚Є€Щ‚И‚Б‚Д‚ў‚Ѕ‚з
+			else if ( disc->dat[idx] < disc->dat[idx+eBounds] ) 	// eBoundsгЃ гЃ‘дёЉгЃ®binгЃ®й›ўж•ЈеЂ¤гЃЊз•°гЃЄгЃЈгЃ¦гЃ„гЃџг‚‰
 				*vecflag = 1;
 		}
 		return disc->dat[idx];
@@ -66,7 +66,7 @@ char Affine2DiscForRetrieve( double cr, strDisc *disc, char *vecflag )
 }
 
 void Hist2Disc( strHist *hist, strDisc *disc, int disc_num )
-// ѓqѓXѓgѓOѓ‰ѓЂ‚©‚з—ЈЋU‰»‚Ми‡’l‚р‹Ѓ‚Я‚й
+// гѓ’г‚№гѓ€г‚°гѓ©гѓ гЃ‹г‚‰й›ўж•ЈеЊ–гЃ®й–ѕеЂ¤г‚’ж±‚г‚Ѓг‚‹
 {
 	int i, j;
 	unsigned int total, sum;
@@ -87,7 +87,7 @@ void Hist2Disc( strHist *hist, strDisc *disc, int disc_num )
 }
 
 void Hist2Disc2( strHist *hist, strDisc *disc, int disc_num )
-// ѓqѓXѓgѓOѓ‰ѓЂ‚©‚з—ЈЋU‰»‚Ми‡’l‚р‹Ѓ‚Я‚й
+// гѓ’г‚№гѓ€г‚°гѓ©гѓ гЃ‹г‚‰й›ўж•ЈеЊ–гЃ®й–ѕеЂ¤г‚’ж±‚г‚Ѓг‚‹
 {
 	int i, j;
 	unsigned int total=0, sum=0;
@@ -109,7 +109,7 @@ void Hist2Disc2( strHist *hist, strDisc *disc, int disc_num )
 }
 
 void ReleaseDisc( strDisc *disc )
-// ѓqѓXѓgѓOѓ‰ѓЂ‚рЉJ•ъ‚·‚й
+// гѓ’г‚№гѓ€г‚°гѓ©гѓ г‚’й–‹ж”ѕгЃ™г‚‹
 {
 	free( disc->dat );
 }

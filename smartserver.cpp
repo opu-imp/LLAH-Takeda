@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-// ƒlƒbƒgƒ[ƒNŠÖ˜A
+// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯é–¢é€£
 #ifdef	WIN32
 #include <winsock2.h>
 #include "ws_cl.h"
@@ -17,21 +17,21 @@
 #include "sock_sv.h"
 #endif
 
-//// ƒ}ƒ‹ƒ`ƒXƒŒƒbƒh
+//// ãƒãƒ«ãƒã‚¹ãƒ¬ãƒƒãƒ‰
 //#include <pthread.h>    /* pthread_create */
 
 // OpenCV
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 using namespace cv;
 
@@ -50,8 +50,8 @@ using namespace cv;
 #define	RECV_FLAG	MSG_WAITALL
 #endif
 
-IplImage *RecvCapImg( SOCKET sock )
-	// “_ƒf[ƒ^‚ğóM
+cv::Mat RecvCapImg( SOCKET sock )
+	// ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’å—ä¿¡
 {
 	char size[32];
 	char *buff;
@@ -59,7 +59,7 @@ IplImage *RecvCapImg( SOCKET sock )
 	int buff_size=0, total=0, ret=0, width=0, height=0, buff_cur=0;
 	FILE *fp;
 
-	// B‰e‰æ‘œ‚ÌƒTƒCƒY‚ğóM
+	// æ’®å½±ç”»åƒã®ã‚µã‚¤ã‚ºã‚’å—ä¿¡
 	while ( total < 12 ) {
 		ret = recv ( sock, &size[total], 12-total, RECV_FLAG );
 		total += ret;
@@ -68,14 +68,14 @@ IplImage *RecvCapImg( SOCKET sock )
 	memcpy( &height, &size[4], sizeof(int) );
 	memcpy( &buff_size, &size[8], sizeof(int) );
 
-	if ( width < 0 )	return NULL;
+	if ( width < 0 )	return cv::Mat();
 
 	//printf("Width: %d, Height: %d\n", width, height);
 	//printf("Data Size: %d\n", buff_size);
 
 	buff = (char *)malloc(buff_size);
 
-	// B‰e‰æ‘œ‚ğóM
+	// æ’®å½±ç”»åƒã‚’å—ä¿¡
 	total=0;
 	while ( total < buff_size ) {
 		//printf("%d\n", total);
@@ -84,7 +84,7 @@ IplImage *RecvCapImg( SOCKET sock )
 	}
 	puts("Recieved");
 
-	// Mat‚Ö‚Ì•ÏŠ·
+	// Matã¸ã®å¤‰æ›
 	Mat mat( Size(width, height), CV_8UC1);
 	for ( int i=0; i<height; i++ ) {
 		for ( int j=0; j<width; j++ ) {
@@ -94,13 +94,7 @@ IplImage *RecvCapImg( SOCKET sock )
 
 	free(buff);
 
-	IplImage img(mat);
-	IplImage *cap_img = cvCloneImage(&img);
-
-	//cvShowImage( "Capture", cap_img );
-	//cvWaitKey( 0 );
-
-	return cap_img;
+	return mat;
 }
 
 void SendResult( SOCKET sock, char *result_name )
@@ -108,35 +102,35 @@ void SendResult( SOCKET sock, char *result_name )
 	send ( sock, result_name, kFileNameLen, SEND_FLAG );
 }
 
-int RetrieveDocImg( SOCKET sock, CvPoint **reg_pss, double **reg_areass, int *reg_nums, CvSize *reg_sizes, char **dbcors, strDisc disc, strHash **hash )
-// ƒXƒ}ƒtƒH‚©‚ç‰æ‘œ‚ğóM‚µCŒŸõCŒ‹‰Ê‚ğ‘—M
+int RetrieveDocImg( SOCKET sock, cv::Point **reg_pss, double **reg_areass, int *reg_nums, cv::Size *reg_sizes, char **dbcors, strDisc disc, strHash **hash )
+// ã‚¹ãƒãƒ•ã‚©ã‹ã‚‰ç”»åƒã‚’å—ä¿¡ã—ï¼Œæ¤œç´¢ï¼Œçµæœã‚’é€ä¿¡
 {
-	IplImage *img, *connect;
-	CvPoint *ps=NULL;
-	CvSize size;
+	cv::Mat img, connect;
+	cv::Point *ps=NULL;
+	cv::Size size;
 	int num;
 	double *areas=NULL;
 
 	int res=0, ret_time=0;
 	char doc_name[kFileNameLen]={0};
 
-	// B‰e‰æ‘œ‚ÌóM
+	// æ’®å½±ç”»åƒã®å—ä¿¡
 	img = RecvCapImg( sock );
-	if ( img == NULL )	return -1;
+	if ( img.empty() )	return -1;
 
-	// “¾•[ƒe[ƒuƒ‹Šm•Û
+	// å¾—ç¥¨ãƒ†ãƒ¼ãƒ–ãƒ«ç¢ºä¿
 	int *score = (int *)calloc(eDbDocs, sizeof(int));
-	// Œ‹‡‰æ‘œ¶¬
+	// çµåˆç”»åƒç”Ÿæˆ
 	connect = GetConnectedImageForSmartphone( img );
-	if ( connect == NULL )	exit(-1);
-	// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+	if ( connect.empty() )	exit(-1);
+	// ç‰¹å¾´ç‚¹æŠ½å‡ºãƒ»é€£çµæˆåˆ†ã®é¢ç©è¨ˆç®—
 	num = MakeFeaturePoint( connect, &ps, &areas, &size );
-	if ( num >= 20 ) {	// “Á’¥“_”‚Ìè‡’l
-		// ‹ß–T\‘¢‚Ì‰ğÍ
+	if ( num >= 20 ) {	// ç‰¹å¾´ç‚¹æ•°ã®é–¾å€¤
+		// è¿‘å‚æ§‹é€ ã®è§£æ
 		MakeNearsFromCentres( ps, num );
-		// ŒŸõ
+		// æ¤œç´¢
 		res = Retrieve( ps, areas, num, score, &disc, reg_nums, &ret_time, hash );
-		if ( score[res] > 10 ) {	// ƒgƒbƒv‚Ì“¾•[”‚ªè‡’lˆÈ‰ºiƒŠƒWƒFƒNƒgj
+		if ( score[res] > 10 ) {	// ãƒˆãƒƒãƒ—ã®å¾—ç¥¨æ•°ãŒé–¾å€¤ä»¥ä¸‹ï¼ˆãƒªã‚¸ã‚§ã‚¯ãƒˆï¼‰
 			GetBasename( dbcors[res], kMaxPathLen, doc_name );
 		}
 		else {
@@ -155,38 +149,36 @@ int RetrieveDocImg( SOCKET sock, CvPoint **reg_pss, double **reg_areass, int *re
 	free( score );
 	ClearNears( num );
 
-	// ŒŸõŒ‹‰Ê‚Ì‘—M
+	// æ¤œç´¢çµæœã®é€ä¿¡
 	SendResult( sock, doc_name );
 
 	return 0;
 }
 
 void retrieve_thread( void *arg )
-// óMCŒŸõC‘—M
+// å—ä¿¡ï¼Œæ¤œç´¢ï¼Œé€ä¿¡
 {
-	IplImage *cap_img;
+	cv::Mat cap_img;
 
-	// ƒEƒBƒ“ƒhƒE‚Ì¶¬
-	cvNamedWindow( "Capture", CV_WINDOW_AUTOSIZE );
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç”Ÿæˆ
+	cv::namedWindow( "Capture", cv::WINDOW_AUTOSIZE );
 
-	// B‰e‰æ‘œ‚ğóM
 	//cap_img = RecvCapImg( ((svTheadArg*)arg)->sock);
-	cvShowImage( "Capture", cap_img );
-	cvWaitKey( 0 );
+	cv::imshow( "Capture", cap_img );
+	cv::waitKey( 0 );
 
-	cvReleaseImage(&cap_img);
-	cvDestroyWindow( "Capture" );
+	cv::destroyWindow( "Capture" );
 }
 
 //void *retrieve_thread( void *arg )
-//// óMCŒŸõC‘—M
+//// å—ä¿¡ï¼Œæ¤œç´¢ï¼Œé€ä¿¡
 //{
 //	IplImage *cap_img;
 //
-//	// ƒEƒBƒ“ƒhƒE‚Ì¶¬
+//	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç”Ÿæˆ
 //	cvNamedWindow( "Capture", CV_WINDOW_AUTOSIZE );
 //
-//	// B‰e‰æ‘œ‚ğóM
+//	// æ’®å½±ç”»åƒã‚’å—ä¿¡
 //	cap_img = RecvCapImg( ((svTheadArg*)arg)->sock);
 //	cvShowImage( "Capture", cap_img );
 //	cvWaitKey( 0 );
@@ -204,26 +196,26 @@ void RetrieveSmartphoneServer( void )
 	svTheadArg *arg;
 	strDisc disc;
 	strHash **hash;
-	CvPoint **reg_pss=NULL;
-	CvSize *reg_sizes=NULL;
+	cv::Point **reg_pss=NULL;
+	cv::Size *reg_sizes=NULL;
 	double **reg_areass=NULL;
 	int *reg_nums=NULL, ret=0;
 	char **dbcors=NULL;
 
-	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 	LoadConfig();
-	// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+	// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 	LoadDisc( &disc );
-	// ƒnƒbƒVƒ…‚Ì“Ç‚İ‚İ
+	// ãƒãƒƒã‚·ãƒ¥ã®èª­ã¿è¾¼ã¿
 	LoadHashCompressToStorage( &hash );
-	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ƒTƒ“ƒvƒŠƒ“ƒO—L‚è
-	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ƒTƒ“ƒvƒŠƒ“ƒO–³‚µ
-	// ‹ß–T\‘¢•Û‘¶—pƒƒ‚ƒŠŠm•Û
+	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
+	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æœ‰ã‚Š
+	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç„¡ã—
+	// è¿‘å‚æ§‹é€ ä¿å­˜ç”¨ãƒ¡ãƒ¢ãƒªç¢ºä¿
 	SecureNears();
-	// ‘g‚İ‡‚í‚¹‚Ìì¬
+	// çµ„ã¿åˆã‚ã›ã®ä½œæˆ
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	if ( eRmRedund )	LoadRmRedund();	// “Á’¥‘I‘ğ—L
+	if ( eRmRedund )	LoadRmRedund();	// ç‰¹å¾´é¸æŠæœ‰
 
 ready:
 
@@ -233,7 +225,7 @@ ready:
 	if ( ( sock1 = InitSockSvTCP( eTCPPort, eServerName ) ) < 0 )	exit(1);	// initialization
 	if ( ( sock2 = AcceptSockSvTCP( sock1 ) ) < 0 )	exit(1);	// accept
 #endif
-	//// ƒEƒBƒ“ƒhƒE‚Ì¶¬
+	//// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ç”Ÿæˆ
 	//cvNamedWindow( "Capture", CV_WINDOW_AUTOSIZE );
 	puts("Ready");
 	if ( ( sock2 = AcceptWinSockSvTCP( sock1 ) ) < 0 ) {

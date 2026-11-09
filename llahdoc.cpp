@@ -1,30 +1,30 @@
 #include "def_general.h"
 
 /* dcams.c */
-#define	GLOBAL_DEFINE	/* extern•Ï”‚É‚±‚±‚ÅÀ‘Ì‚ğ—^‚¦‚é */
+#define	GLOBAL_DEFINE	/* externå¤‰æ•°ã«ã“ã“ã§å®Ÿä½“ã‚’ä¸ãˆã‚‹ */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <algorithm>	// min,max—p
+#include <algorithm>	// min,maxç”¨
 #include <math.h>
 #include <iostream>
 #include <vector>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
-// ƒlƒbƒgƒ[ƒN
+// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯
 #ifdef	WIN32
 #include <winsock2.h>	// socket
 #include "ws_cl.h"
@@ -70,16 +70,16 @@ int main( int argc, char **argv )
 	strHash **hash;
 	double **reg_areass=NULL, *areas=NULL;
 	double total_diff = 0.0L, total_top = 0.0L;
-	CvPoint **reg_pss=NULL, *ps=NULL;
-	CvSize *reg_sizes=NULL, size;
-	IplImage *img;
+	cv::Point **reg_pss=NULL, *ps=NULL;
+	cv::Size *reg_sizes=NULL, size;
+	cv::Mat img;
 	int *reg_nums=NULL;
 
 	int *index;
 	double *cr, a, x, fx;
 	char hindex;
 #ifdef CLRa
-	IplImage *con_img, *orig_img, *fp_img;
+	cv::Mat con_img, orig_img, fp_img;
 #endif
 #ifdef DRAW_COR_ALL
 	int pcornum=0;
@@ -89,30 +89,30 @@ int main( int argc, char **argv )
 	FILE *fp;
 	int random[1000];
 
-	// ŒŸõ¸”s•¶‘–¼‚ÌŠi”[
+	// æ¤œç´¢å¤±æ•—æ–‡æ›¸åã®æ ¼ç´
 	vector<string> failure;
 
-	// ƒlƒbƒgƒ[ƒNiniƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+	// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯iniãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
 	ReadIniFile();
-	// ˆø”‰ğÍˆ—
+	// å¼•æ•°è§£æå‡¦ç†
 	if ( ( argi = AnalyzeArgAndSetExtern( argc, argv ) ) < 0 )	return 1;
 	unsigned long long int count=0;
 	unsigned long long int value=0;
 	switch ( eEntireMode ) {
-		/******************* ’ÊíŒŸõƒ‚[ƒh *********************/
+		/******************* é€šå¸¸æ¤œç´¢ãƒ¢ãƒ¼ãƒ‰ *********************/
 	case RETRIEVE_MODE:
 		fprintf( stderr, "Retrieval from static image\n");
-		// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+		// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 		LoadConfig();
-		// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+		// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 		LoadDisc( &disc );
 
-		// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-		if ( eThinPs )	eDbDocs = LoadThinFile2( NULL, &dbcors );								// ƒTƒ“ƒvƒŠƒ“ƒO—L‚è
-		//if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ƒTƒ“ƒvƒŠƒ“ƒO—L‚è
-		else			eDbDocs = LoadPointFile2( NULL, &dbcors );	// ƒTƒ“ƒvƒŠƒ“ƒO–³‚µ
+		// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
+		if ( eThinPs )	eDbDocs = LoadThinFile2( NULL, &dbcors );								// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æœ‰ã‚Š
+		//if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æœ‰ã‚Š
+		else			eDbDocs = LoadPointFile2( NULL, &dbcors );	// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç„¡ã—
 
-		// ƒnƒbƒVƒ…‚Ì“Ç‚İ‚İ
+		// ãƒãƒƒã‚·ãƒ¥ã®èª­ã¿è¾¼ã¿
 		//LoadHashCompress( &hash );
 		LoadHashCompressToStorage( &hash );
 
@@ -129,35 +129,28 @@ int main( int argc, char **argv )
 		//fclose(fp);
 
 
-		//else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ƒTƒ“ƒvƒŠƒ“ƒO–³‚µ
+		//else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç„¡ã—
 
 		CalculateAverageCollision(hash);
 		//RemoveListSameIndexAndQuotient(hash);
 		//CalculateAverageCollision(hash);
 
 
-		// ‹ß–T\‘¢•Û‘¶—pƒƒ‚ƒŠŠm•Û
+		// è¿‘å‚æ§‹é€ ä¿å­˜ç”¨ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		SecureNears();
-		// “¾•[ƒe[ƒuƒ‹Šm•Û
+		// å¾—ç¥¨ãƒ†ãƒ¼ãƒ–ãƒ«ç¢ºä¿
 		score = (int *)calloc(eDbDocs, sizeof(int));
-		// ‘g‚İ‡‚í‚¹‚Ìì¬
+		// çµ„ã¿åˆã‚ã›ã®ä½œæˆ
 		GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
 		if ( eRmRedund ) {
 			eNumCom2 = 17;
-			LoadRmRedund();	// “Á’¥‘I‘ğ—L
+			LoadRmRedund();	// ç‰¹å¾´é¸æŠæœ‰
 		}
-		// ŒŸõŠJn
+		// æ¤œç´¢é–‹å§‹
 		args = argi;
 		//for ( i = 0; i < 1; i++ ) {
 		for ( eMultiNum = 1; eMultiNum < 17; eMultiNum+=2 ) {
 			argi = args;
-			//printf("collision : %d\n", eMaxHashCollision);
-			//total_time = 0;
-			//total_diff = 0;
-			//total_top = 0;
-			//suc_que = 0;
-			//total_que = 0;
-			//sum = 0;
 			fnum = 0;
 			mnum = 0;
 			dnum = 0;
@@ -165,52 +158,52 @@ int main( int argc, char **argv )
 			for ( ; argi < argc; argi++ ) {
 				if ( !eExperimentMode ) 
 					fprintf( stdout, "%s\n", argv[argi] );
-				// “Á’¥“_‚Ì’Šo
+				// ç‰¹å¾´ç‚¹ã®æŠ½å‡º
 				if ( IsDat( argv[argi] ) ) {
 					num = LoadQueryPointFile( argv[argi], &ps, &areas );
 				}
 				else {
-					// Œ‹‡‰æ‘œ‚Ì¶¬
+					// çµåˆç”»åƒã®ç”Ÿæˆ
 					img = GetConnectedImage( argv[argi] );
-					if ( img == NULL )	continue;
-					// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+					if ( img.empty() )	continue;
+					// ç‰¹å¾´ç‚¹æŠ½å‡ºãƒ»é€£çµæˆåˆ†ã®é¢ç©è¨ˆç®—
 					num = MakeFeaturePoint( img, &ps, &areas, &size );	
 #ifdef CLRa
-					con_img = cvCloneImage( img );
-					orig_img = cvLoadImage( argv[argi], 0 );
+					con_img = img.clone();
+					orig_img = cv::imread( argv[argi], cv::IMREAD_GRAYSCALE );
 					fp_img = MakeFeaturePointImage( orig_img, con_img, ps, num );
 					OutPutImage( fp_img );
-					cvReleaseImage( &orig_img );
-					cvReleaseImage( &con_img );
-					cvReleaseImage( &fp_img );
+					//cvReleaseImage( &orig_img );
+					//cvReleaseImage( &con_img );
+					//cvReleaseImage( &fp_img );
 #endif
-					cvReleaseImage( &img );
+					//cvReleaseImage( &img );
 				}
-				// ‹ß–T\‘¢‚Ì‰ğÍ
+				// è¿‘å‚æ§‹é€ ã®è§£æ
 				MakeNearsFromCentres( ps, num );
 
 #ifdef DRAW_COR_ALL
-				//‘Î‰“_•`‰æ
+				//å¯¾å¿œç‚¹æç”»
 				res = RetrieveCor( ps, areas, num, score, pcor, &pcornum, &disc, reg_nums, hash );
 				//res = 596+808;
 				//res = 3198;
-				// size‚ª‚¨‚©‚µ‚¢
+				// sizeãŒãŠã‹ã—ã„
 				DrawCor( ps, num, reg_sizes[res], res, reg_pss[res], reg_nums[res], reg_sizes[res], pcor, pcornum );
 #else
-				// ŒŸõ
+				// æ¤œç´¢
 				res = Retrieve( ps, areas, num, score, &disc, reg_nums, &ret_time, hash );
 				//printf("%d\n", res);
 #endif
-				// ŒŸõŒ‹‰Ê
+				// æ¤œç´¢çµæœ
 				if ( !eExperimentMode ) 
 					printf( "%s : %d\n\n", dbcors[res], score[res] );
-				// ‚ ‚Æ‚µ‚Ü‚Â
+				// ã‚ã¨ã—ã¾ã¤
 				free( ps );
 				free( areas );
 				ClearNears( num );
 
-				// ¸“xEˆ—ŠÔ‚Ìˆ—
-				if ( eExperimentMode ) {	// ÀŒ±ƒ‚[ƒh‚È‚ç¸“xŒv‘ª
+				// ç²¾åº¦ãƒ»å‡¦ç†æ™‚é–“ã®å‡¦ç†
+				if ( eExperimentMode ) {	// å®Ÿé¨“ãƒ¢ãƒ¼ãƒ‰ãªã‚‰ç²¾åº¦è¨ˆæ¸¬
 					total_que++;
 					if ( IsSucceed( argv[argi], dbcors[res] ) )	suc_que++;
 					else {
@@ -245,8 +238,8 @@ int main( int argc, char **argv )
 			//	}
 			//}
 			//printf("%lf\n", (double)value/(double)count);
-			// ÀŒ±Œ‹‰Ê
-			if ( eExperimentMode ) {	// ÀŒ±ƒ‚[ƒh‚È‚çŒ‹‰Êo—Í
+			// å®Ÿé¨“çµæœ
+			if ( eExperimentMode ) {	// å®Ÿé¨“ãƒ¢ãƒ¼ãƒ‰ãªã‚‰çµæœå‡ºåŠ›
 				printf("Accuracy : %d/%d(%.2f)\n", suc_que, total_que, ((double)suc_que)/((double)total_que)*100.0 );
 				printf("Average Proc Time : %d micro sec\n", (int)(((double)total_time) / ((double)total_que)) );
 				printf("Average Top Vote : %.2f\n", (total_top / (double)total_que) );
@@ -263,8 +256,8 @@ int main( int argc, char **argv )
 		//ReleaseHash( hash );
 		ReleaseNears();
 
-		// ÀŒ±Œ‹‰Ê
-		if ( eExperimentMode ) {	// ÀŒ±ƒ‚[ƒh‚È‚çŒ‹‰Êo—Í
+		// å®Ÿé¨“çµæœ
+		if ( eExperimentMode ) {	// å®Ÿé¨“ãƒ¢ãƒ¼ãƒ‰ãªã‚‰çµæœå‡ºåŠ›
 			printf("Accuracy : %d/%d(%.2f)\n", suc_que, total_que, ((double)suc_que)/((double)total_que)*100.0 );
 			printf("Average Proc Time : %d micro sec\n", (int)(((double)total_time) / ((double)total_que)) );
 			printf("Average Top Vote : %.2f\n", (total_top / (double)total_que) );
@@ -273,36 +266,36 @@ int main( int argc, char **argv )
 		}
 
 		break;
-		/************************ USBƒJƒƒ‰ƒ‚[ƒh ************************/
+		/************************ USBã‚«ãƒ¡ãƒ©ãƒ¢ãƒ¼ãƒ‰ ************************/
 	case USBCAM_SERVER_MODE:
 		RetrieveUSBCamServer();
 		break;
-		//		/************************ ƒXƒ}[ƒgƒtƒHƒ“˜AŒgƒ‚[ƒh ************************/
+		//		/************************ ã‚¹ãƒãƒ¼ãƒˆãƒ•ã‚©ãƒ³é€£æºãƒ¢ãƒ¼ãƒ‰ ************************/
 		//		case SMART_SERVER_MODE:
 		//			RetrieveSmartphoneServer();
 		//			break;
-		/********************** ƒnƒbƒVƒ…\’zƒ‚[ƒh **********************/
+		/********************** ãƒãƒƒã‚·ãƒ¥æ§‹ç¯‰ãƒ¢ãƒ¼ãƒ‰ **********************/
 	case CONST_HASH_MODE:
 		if ( !eExperimentMode )	fprintf( stderr, "Hash Constoraction\n" );
 
-		// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ìì¬
+		// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆ
 		if ( !eExperimentMode )	fprintf( stderr, "Extracting Feature Points...\n" );
 		CreatePointFile( &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
 const_rest:
-		// ‹ß–T\‘¢Ši”[”z—ñ‚ÌŠm•Û
+		// è¿‘å‚æ§‹é€ æ ¼ç´é…åˆ—ã®ç¢ºä¿
 		SecureNears();
 
 		if ( eLoadDiscHash ) {
-			// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+			// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 			if ( !eExperimentMode )	fprintf( stderr, "Load Disc File... \n" );
 			LoadDisc( &disc );
 		} else {
-			// —£U‰»ƒtƒ@ƒCƒ‹‚Ìì¬
+			// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆ
 			if ( !eExperimentMode )	fprintf( stderr, "Make Disc File... \n" );
 			MakeDiscFile( min( eDocNumForMakeDisc, eDbDocs ), reg_pss, reg_nums, &disc );
 		}
 
-		// ƒnƒbƒVƒ…‚Ì\’z
+		// ãƒãƒƒã‚·ãƒ¥ã®æ§‹ç¯‰
 		if ( !eExperimentMode )	fprintf( stderr, "Make Affine File... \n" );
 		//if ( eReHash )			ConstructHash3( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
 		if ( eReHash )			ConstructHash4( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
@@ -311,12 +304,12 @@ const_rest:
 		else					ConstructHash( reg_pss, reg_areass, reg_sizes, eDbDocs, reg_nums, &disc, &hash, dbcors );
 
 
-		// İ’èƒtƒ@ƒCƒ‹‚Ì•Û‘¶
+		// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜
 		if ( !eExperimentMode )	fprintf( stderr, "Save Config File...\n" );
 		SaveConfig();
 
 		break;
-		/******************* point.dat‚©‚ç‚ÌƒnƒbƒVƒ…\’zƒ‚[ƒh ************************/
+		/******************* point.datã‹ã‚‰ã®ãƒãƒƒã‚·ãƒ¥æ§‹ç¯‰ãƒ¢ãƒ¼ãƒ‰ ************************/
 	case CONST_HASH_PF_MODE:
 		if ( !eExperimentMode ) fprintf( stderr, "Hash Construction using point.dat\n" );
 
@@ -334,31 +327,31 @@ const_rest:
 		goto const_rest;
 
 		break;
-		/******************* “Á’¥“_ƒtƒ@ƒCƒ‹ì¬ƒ‚[ƒh ***********************/
+		/******************* ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆãƒ¢ãƒ¼ãƒ‰ ***********************/
 	case CONST_POINT_MODE:
 		if ( !eExperimentMode )	fprintf( stderr, "Hash Constoraction\n" );
 
-		// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ìì¬
+		// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆ
 		if ( !eExperimentMode )	fprintf( stderr, "Extracting Feature Points...\n" );
 		CreatePointFile( &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );
 		break;
-		/************************ DBŒ‹‡ƒ‚[ƒh ************************/
+		/************************ DBçµåˆãƒ¢ãƒ¼ãƒ‰ ************************/
 	case COMBINE_DB_MODE:
 		fprintf( stderr, "Combine Point File\n" );
-		//LoadConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-		CombineDB();	// DB‚ÌŒ‹‡
+		//LoadConfig();	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
+		CombineDB();	// DBã®çµåˆ
 		break;
-		/************************ “Á’¥“_ƒtƒ@ƒCƒ‹Œ‹‡ƒ‚[ƒh ************************/
+		/************************ ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«çµåˆãƒ¢ãƒ¼ãƒ‰ ************************/
 	case COMBINE_PF_MODE:
 		fprintf( stderr, "Combine Point File\n" );
-		CombinePointFile();	// point.dat‚ÌŒ‹‡
+		CombinePointFile();	// point.datã®çµåˆ
 		//fprintf( stderr, "Combine Thin File\n" );
-		//CombineThinFile();	// thin.dat‚ÌŒ‹‡
+		//CombineThinFile();	// thin.datã®çµåˆ
 		break;
-		/************************ “Á’¥“_ƒtƒ@ƒCƒ‹Œ‹‡ƒ‚[ƒh ************************/
+		/************************ ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«çµåˆãƒ¢ãƒ¼ãƒ‰ ************************/
 	case COMPRESS_PF_MODE:
 		fprintf( stderr, "Compress Point File\n" );
-		LoadConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+		LoadConfig();	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 		if ( eThinPs ) {
 			eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );
 			SaveThinFile2( eDbDocs, dbcors );
@@ -367,37 +360,37 @@ const_rest:
 			SavePointFile2( eDbDocs, dbcors );
 		}
 		break;
-		/************************ ƒnƒbƒVƒ…Œ‹‡ƒ‚[ƒh ************************/
+		/************************ ãƒãƒƒã‚·ãƒ¥çµåˆãƒ¢ãƒ¼ãƒ‰ ************************/
 		//case COMBINE_HASH_MODE:
 		//	fprintf( stderr, "Combine Hash\n" );
-		//	LoadConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-		//	CombineHash();	// ƒnƒbƒVƒ…‚ÌŒ‹‡
-		//	SaveConfig();	// İ’èƒtƒ@ƒCƒ‹‚Ì•Û‘¶
+		//	LoadConfig();	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
+		//	CombineHash();	// ãƒãƒƒã‚·ãƒ¥ã®çµåˆ
+		//	SaveConfig();	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ä¿å­˜
 		//	break;
-		/************************* ƒNƒGƒŠ“Á’¥“_ƒ‚[ƒh ***********************/
+		/************************* ã‚¯ã‚¨ãƒªç‰¹å¾´ç‚¹ãƒ¢ãƒ¼ãƒ‰ ***********************/
 	case MAKE_QUERY_DAT_MODE:
 		for ( ; argi < argc; argi++ ) {
 			if ( !eExperimentMode ) fprintf( stdout, "%s\n", argv[argi] );
 
-			// Œ‹‡‰æ‘œ‚Ì¶¬
+			// çµåˆç”»åƒã®ç”Ÿæˆ
 			img = GetConnectedImage( argv[argi] );
-			if ( img == NULL )	continue;
-			// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+			if ( img.empty() )	continue;
+			// ç‰¹å¾´ç‚¹æŠ½å‡ºãƒ»é€£çµæˆåˆ†ã®é¢ç©è¨ˆç®—
 			num = MakeFeaturePoint( img, &(ps), &(areas), &(size));
 #ifdef CLRa
-			con_img = cvCloneImage( img );
-			orig_img = cvLoadImage( argv[argi], 0 );
+			con_img = img.clone();
+			orig_img = cv::imread( argv[argi], cv::IMREAD_GRAYSCALE );
 			fp_img = MakeFeaturePointImage( orig_img, con_img, ps, num );
 			OutPutImage( fp_img );
-			cvReleaseImage( &orig_img );
-			cvReleaseImage( &con_img );
-			cvReleaseImage( &fp_img );
+			//cvReleaseImage( &orig_img );
+			//cvReleaseImage( &con_img );
+			//cvReleaseImage( &fp_img );
 #endif
-			cvReleaseImage( &img );
+			//cvReleaseImage( &img );
 
 			SaveQueryPointFile( argv[argi], num, ps, areas );
 
-			// ‚ ‚Æ‚µ‚Ü‚Â
+			// ã‚ã¨ã—ã¾ã¤
 			free( ps );
 			free( areas );
 		}

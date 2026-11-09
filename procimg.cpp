@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc_c.h>
-#include <opencv2/highgui/highgui_c.h>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
 #endif
 #endif
 
@@ -26,294 +26,201 @@
 
 using namespace std;
 
-IplImage *GetConnectedImage( char *fname )
-// Œ‹‡‰æ‘œ¶¬
+static void ZeroImageBorder( cv::Mat &img )
+// ç”»åƒã®å¤–å‘¨ 1 ç”»ç´ ã‚’ 0 ã«ã™ã‚‹ï¼
+// æ—§ C API ã® cvFindContours ã¯å¤–å‘¨ 1 ç”»ç´ ã‚’ 0 ã«ã—ã¦ã‹ã‚‰è¼ªéƒ­ã‚’è¿½è·¡ã—ã¦ã„ãŸãŒï¼Œ
+// OpenCV 3.2 ä»¥é™ã® cv::findContours ã¯å¤–å‘¨ã‚‚è¼ªéƒ­ã«å«ã‚ã‚‹ãŸã‚ï¼Œå‘¼ã³å‡ºã—å‰ã«ã“ã‚Œã§æ—§æŒ™å‹•ã‚’å†ç¾ã™ã‚‹
+{
+	if ( img.empty() )	return;
+	img.row( 0 ).setTo( 0 );
+	img.row( img.rows - 1 ).setTo( 0 );
+	img.col( 0 ).setTo( 0 );
+	img.col( img.cols - 1 ).setTo( 0 );
+}
+
+cv::Mat GetConnectedImage( char *fname )
+// çµåˆç”»åƒç”Ÿæˆ
 {
 	int i, chsize;
 	double d00, max_hist;
-	IplImage *src, *bin, *inv, *smt;
-	CvSize img_size;
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = 0, *con0;
-	CvMoments mom;
+	cv::Mat src, bin, inv, smt;
+	cv::Size img_size;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::Moments mom;
 	strHist hist;
 
-	// •¶‘‰æ‘œ“Ç‚İ‚İ
-	if ( (src = cvLoadImage(fname, 0)) == NULL ) {
+	src = cv::imread(fname, cv::IMREAD_GRAYSCALE);
+	if ( src.empty() ) {
 		fprintf( stderr, "error: %s cannot be opened\n", fname );
-		return NULL;
+		return cv::Mat();
 	}
-	// ‰æ‘œƒTƒCƒYæ“¾
-	img_size = cvGetSize( src );
-	// ‰æ‘œƒoƒbƒtƒ@
-	bin = cvCreateImage( img_size, 8, 1 );
-	inv = cvCreateImage( img_size, 8, 1 );
-	smt = cvCreateImage( img_size, 8, 1 );
-	cvZero( bin );
-	cvZero( inv );
-	cvZero( smt );
+	// ç”»åƒã‚µã‚¤ã‚ºå–å¾—
+	img_size = src.size();
+	// ç”»åƒãƒãƒƒãƒ•ã‚¡
+	bin = cv::Mat::zeros( img_size, CV_8UC1 );
+	inv = cv::Mat::zeros( img_size, CV_8UC1 );
+	smt = cv::Mat::zeros( img_size, CV_8UC1 );
 
 	if ( eEntireMode == RETRIEVE_MODE || eEntireMode == MAKE_QUERY_DAT_MODE ) {
-		// “K‰“ñ’l‰»i1‰ñ–Új
-		cvAdaptiveThreshold( src, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, eBlockSize, eC );
-		cvNot( bin, inv );
+		// é©å¿œäºŒå€¤åŒ–ï¼ˆ1å›ç›®ï¼‰
+		cv::adaptiveThreshold( src, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
+		cv::bitwise_not( bin, inv );
 
-		//OutPutImage( inv );
+		// è¼ªéƒ­æŠ½å‡ºï¼ˆãƒã‚¤ã‚ºé™¤å»ã®ãŸã‚ï¼‰
+		ZeroImageBorder( inv );
+		cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-		// —ÖŠs’ŠoiƒmƒCƒYœ‹‚Ì‚½‚ßj
-		cvFindContours( inv, storage, &contours, sizeof(CvContour),
-			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
-	
-		// —ÖŠs•`‰æiƒmƒCƒYœ‹‚Ì‚½‚ßj
-		for ( con0 = contours; con0 != 0; con0 = con0->h_next ) {
-			cvMoments( con0, &mom, 1 );
-			d00 = cvGetSpatialMoment( &mom, 0, 0 );
-			if ( d00 < 10 )	continue;	// ƒmƒCƒYi¬‚³‚¢˜AŒ‹¬•ªj‚Ìœ‹
-#ifdef	WIN32
-			cvDrawContours(smt, con0, cWhite, cWhite, -1, CV_FILLED, 8, cvPoint(0,0) );	// replace CV_FILLED with 1 to see the outlines 
-#else
-			cvDrawContours( smt, con0, cWhite, cWhite, -1, CV_FILLED, 8 );
-#endif
+		// è¼ªéƒ­æç”»ï¼ˆãƒã‚¤ã‚ºé™¤å»ã®ãŸã‚ï¼‰
+		for ( size_t ci = 0; ci < contours.size(); ci++ ) {
+			if ( hierarchy[ci][3] != -1 )	continue;	// æœ€å¤–è¼ªéƒ­ã®ã¿ï¼ˆæ—§ C API ã® h_next å·¡å›ã¨åŒã˜ï¼‰
+			mom = cv::moments( contours[ci] );
+			d00 = mom.m00;
+			if ( d00 < 10 )	continue;
+			cv::drawContours( smt, contours, (int)ci, cWhite, cv::FILLED, 8 );
 		}
-		if ( contours != NULL )	cvClearSeq( contours );
-		cvNot( smt, bin );
-		//cvNot( bin, inv );
+		cv::bitwise_not( smt, bin );
 
-//		// •¶š‚Ì‘å‚«‚³‚ğ’²‚×‚é
-//		cvFindContours( inv, storage, &contours, sizeof(CvContour),
-//			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );	// ˜AŒ‹¬•ª‚ğ’Šo‚·‚é
-//	
-//		//std::vector<int> area;
-//		//CvBox2D  rect;
-//		for( i = 0, con0 = contours; con0 != 0 ; con0 = con0->h_next )
-//		{
-//			cvMoments(con0, &mom, 1);
-//			d00 = cvGetSpatialMoment( &mom, 0, 0 );
-//			if ( d00 <= 0.5 ) continue;	// ¬‚³‚·‚¬‚é˜AŒ‹¬•ª‚ÍœŠO
-//			//rect = cvMinAreaRect2(con0, NULL);
-//			//area.push_back(std::max(rect.size.height, rect.size.width));
-//			Add2Hist( &hist, sqrt(d00) );
-//		}
-//		//std::sort(area.begin(), area.end());
-//		//int med = 0;
-//		//if ( area.size() % 2 == 0 ) {
-//		//	med = area[(area.size()-1)/2];
-//		//}
-//		//else {
-//		//	med = area[(area.size()/2)-1] + area[(area.size()/2)] / 2.0;
-//		//}
-//		//int odd = med % 2;
-//		//med += odd;
-//		//med /= 2;
-//		//med += med % 2 + 1;
-//		//chsize += (chsize + 1) % 2;
-//		//chsize = (int)(max_hist * 1.5);	// 12/21•ÏX@‚‰ğ‘œ“xƒJƒƒ‰‚ğ—p‚¢‚½Šg‘åB‰e‚Å‚ÌŒ‹‰Ê‚ğ¸¸‚µ‚Ä
-//		//chsize += (chsize + 1) % 2;	// 08/05/30•ÏX@MIRU08ÄÀŒ±‚Ì‚½‚ß–ß‚·D¸“xŒüã
-//		//printf( "med : %d\n", med );
-//		chsize += (chsize + 1) % 2;
-//		//chsize = (int)(max_hist * 1.5);	// 12/21•ÏX@‚‰ğ‘œ“xƒJƒƒ‰‚ğ—p‚¢‚½Šg‘åB‰e‚Å‚ÌŒ‹‰Ê‚ğ¸¸‚µ‚Ä
-//		//chsize += (chsize + 1) % 2;	// 08/05/30•ÏX@MIRU08ÄÀŒ±‚Ì‚½‚ß–ß‚·D¸“xŒüã
+		// å¹³æ»‘åŒ–
+		cv::GaussianBlur( bin, smt, cv::Size(eMask, eMask), 0, 0, cv::BORDER_REPLICATE );
 
-		// •½ŠŠ‰»
-		cvSmooth( bin, smt, CV_GAUSSIAN, eMask, 0, 0, 0 );
-
-		// “K‰“ñ’l‰»i2‰ñ–Új
-		cvAdaptiveThreshold( smt, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, eBlockSize, eC );
-		cvNot( bin, inv );
-		cvClearSeq( contours );
-		cvReleaseMemStorage( &storage );
-	} else {	// ƒnƒbƒVƒ…\’zƒ‚[ƒhi“dq•¶‘jFè‡’lŒÅ’èƒ‚[ƒh
-//		cvThreshold( src, bin, 250, 255, CV_THRESH_BINARY );
-//		cvNot( bin, inv );
-//
-//		//OutPutImage( inv );
-//
-//		// —ÖŠs’ŠoiƒmƒCƒYœ‹‚Ì‚½‚ßj
-//		cvFindContours( inv, storage, &contours, sizeof(CvContour),
-//			CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
-//	
-//		// —ÖŠs•`‰æiƒmƒCƒYœ‹‚Ì‚½‚ßj
-//		int count=0;
-//		for ( con0 = contours; con0 != 0; con0 = con0->h_next ) {
-//			cvMoments( con0, &mom, 1 );
-//			d00 = cvGetSpatialMoment( &mom, 0, 0 );
-//			if ( d00 < 10 )	continue;	// ƒmƒCƒYi¬‚³‚¢˜AŒ‹¬•ªj‚Ìœ‹
-//#ifdef	WIN32
-//			cvDrawContours(smt, con0, cWhite, cWhite, -1, CV_FILLED, 8, cvPoint(0,0) );	// replace CV_FILLED with 1 to see the outlines 
-//#else
-//			cvDrawContours( smt, con0, cWhite, cWhite, -1, CV_FILLED, 8 );
-//#endif
-//			count++;
-//		}
-//		cout << count << endl;
-//		if ( contours != NULL )	cvClearSeq( contours );
-//		cvNot( smt, bin );
-
-
-		cvSmooth( src, smt, CV_GAUSSIAN, 15, 0, 0, 0 );	// OpenCV 1.0
-		//OutPutImage( smt );
-		//cvThreshold( smt, bin, 250, 255, CV_THRESH_BINARY );
-		cvAdaptiveThreshold( smt, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, eBlockSize, eC );
-		//OutPutImage( bin );
-		cvNot( bin, inv );
+		// é©å¿œäºŒå€¤åŒ–ï¼ˆ2å›ç›®ï¼‰
+		cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
+		cv::bitwise_not( bin, inv );
+	} else {	// ãƒãƒƒã‚·ãƒ¥æ§‹ç¯‰ãƒ¢ãƒ¼ãƒ‰ï¼ˆé›»å­æ–‡æ›¸ï¼‰ï¼šé–¾å€¤å›ºå®šãƒ¢ãƒ¼ãƒ‰
+		cv::GaussianBlur( src, smt, cv::Size(15, 15), 0, 0, cv::BORDER_REPLICATE );
+		cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, eBlockSize, eC );
+		cv::bitwise_not( bin, inv );
 	}
-	// ‚ ‚Æ‚µ‚Ü‚Â
-	cvReleaseImage( &src );
-	cvReleaseImage( &bin );
-	cvReleaseImage( &smt );
 
-	//OutPutImage( inv );
 	return inv;
 }
 
-IplImage *GetConnectedImageForSmartphone( IplImage *img )
-// Œ‹‡‰æ‘œ¶¬
+cv::Mat GetConnectedImageForSmartphone( cv::Mat img )
+// çµåˆç”»åƒç”Ÿæˆ
 {
-//	int i;//, chsize;
-	double d00;//, max_hist;
-	IplImage *bin, *inv, *smt;
-	CvSize img_size;
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = 0, *con0;
-	CvMoments mom;
+	double d00;
+	cv::Mat bin, inv, smt;
+	cv::Size img_size;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::Moments mom;
 	strHist hist;
 	int i=0, chsize=0;
 
-	// ‰æ‘œƒTƒCƒYæ“¾
-	img_size = cvGetSize( img );
-	// ‰æ‘œƒoƒbƒtƒ@
-	bin = cvCreateImage( img_size, 8, 1 );
-	inv = cvCreateImage( img_size, 8, 1 );
-	smt = cvCreateImage( img_size, 8, 1 );
-	cvZero( bin );
-	cvZero( inv );
-	cvZero( smt );
+	img_size = img.size();
+	bin = cv::Mat::zeros( img_size, CV_8UC1 );
+	inv = cv::Mat::zeros( img_size, CV_8UC1 );
+	smt = cv::Mat::zeros( img_size, CV_8UC1 );
 
-	// “K‰“ñ’l‰»i1‰ñ–Új
-	cvAdaptiveThreshold( img, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 101, 10 );
-	cvNot( bin, inv );
+	// é©å¿œäºŒå€¤åŒ–ï¼ˆ1å›ç›®ï¼‰
+	cv::adaptiveThreshold( img, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 101, 10 );
+	cv::bitwise_not( bin, inv );
 
-	// —ÖŠs’ŠoiƒmƒCƒYœ‹‚Ì‚½‚ßj
-	cvFindContours( inv, storage, &contours, sizeof(CvContour),
-		CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
+	// è¼ªéƒ­æŠ½å‡ºï¼ˆãƒã‚¤ã‚ºé™¤å»ã®ãŸã‚ï¼‰
+	ZeroImageBorder( inv );
+	cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// —ÖŠs•`‰æiƒmƒCƒYœ‹‚Ì‚½‚ßj
-	for ( con0 = contours; con0 != 0; con0 = con0->h_next ) {
-		cvMoments( con0, &mom, 1 );
-		d00 = cvGetSpatialMoment( &mom, 0, 0 );
-		if ( d00 < 10 )	continue;	// ƒmƒCƒYi¬‚³‚¢˜AŒ‹¬•ªj‚Ìœ‹
-#ifdef	WIN32
-		cvDrawContours(smt, con0, cWhite, cWhite, -1, CV_FILLED, 8, cvPoint(0,0) );	// replace CV_FILLED with 1 to see the outlines 
-#else
-		cvDrawContours( smt, con0, cWhite, cWhite, -1, CV_FILLED, 8 );
-#endif
+	// è¼ªéƒ­æç”»ï¼ˆãƒã‚¤ã‚ºé™¤å»ã®ãŸã‚ï¼‰
+	for ( size_t ci = 0; ci < contours.size(); ci++ ) {
+		if ( hierarchy[ci][3] != -1 )	continue;	// æœ€å¤–è¼ªéƒ­ã®ã¿ï¼ˆæ—§ C API ã® h_next å·¡å›ã¨åŒã˜ï¼‰
+		mom = cv::moments( contours[ci] );
+		d00 = mom.m00;
+		if ( d00 < 10 )	continue;
+		cv::drawContours( smt, contours, (int)ci, cWhite, cv::FILLED, 8 );
 	}
-	if ( contours != NULL )	cvClearSeq( contours );
-	cvNot( smt, bin );
-	cvNot( bin, inv );
+	cv::bitwise_not( smt, bin );
+	cv::bitwise_not( bin, inv );
 
-	// •¶š‚Ì‘å‚«‚³‚ğ’²‚×‚é
-	cvFindContours( inv, storage, &contours, sizeof(CvContour),
-		CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );	// ˜AŒ‹¬•ª‚ğ’Šo‚·‚é
+	// æ–‡å­—ã®å¤§ãã•ã‚’èª¿ã¹ã‚‹
+	contours.clear();
+	hierarchy.clear();
+	ZeroImageBorder( inv );
+	cv::findContours( inv, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// ˜AŒ‹¬•ª‚ğ•`‰æEdS‚ğŒvZ
+	// é€£çµæˆåˆ†ã‚’æç”»ãƒ»é‡å¿ƒã‚’è¨ˆç®—
 	InitHist( &hist, 1000, 0, 1000 );
-	for( i = 0, con0 = contours; con0 != 0 ; con0 = con0->h_next )
+	for( size_t ci = 0; ci < contours.size(); ci++ )
 	{
-		cvMoments(con0, &mom, 1);
-		d00 = cvGetSpatialMoment( &mom, 0, 0 );
-		if ( d00 <= 0.5 ) continue;	// ¬‚³‚·‚¬‚é˜AŒ‹¬•ª‚ÍœŠO
+		if ( hierarchy[ci][3] != -1 )	continue;	// æœ€å¤–è¼ªéƒ­ã®ã¿ï¼ˆæ—§ C API ã® h_next å·¡å›ã¨åŒã˜ï¼‰
+		mom = cv::moments( contours[ci] );
+		d00 = mom.m00;
+		if ( d00 <= 0.5 ) continue;
 		Add2Hist( &hist, sqrt(d00) );
 	}
 
 	chsize = (int)GetMaxBin(&hist);
-	//printf( "chsize : %d\n", chsize );
 	ReleaseHist( &hist );
 	chsize = chsize * 2 + 1;
-	//chsize += (chsize + 1) % 2;
-	//chsize = (int)(max_hist * 1.5);	// 12/21•ÏX@‚‰ğ‘œ“xƒJƒƒ‰‚ğ—p‚¢‚½Šg‘åB‰e‚Å‚ÌŒ‹‰Ê‚ğ¸¸‚µ‚Ä
-	//chsize += (chsize + 1) % 2;	// 08/05/30•ÏX@MIRU08ÄÀŒ±‚Ì‚½‚ß–ß‚·D¸“xŒüã
 
-	// •½ŠŠ‰»
-	cvSmooth( bin, smt, CV_GAUSSIAN, 1, 0, 0, 0 );
-	//cvSmooth( bin, smt, CV_GAUSSIAN, chsize, 0, 0, 0 );
+	// å¹³æ»‘åŒ–
+	cv::GaussianBlur( bin, smt, cv::Size(1, 1), 0, 0, cv::BORDER_REPLICATE );
 
-	// “K‰“ñ’l‰»i2‰ñ–Új
-	cvAdaptiveThreshold( smt, bin, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 101, 10 );
-	cvNot( bin, inv );
-	cvClearSeq( contours );
-	cvReleaseMemStorage( &storage );
+	// é©å¿œäºŒå€¤åŒ–ï¼ˆ2å›ç›®ï¼‰
+	cv::adaptiveThreshold( smt, bin, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 101, 10 );
+	cv::bitwise_not( bin, inv );
 
-	// ‚ ‚Æ‚µ‚Ü‚Â
-	cvReleaseImage( &img );
-	cvReleaseImage( &bin );
-	cvReleaseImage( &smt );
-
-	//OutPutImage( inv );
 	return inv;
 }
 
-int MakeFeaturePoint( IplImage *img, CvPoint **ps0, double **areas0, CvSize *size0 )
-	// “Á’¥“_’ŠoE˜AŒ‹¬•ª‚Ì–ÊÏŒvZ
+int MakeFeaturePoint( cv::Mat img, cv::Point **ps0, double **areas0, cv::Size *size0 )
+	// ç‰¹å¾´ç‚¹æŠ½å‡ºãƒ»é€£çµæˆåˆ†ã®é¢ç©è¨ˆç®—
 {
 	int i, num;
 	double d00;
 	double *areas = NULL;
-	CvPoint *ps;
-	CvMemStorage *storage = cvCreateMemStorage(0);
-	CvSeq *contours = 0, *con0;
-	CvMoments mom;
+	cv::Point *ps;
+	std::vector<std::vector<cv::Point>> contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::Moments mom;
 #ifdef DRAW_FP
-	IplImage *fp;
+	cv::Mat fp;
 #endif
 
-	// ‰æ‘œƒTƒCƒY‚Ìæ“¾
-	*size0 = cvGetSize( img );
+	// ç”»åƒã‚µã‚¤ã‚ºã®å–å¾—
+	*size0 = img.size();
 #ifdef DRAW_FP
-	fp = cvCreateImage( *size0, 8, 3 );
+	fp = cv::Mat::zeros( *size0, CV_8UC3 );
 #endif
 
-	// —ÖŠs’Šo
-	cvFindContours( img, storage, &contours, sizeof(CvContour), 
-		CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0) );
+	// è¼ªéƒ­æŠ½å‡º
+	ZeroImageBorder( img );
+	cv::findContours( img, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE );
 
-	// “Á’¥“_Œó•â”‚ÌƒJƒEƒ“ƒg
-	for ( i = 0, con0 = contours; con0 != 0; con0 = con0->h_next, i++ );
-	//printf("%d\n", i);
-	num = ( i >= kMaxPointNum ) ? kMaxPointNum - 1 : i;	// ƒSƒ~“™‚Å˜AŒ‹¬•ª‚ª‘½‚·‚¬‚é‚Æ‚«i–{—ˆ‚Í‘å‚«‚³‚ğ’²‚×‚½‚è‚·‚×‚«j
+	// ç‰¹å¾´ç‚¹å€™è£œæ•°ã®ã‚«ã‚¦ãƒ³ãƒˆï¼ˆæœ€å¤–è¼ªéƒ­ã®ã¿ï¼æ—§ C API ã® h_next å·¡å›ã¨åŒã˜ï¼‰
+	i = 0;
+	for ( size_t ci = 0; ci < contours.size(); ci++ )	if ( hierarchy[ci][3] == -1 )	i++;
+	num = ( i >= kMaxPointNum ) ? kMaxPointNum - 1 : i;
 	if ( num <= 0 )	return 0;
 
-	// ”z—ñ‚ÌŠm•Û
-	ps = (CvPoint *)calloc( num, sizeof(CvPoint) );
+	// é…åˆ—ã®ç¢ºä¿
+	ps = (cv::Point *)calloc( num, sizeof(cv::Point) );
 	areas = (double *)calloc( num, sizeof(double) );
 
-	// “Á’¥“_’ŠoE–ÊÏŒvZ
-	for ( i = 0, con0 = contours; con0 != 0 && i < num ; con0 = con0->h_next ) {
-		cvMoments( con0, &mom, 1 );
-		d00 = cvGetSpatialMoment( &mom, 0, 0 );
-		if ( d00 < 5 )	continue;	// ¬‚³‚¢˜AŒ‹¬•ª‚Ìœ‹
-		ps[i].x = (int)(cvGetSpatialMoment( &mom, 1, 0 ) / d00 );
-		ps[i].y = (int)(cvGetSpatialMoment( &mom, 0, 1 ) / d00 );
+	i = 0;
+	// ç‰¹å¾´ç‚¹æŠ½å‡ºãƒ»é¢ç©è¨ˆç®—
+	for ( size_t ci = 0; ci < contours.size() && i < num ; ci++ ) {
+		if ( hierarchy[ci][3] != -1 )	continue;	// æœ€å¤–è¼ªéƒ­ã®ã¿ï¼ˆæ—§ C API ã® h_next å·¡å›ã¨åŒã˜ï¼ç©´ã¯ç‰¹å¾´ç‚¹ã«ã—ãªã„ï¼‰
+		mom = cv::moments( contours[ci] );
+		d00 = mom.m00;
+		if ( d00 < 5 )	continue;
+		ps[i].x = (int)(mom.m10 / d00 );
+		ps[i].y = (int)(mom.m01 / d00 );
 		areas[i] = d00;
 #ifdef DRAW_FP
-		cvCircle( fp, ps[i], 4, cWhite, -1, 1, 0 );
+		cv::circle( fp, ps[i], 4, cWhite, -1, 1, 0 );
 #endif
 		i++;
 	}
 
 #ifdef DRAW_FP
-	cvNot( fp, fp );
+	cv::bitwise_not( fp, fp );
 	OutPutImage( fp );
-	cvReleaseImage( &fp );
 #endif
-	// ³Šm‚È“Á’¥“_”‚ÉXV
+	// æ­£ç¢ºãªç‰¹å¾´ç‚¹æ•°ã«æ›´æ–°
 	num = i;
 
-	// ‚ ‚Æ‚µ‚Ü‚Â
-	cvClearSeq( contours );
-	cvReleaseMemStorage( &storage );
-
-	// ƒ|ƒCƒ“ƒ^“n‚µ
+	// ãƒã‚¤ãƒ³ã‚¿æ¸¡ã—
 	*ps0 = ps;
 	*areas0 = areas;
 

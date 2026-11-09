@@ -1,5 +1,5 @@
-int OutPutImage(IplImage *img);
-int SetPixU( IplImage *img, int x, int y, unsigned char *val );
-int GetPixU( IplImage *img, int x, int y, unsigned char *val );
-IplImage *MakeFeaturePointImage( IplImage *orig, IplImage *connected, CvPoint *ps, int num );
-void DrawCor( CvPoint *ps, int num, CvSize img_size, int res, CvPoint *corps, int cornum, CvSize corsize, int pcor[][2], int pcornum );
+int OutPutImage(cv::Mat img);
+int SetPixU( cv::Mat &img, int x, int y, unsigned char *val );
+int GetPixU( cv::Mat &img, int x, int y, unsigned char *val );
+cv::Mat MakeFeaturePointImage( cv::Mat orig, cv::Mat connected, cv::Point *ps, int num );
+void DrawCor( cv::Point *ps, int num, cv::Size img_size, int res, cv::Point *corps, int cornum, cv::Size corsize, int pcor[][2], int pcornum );

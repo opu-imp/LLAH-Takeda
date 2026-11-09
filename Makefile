@@ -1,8 +1,8 @@
 #CXX = g++ -Wall -O2 -g -DLINUX -Wno-sign-compare
-CXX = g++ -Wall -O2 -Wno-sign-compare
+CXX = g++ -std=c++11 -Wall -O2 -Wno-sign-compare
 
-CXXFLAGS = `pkg-config --cflags opencv2.3.1`
-LDFLAGS = `pkg-config --libs opencv2.3.1`
+CXXFLAGS = `pkg-config --cflags opencv4`
+LDFLAGS = `pkg-config --libs opencv4`
 
 PACKAGE = llahdoc
 

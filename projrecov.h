@@ -1,27 +1,27 @@
 #include "proj4p.h"
 
 #define	kNearParamThr	(1000.0L)
-#define	kErrorThrMeanParam	(0.00001)	/* MeanParam‚É‚¨‚¯‚éŒvZ‘Å‚¿Ø‚è‚Ì‚½‚ß‚ÌƒGƒ‰[‚Ìè‡’l */
-#define	kNumVectorMeanParam	(30)	/* MeanParam‚É‚¨‚¯‚éŸ‰ñ‚ÌŒvZ‚É—p‚¢‚éƒxƒNƒgƒ‹‚Ì” */
+#define	kErrorThrMeanParam	(0.00001)	/* MeanParamã«ãŠã‘ã‚‹è¨ˆç®—æ‰“ã¡åˆ‡ã‚Šã®ãŸã‚ã®ã‚¨ãƒ©ãƒ¼ã®é–¾å€¤ */
+#define	kNumVectorMeanParam	(30)	/* MeanParamã«ãŠã‘ã‚‹æ¬¡å›ã®è¨ˆç®—ã«ç”¨ã„ã‚‹ãƒ™ã‚¯ãƒˆãƒ«ã®æ•° */
 
-// RANSAC‚Å‚Ìƒpƒ‰ƒ[ƒ^
-#define	kRANSACTry	(100)	/* ƒpƒ‰ƒ[ƒ^‚ÌŒvZ‰ñ” */
-#define	kRANSACThr	(10.0)	/* ‹——£i‚Ì‚Qæj‚Ìè‡’l */
-#define	kRANSACMinScore	(4)	/* Å¬ƒXƒRƒA */
-#define	kRANSACRefineNum	(100)	/* ‚æ‚è¸“x‚Ì‚‚¢ƒpƒ‰ƒ[ƒ^‚ğ‹‚ß‚éÛ‚Ì” */
+// RANSACã§ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+#define	kRANSACTry	(100)	/* ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®è¨ˆç®—å›æ•° */
+#define	kRANSACThr	(10.0)	/* è·é›¢ï¼ˆã®ï¼’ä¹—ï¼‰ã®é–¾å€¤ */
+#define	kRANSACMinScore	(4)	/* æœ€å°ã‚¹ã‚³ã‚¢ */
+#define	kRANSACRefineNum	(100)	/* ã‚ˆã‚Šç²¾åº¦ã®é«˜ã„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ±‚ã‚ã‚‹éš›ã®æ•° */
 
-// CalcProjParamTop‚Å‚Ìƒ‚[ƒh
+// CalcProjParamTopã§ã®ãƒ¢ãƒ¼ãƒ‰
 #define	PROJ_NORMAL	(1)
 #define	PROJ_REVERSE	(2)
-// CalcProjParamTop‚Å‚Ì„’è–@
+// CalcProjParamTopã§ã®æ¨å®šæ³•
 #define	PARAM_IWAMURA	(1)
 #define	PARAM_RANSAC	(2)
 
 void RPTMain( char *fname1, char *fname2 );
-void RecoverPTTest( IplImage *img1, IplImage *img2, CvPoint *p1, CvPoint *p2 );
-void RecovPTSub( CvPoint *ps, CvPoint *corps, int cor[][2], int cor_num, CvSize size, IplImage *img );
-double GetPPVar( CvPoint *ps, CvPoint *corps, int cor[][2], int cor_num );
-void CalcProjParamTop( CvPoint *ps, CvPoint *corps, int cor[][2], int cor_num, strProjParam *param, int mode, int method );
-int GetAppropriateParamRANSAC( CvPoint *ps, CvPoint *corps, int cor[][2], int cor_num, strProjParam *param, int mode );
-int EvaluateParamRANSAC( CvPoint *ps, CvPoint *corps, int cor[][2], int cor_num, strProjParam *param, int mode );
-void GetRefinedParamRANSAC( CvPoint *ps, CvPoint *corps, int cor[][2], int cor_num, strProjParam *param_src, strProjParam *param_dst, int mode );
+void RecoverPTTest( cv::Mat &img1, cv::Mat &img2, cv::Point *p1, cv::Point *p2 );
+void RecovPTSub( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, cv::Size size, cv::Mat img );
+double GetPPVar( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num );
+void CalcProjParamTop( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param, int mode, int method );
+int GetAppropriateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param, int mode );
+int EvaluateParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param, int mode );
+void GetRefinedParamRANSAC( cv::Point *ps, cv::Point *corps, int cor[][2], int cor_num, strProjParam *param_src, strProjParam *param_dst, int mode );

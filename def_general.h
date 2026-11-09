@@ -13,11 +13,11 @@
 #define	SOCKET	int
 #endif
 
-#define	kFileNameLen	(64)	/* ƒtƒ@ƒCƒ‹–¼‚ÌÅ‘å’· */
-#define	kMaxPathLen		(128)	/* ƒpƒX‚Ì•¶š—ñ‚ÌÅ‘å’· */
-#define	kMaxLineLen		(1024)	/* fgets‚Å“Ç‚İ‚Şê‡‚Ìƒoƒbƒtƒ@ƒTƒCƒY */
-#define	kDiscLineLen	(1024)	/* fgets‚Å“Ç‚İ‚Şê‡‚Ìƒoƒbƒtƒ@ƒTƒCƒY */
-#define kBuffSize		(1024)	/* TCP/IP’ÊM‚Å‚Ìƒoƒbƒtƒ@ƒTƒCƒY */
+#define	kFileNameLen	(64)	/* ãƒ•ã‚¡ã‚¤ãƒ«åã®æœ€å¤§é•· */
+#define	kMaxPathLen		(128)	/* ãƒ‘ã‚¹ã®æ–‡å­—åˆ—ã®æœ€å¤§é•· */
+#define	kMaxLineLen		(1024)	/* fgetsã§èª­ã¿è¾¼ã‚€å ´åˆã®ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º */
+#define	kDiscLineLen	(1024)	/* fgetsã§èª­ã¿è¾¼ã‚€å ´åˆã®ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º */
+#define kBuffSize		(1024)	/* TCP/IPé€šä¿¡ã§ã®ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º */
 
 #define PI (3.14159265358979323846L)
 
@@ -30,16 +30,16 @@
 #endif
 #endif
 
-// ƒlƒbƒgƒ[ƒNŠÖ˜A
+// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯é–¢é€£
 #define	kIniFileName	"server.ini"
 #define	kDefaultTCPPort		(12345)
-#define	kDefaultProtocol	(2)	/* 1‚ÍTCPC2‚ÍUDP */
+#define	kDefaultProtocol	(2)	/* 1ã¯TCPï¼Œ2ã¯UDP */
 #define	kDefaultPointPort	(65431)
 #define	kDefaultResultPort	(65432)
 #define	kDefaultClientName	"localhost"
 #define	kDefaultServerName	"localhost"
 
-// ƒtƒ@ƒCƒ‹ƒI[ƒvƒ“ŠÖ˜A
+// ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³é–¢é€£
 #define	kDfltDataDir	"./"
 #define	kDfltSrcDir	"./"
 #define	kDfltSrcSuffix	"jpg"
@@ -55,31 +55,31 @@
 #define	kDfltGroup3Num	(4)
 #define	kDfltDiscNum	(15)
 
-// —£U‰»
+// é›¢æ•£åŒ–
 #define	kDfltDocNumForMakeDisc	(10)
 
-// ”ä—á’è”
+// æ¯”ä¾‹å®šæ•°
 #define	kDfltPropMakeNum	(10)
 
-// ˆê”Ê
+// ä¸€èˆ¬
 #define	kConfigVerStr	"<config.dat 2.0>"
 
-// ƒnƒbƒVƒ…‚Ì\’z
-#define	kMaxHashCollision	(10)	// Å‘åÕ“Ë”
-#define	kMaxDocNum	(1024*1024*128)	/* “o˜^‚Å‚«‚éÅ‘åƒhƒLƒ…ƒƒ“ƒg” */
-#define	kMaxPointNum	(2500)	/* “_‚ÌÅ‘å” */
-//#define	kHashSize	(1024*1024*1024*2-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
-//#define	kHashSize	(1024*1024*1024-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
-//#define	kHashSize	(1024*1024*8-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
-#define	kHashSize	(1024*1024*128-1)	/* ƒnƒbƒVƒ…ƒe[ƒuƒ‹‚Ì‘å‚«‚³ */
+// ãƒãƒƒã‚·ãƒ¥ã®æ§‹ç¯‰
+#define	kMaxHashCollision	(10)	// æœ€å¤§è¡çªæ•°
+#define	kMaxDocNum	(1024*1024*128)	/* ç™»éŒ²ã§ãã‚‹æœ€å¤§ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆæ•° */
+#define	kMaxPointNum	(2500)	/* ç‚¹ã®æœ€å¤§æ•° */
+//#define	kHashSize	(1024*1024*1024*2-1)	/* ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã®å¤§ãã• */
+//#define	kHashSize	(1024*1024*1024-1)	/* ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã®å¤§ãã• */
+//#define	kHashSize	(1024*1024*8-1)	/* ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã®å¤§ãã• */
+#define	kHashSize	(1024*1024*128-1)	/* ãƒãƒƒã‚·ãƒ¥ãƒ†ãƒ¼ãƒ–ãƒ«ã®å¤§ãã• */
 #define	kBlockSize	(1000000)
 //#define	kBlockSize	(1024)
 
-// ‘S‘Ì‚Ìƒ‚[ƒh
-#define	RETRIEVE_MODE		(0)		// ’ÊíŒŸõƒ‚[ƒh
-#define	CONST_HASH_MODE		(1)		// ƒnƒbƒVƒ…\’zƒ‚[ƒh
-#define CONST_HASH_PF_MODE	(2)		// “_ƒtƒ@ƒCƒ‹‚©‚ç‚ÌƒnƒbƒVƒ…\’zƒ‚[ƒh
-#define	USBCAM_SERVER_MODE	(3)		// ƒŠƒAƒ‹ƒ^ƒCƒ€ŒŸõƒ‚[ƒh
+// å…¨ä½“ã®ãƒ¢ãƒ¼ãƒ‰
+#define	RETRIEVE_MODE		(0)		// é€šå¸¸æ¤œç´¢ãƒ¢ãƒ¼ãƒ‰
+#define	CONST_HASH_MODE		(1)		// ãƒãƒƒã‚·ãƒ¥æ§‹ç¯‰ãƒ¢ãƒ¼ãƒ‰
+#define CONST_HASH_PF_MODE	(2)		// ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ã®ãƒãƒƒã‚·ãƒ¥æ§‹ç¯‰ãƒ¢ãƒ¼ãƒ‰
+#define	USBCAM_SERVER_MODE	(3)		// ãƒªã‚¢ãƒ«ã‚¿ã‚¤ãƒ æ¤œç´¢ãƒ¢ãƒ¼ãƒ‰
 #define COMBINE_PF_MODE		(4)		// 
 #define COMBINE_DB_MODE		(5)
 #define COMBINE_HASH_MODE	(6)
@@ -88,35 +88,38 @@
 #define CONST_POINT_MODE	(9)
 #define COMPRESS_PF_MODE	(10)
 
-// ƒpƒX‘€ì
+// ãƒ‘ã‚¹æ“ä½œ
 #define kDelimiterChar '/'
 
-// ƒJƒ‰[
-#define	cWhite	CV_RGB( 255,255,255 )
-#define	cBlack	CV_RGB( 0,0,0 )
-#define	cRed	CV_RGB( 255,0,0 )
-#define	cGreen	CV_RGB( 0,255,0 )
-#define	cBlue	CV_RGB( 0,0,255 )
-#define	cRandom	CV_RGB( rand()%256, rand()%256, rand()%256 )
+// OpenCV (for types used in headers)
+#include <opencv2/core.hpp>
 
-// ˜A‘±’l‚ÌƒAƒtƒBƒ“•s•Ï—Ê‚ğ—£U’l‚É•ÏŠ·‚·‚é‚½‚ß‚Ì\‘¢‘Ì
+// ã‚«ãƒ©ãƒ¼
+#define	cWhite	cv::Scalar( 255,255,255 )
+#define	cBlack	cv::Scalar( 0,0,0 )
+#define	cRed	cv::Scalar( 0,0,255 )
+#define	cGreen	cv::Scalar( 0,255,0 )
+#define	cBlue	cv::Scalar( 255,0,0 )
+#define	cRandom	cv::Scalar( rand()%256, rand()%256, rand()%256 )
+
+// é€£ç¶šå€¤ã®ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã‚’é›¢æ•£å€¤ã«å¤‰æ›ã™ã‚‹ãŸã‚ã®æ§‹é€ ä½“
 typedef struct _strDisc {
-	double min;	// Å¬’l
-	double max;	// Å‘å’l
-	int num;	// —£U‰»ƒŒƒxƒ‹
-	int res;	// dat‚ÌŒÂ”
-	int *dat;	// —£U’l‚ğ“ü‚ê‚é”z—ñ
+	double min;	// æœ€å°å€¤
+	double max;	// æœ€å¤§å€¤
+	int num;	// é›¢æ•£åŒ–ãƒ¬ãƒ™ãƒ«
+	int res;	// datã®å€‹æ•°
+	int *dat;	// é›¢æ•£å€¤ã‚’å…¥ã‚Œã‚‹é…åˆ—
 } strDisc;
 
-//ƒAƒtƒBƒ“•s•Ï—Ê‚ÌƒqƒXƒgƒOƒ‰ƒ€\’z—p‚Ì\‘¢‘Ì
+//ã‚¢ãƒ•ã‚£ãƒ³ä¸å¤‰é‡ã®ãƒ’ã‚¹ãƒˆã‚°ãƒ©ãƒ æ§‹ç¯‰ç”¨ã®æ§‹é€ ä½“
 typedef struct _strHist {
-	int size;	// bin‚Ì”
-	int *bin;	// ƒf[ƒ^
-	double min;	// ƒf[ƒ^‚ÌÅ¬’l
-	double max;	// ƒf[ƒ^‚ÌÅ‘å’lDmin‚Æmax‚Å“ü‚ébin‚ğŒˆ‚ß‚é
+	int size;	// binã®æ•°
+	int *bin;	// ãƒ‡ãƒ¼ã‚¿
+	double min;	// ãƒ‡ãƒ¼ã‚¿ã®æœ€å°å€¤
+	double max;	// ãƒ‡ãƒ¼ã‚¿ã®æœ€å¤§å€¤ï¼minã¨maxã§å…¥ã‚‹binã‚’æ±ºã‚ã‚‹
 } strHist;
 
-typedef unsigned char strHash; // ”z—ñ‚ÅƒnƒbƒVƒ…\¬
+typedef unsigned char strHash; // é…åˆ—ã§ãƒãƒƒã‚·ãƒ¥æ§‹æˆ
 
 typedef struct _strProjParam {
 	double a1;

@@ -4,26 +4,29 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/calib3d.hpp>
 
 #ifdef WIN32
 #ifdef _DEBUG
-#pragma comment( lib, "opencv_imgproc231d.lib" )
-#pragma comment( lib, "opencv_core231d.lib" )
-#pragma comment( lib, "opencv_highgui231d.lib" )
-#pragma comment( lib, "opencv_calib3d231d.lib" )
+#pragma comment( lib, "opencv_imgproc4d.lib" )
+#pragma comment( lib, "opencv_core4d.lib" )
+#pragma comment( lib, "opencv_highgui4d.lib" )
+#pragma comment( lib, "opencv_calib3d4d.lib" )
 #else
-#pragma comment( lib, "opencv_imgproc231.lib" )
-#pragma comment( lib, "opencv_core231.lib" )
-#pragma comment( lib, "opencv_highgui231.lib" )
-#pragma comment( lib, "opencv_calib3d231.lib" )
+#pragma comment( lib, "opencv_imgproc4.lib" )
+#pragma comment( lib, "opencv_core4.lib" )
+#pragma comment( lib, "opencv_highgui4.lib" )
+#pragma comment( lib, "opencv_calib3d4.lib" )
 #endif
 #endif
 
 using namespace cv;
 using namespace std;
 
-// ƒlƒbƒgƒ[ƒN
+// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯
 #ifdef	WIN32
 #include <winsock2.h>	// socket
 #include "ws_cl.h"
@@ -49,14 +52,14 @@ using namespace std;
 extern int **nears;
 
 void RetrieveUSBCamServer( void )
-	// USBƒJƒƒ‰ƒT[ƒoƒ‚[ƒh
+	// USBã‚«ãƒ¡ãƒ©ã‚µãƒ¼ãƒãƒ¢ãƒ¼ãƒ‰
 {
 	int num, res=0, ret, *score = NULL, *reg_nums=NULL/*, *thin_nums*/;
 	int pcornum=0;
 	int pcor[kMaxPointNum][2];
 	char doc_name[kMaxPathLen], **dbcors = NULL, doc_reject[kMaxPathLen]="reject";
-	CvPoint *ps=NULL, **reg_pss=NULL;
-	CvSize img_size, *reg_sizes=NULL, res_size;
+	cv::Point *ps=NULL, **reg_pss=NULL;
+	cv::Size img_size, *reg_sizes=NULL, res_size;
 	double *areas=NULL, **reg_areass=NULL;
 	strDisc disc;
 	strHash **hash;
@@ -66,32 +69,32 @@ void RetrieveUSBCamServer( void )
 	SOCKET sid1=0, sid2=0, sidpt=0, sidres=0;
 	struct sockaddr_in addr;
 
-	// İ’èƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+	// è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 	LoadConfig();
-	// —£U‰»ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
+	// é›¢æ•£åŒ–ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
 	LoadDisc( &disc );
-	// ƒnƒbƒVƒ…‚Ì“Ç‚İ‚İ
+	// ãƒãƒƒã‚·ãƒ¥ã®èª­ã¿è¾¼ã¿
 	LoadHashCompressToStorage( &hash );
-	// “Á’¥“_ƒtƒ@ƒCƒ‹‚Ì“Ç‚İ‚İ
-	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ƒTƒ“ƒvƒŠƒ“ƒO—L‚è
-	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ƒTƒ“ƒvƒŠƒ“ƒO–³‚µ
-	// ‹ß–T\‘¢•Û‘¶—pƒƒ‚ƒŠŠm•Û
+	// ç‰¹å¾´ç‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
+	if ( eThinPs )	eDbDocs = LoadThinFile( NULL, &reg_pss, &reg_sizes, &reg_nums, &dbcors );								// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°æœ‰ã‚Š
+	else			eDbDocs = LoadPointFile( NULL, &reg_pss, &reg_areass, &reg_sizes, &reg_nums, &dbcors );	// ã‚µãƒ³ãƒ—ãƒªãƒ³ã‚°ç„¡ã—
+	// è¿‘å‚æ§‹é€ ä¿å­˜ç”¨ãƒ¡ãƒ¢ãƒªç¢ºä¿
 	SecureNears();
-	// “¾•[ƒe[ƒuƒ‹Šm•Û
+	// å¾—ç¥¨ãƒ†ãƒ¼ãƒ–ãƒ«ç¢ºä¿
 	score = (int *)calloc(eDbDocs, sizeof(int));
-	// ‘g‚İ‡‚í‚¹‚Ìì¬
+	// çµ„ã¿åˆã‚ã›ã®ä½œæˆ
 	GenerateCombination( eGroup1Num, eGroup2Num, eGroup3Num, SetCom1, SetCom2 );
-	if ( eRmRedund )	LoadRmRedund();	// “Á’¥‘I‘ğ—L
-	// ƒlƒbƒgƒ[ƒNŠÖŒW
+	if ( eRmRedund )	LoadRmRedund();	// ç‰¹å¾´é¸æŠæœ‰
+	// ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯é–¢ä¿‚
 start_nego2:
 	puts("Ready");
 #ifdef WIN32
-	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, "192.168.42.129") ) < 0 )	exit(1);	// socket‚Ì‰Šú‰»
-	if ( ( sid1 = InitWinSockSvTCP( 12345 ) ) < 0 )	exit(1);	// socket‚Ì‰Šú‰»
-	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, eServerName) ) < 0 )	exit(1);	// socket‚Ì‰Šú‰»
+	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, "192.168.42.129") ) < 0 )	exit(1);	// socketã®åˆæœŸåŒ–
+	if ( ( sid1 = InitWinSockSvTCP( 12345 ) ) < 0 )	exit(1);	// socketã®åˆæœŸåŒ–
+	//if ( ( sid1 = InitWinSockSvTCP( eTCPPort, eServerName) ) < 0 )	exit(1);	// socketã®åˆæœŸåŒ–
 	if ( ( sid2 = AcceptWinSockSvTCP( sid1 ) ) < 0 )	exit(1);	// accept
 #else
-	if ( ( sid1 = InitSockSvTCP( eTCPPort, eServerName ) ) < 0 )	exit(1);	// socket‚Ì‰Šú‰»
+	if ( ( sid1 = InitSockSvTCP( eTCPPort, eServerName ) ) < 0 )	exit(1);	// socketã®åˆæœŸåŒ–
 	if ( ( sid2 = AcceptSockSvTCP( sid1 ) ) < 0 )	exit(1);	// accept
 #endif
 	cout << "connected " << endl;
@@ -109,50 +112,50 @@ start_nego2:
 	SendResultName( sid2, "reject" );
 
 	for ( ; ; ) {
-		num = RecvPointsAreas( sid2, &ps, &areas, &img_size );	// “Á’¥“_ƒf[ƒ^‚ğóM
-		if ( num < 0 )	break;	// ’ÊM¸”s
+		num = RecvPointsAreas( sid2, &ps, &areas, &img_size );	// ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’å—ä¿¡
+		if ( num < 0 )	break;	// é€šä¿¡å¤±æ•—
 
-		if ( num >= kMinPoints ) {	// “Á’¥“_”‚ªÅ¬’lˆÈã
-			MakeNearsFromCentresDiv( ps, num, &img_size, kDivX, kDivY, eGroup1Num );	// ‹ß–T“_ŒvZi•ªŠ„”Åj
+		if ( num >= kMinPoints ) {	// ç‰¹å¾´ç‚¹æ•°ãŒæœ€å°å€¤ä»¥ä¸Š
+			MakeNearsFromCentresDiv( ps, num, &img_size, kDivX, kDivY, eGroup1Num );	// è¿‘å‚ç‚¹è¨ˆç®—ï¼ˆåˆ†å‰²ç‰ˆï¼‰
 			res = RetrieveCor( ps, areas, num, score, pcor, &pcornum, &disc, reg_nums, hash );
-			// Å¬‘Î‰“_”ˆÈã‚È‚çAË‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚ğŒvZ
+			// æœ€å°å¯¾å¿œç‚¹æ•°ä»¥ä¸Šãªã‚‰ã€å°„å½±å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨ˆç®—
 			if ( pcornum >= kMinPointsToCalcParam ) {
-				CalcProjParamTop( ps, reg_pss[res], pcor, pcornum, &param, PROJ_REVERSE, PARAM_RANSAC );	// “o˜^‰æ‘œ‚Éã‘‚«
+				CalcProjParamTop( ps, reg_pss[res], pcor, pcornum, &param, PROJ_REVERSE, PARAM_RANSAC );	// ç™»éŒ²ç”»åƒã«ä¸Šæ›¸ã
 				CalcRotationAndTranslation(ps, reg_pss[res], pcor, pcornum, tranceParam1);
 			}
 			else	param = zero_param;
 
-			// ŒvZŠÔ‚Ì•\¦
+			// è¨ˆç®—æ™‚é–“ã®è¡¨ç¤º
 			//			OutPutResultSv( score, end-start, 0/*5*/, doc_name );
-			if ( score[res] > kTopThr ) {	// ƒgƒbƒv‚Ì“¾•[”‚ªè‡’lˆÈ‰ºiƒŠƒWƒFƒNƒgj
+			if ( score[res] > kTopThr ) {	// ãƒˆãƒƒãƒ—ã®å¾—ç¥¨æ•°ãŒé–¾å€¤ä»¥ä¸‹ï¼ˆãƒªã‚¸ã‚§ã‚¯ãƒˆï¼‰
 				GetBasename( dbcors[res], kMaxPathLen, doc_name );
 			}
 			else {
 				strcpy( doc_name, doc_reject );
-				param = zero_param;	// ŒŸõŒ‹‰Ê‚ª‚È‚¢‚Ì‚Éƒpƒ‰ƒ[ƒ^‚¾‚¯‚ ‚é‚Á‚Ä‚Ì‚à•Ï‚È‚Ì‚Å
+				param = zero_param;	// æ¤œç´¢çµæœãŒãªã„ã®ã«ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã ã‘ã‚ã‚‹ã£ã¦ã®ã‚‚å¤‰ãªã®ã§
 				pcornum=0;
 			}
 			puts( doc_name );
 		}
-		else {	// “Á’¥“_”‚ªÅ¬’l‚ğ–‚½‚³‚È‚¢
+		else {	// ç‰¹å¾´ç‚¹æ•°ãŒæœ€å°å€¤ã‚’æº€ãŸã•ãªã„
 			//puts("min");
 			strcpy( doc_name, doc_reject );
 			param = zero_param;
 			pcornum=0;
 		}
-		if ( strcmp( doc_name, doc_reject ) )	res_size = reg_sizes[res];	// ŒŸõ¬Œ÷‚È‚ç‚»‚ÌƒTƒCƒY
-		else	res_size = reg_sizes[0];	// ‚»‚¤‚Å‚È‚¯‚ê‚Îƒf[ƒ^ƒx[ƒX‚Ì0”Ô‚ÌƒTƒCƒY
+		if ( strcmp( doc_name, doc_reject ) )	res_size = reg_sizes[res];	// æ¤œç´¢æˆåŠŸãªã‚‰ãã®ã‚µã‚¤ã‚º
+		else	res_size = reg_sizes[0];	// ãã†ã§ãªã‘ã‚Œã°ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹ã®0ç•ªã®ã‚µã‚¤ã‚º
 
 		//ret = SendResultParam( sid2, doc_name, kMaxDocNameLen, &param, &res_size, &addr, eProtocol );
 		//ret = SendResultParam3D( sid2, doc_name, kMaxDocNameLen, &param, tranceParam1, tranceParam2, &res_size, &addr, eProtocol );
 		SendResultName( sid2, doc_name );
 
 
-		if ( ps != NULL && num > 0 )	free( ps );	// ps‚Ì‰ğ•ú
+		if ( ps != NULL && num > 0 )	free( ps );	// psã®è§£æ”¾
 		if ( areas != NULL && num > 0 )	free( areas );
-		ClearNears( num );	// nears‚Ì‰ğ•ú
+		ClearNears( num );	// nearsã®è§£æ”¾
 	}
-	// I—¹ˆ—
+	// çµ‚äº†å‡¦ç†
 	//free(score);
 
 #ifdef	WIN32
@@ -163,110 +166,91 @@ start_nego2:
 	CloseSock( sid1 );	// close
 #endif
 
-	goto start_nego2;	// ƒlƒS‘Ò‚¿‚Ü‚Å–ß‚é
+	goto start_nego2;	// ãƒã‚´å¾…ã¡ã¾ã§æˆ»ã‚‹
 }
 
-void CalcRotationAndTranslation( CvPoint *ps, CvPoint *reg_ps, int corres[][2], int cor_num, float *tranceParam )
+void CalcRotationAndTranslation( cv::Point *ps, cv::Point *reg_ps, int corres[][2], int cor_num, float *tranceParam )
 {
 	double intri[3][3]	= {{5.77397522e+002, 0, 320}, {0, 5.76541565e+002, 240}, {0, 0, 1}};
-	double dist[4]		= {3.29653658e-002, -2.11595669e-001, -5.16368134e-004, -7.00226147e-003};
-	CvMat object_points;
-	CvMat image_points;
-	CvMat *intrinsic = cvCreateMat (3, 3, CV_32FC1);
-	CvMat *rotation = cvCreateMat (1, 3, CV_32FC1);
-	CvMat *translation = cvCreateMat (1, 3, CV_32FC1);
-	CvMat *distortion = cvCreateMat (1, 4, CV_32FC1);
-	CvPoint3D32f *object = new CvPoint3D32f[cor_num];
-	CvPoint2D32f *image = new CvPoint2D32f[cor_num];
+	double dist_data[4]		= {3.29653658e-002, -2.11595669e-001, -5.16368134e-004, -7.00226147e-003};
+
+	std::vector<cv::Point3f> objectPoints(cor_num);
+	std::vector<cv::Point2f> imagePoints(cor_num);
 
 	for ( int i = 0; i < cor_num; i++ ) {
-		object[i].x = reg_ps[corres[i][1]].x;
-		object[i].y = reg_ps[corres[i][1]].y;
-		object[i].z = 0.0;
+		objectPoints[i].x = (float)reg_ps[corres[i][1]].x;
+		objectPoints[i].y = (float)reg_ps[corres[i][1]].y;
+		objectPoints[i].z = 0.0f;
 	}
-	cvInitMatHeader (&object_points, cor_num, 3, CV_32FC1, object);
 
 	for ( int i = 0; i < cor_num; i++ ) {
-		image[i].x = ps[corres[i][0]].x;
-		image[i].y = ps[corres[i][0]].y;
-	}
-	cvInitMatHeader (&image_points, cor_num, 1, CV_32FC2, image);
-
-	for ( int i = 0; i < 3; i++ ) {
-		for ( int j = 0; j < 3; j++ ) {
-			cvmSet( intrinsic, i, j, intri[i][j] );
-		}
+		imagePoints[i].x = (float)ps[corres[i][0]].x;
+		imagePoints[i].y = (float)ps[corres[i][0]].y;
 	}
 
-	for ( int i = 0; i < 4; i++ ) {
-		cvmSet( distortion, 0, i, dist[i] );
-	}
+	cv::Mat cameraMatrix(3, 3, CV_64F, intri);
+	cv::Mat distCoeffs(1, 4, CV_64F, dist_data);
+	cv::Mat rvec, tvec;
 
-	cvFindExtrinsicCameraParams2 (&object_points, &image_points, intrinsic, distortion, rotation, translation);
+	cv::solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, rvec, tvec);
 
 	double _r1[3];
-	_r1[0]=cvmGet(rotation,0,0);
-	_r1[1]=cvmGet(rotation,0,1);
-	_r1[2]=cvmGet(rotation,0,2);
+	_r1[0] = rvec.at<double>(0, 0);
+	_r1[1] = rvec.at<double>(1, 0);
+	_r1[2] = rvec.at<double>(2, 0);
 
 	//for ( int i = 0; i < 3; i++ )	cout << _r1[i] << " ";
 	//cout << endl;
 
 	double trans[3];
-	trans[0]=cvmGet(translation,0,0);
-	trans[1]=cvmGet(translation,0,1);
-	trans[2]=cvmGet(translation,0,2);
+	trans[0] = tvec.at<double>(0, 0);
+	trans[1] = tvec.at<double>(1, 0);
+	trans[2] = tvec.at<double>(2, 0);
 
-	//3x3‚Ì‰ñ“]s—ñ‚ğŠm•Û
-	double Homograph[9];
+	cv::Mat r1Mat(3, 1, CV_64F, _r1);
+	cv::Mat _Homograph(3, 3, CV_64F);
 
-	CvMat r1 = cvMat(3,1,CV_64F,_r1);
-	CvMat _Homograph = cvMat(3, 3, CV_64F, Homograph );
-
-	//3x3‚É•ÏŠ·
-	cvRodrigues2(&r1, &_Homograph);
+	//3x3ã«å¤‰æ›
+	cv::Rodrigues(r1Mat, _Homograph);
 
 	//for ( int i = 0; i < 3; i++ ) {
 	//	for ( int j = 0; j < 3; j++ ) {
-	//		printf("%lf\t", cvmGet(&_Homograph, i, j));
+	//		printf("%lf\t", _Homograph.at<double>(i, j));
 	//	}
 	//	cout << trans[i] << endl;
 	//}
 	//cout << endl;
 
-	double sinthe = -cvmGet(&_Homograph, 0, 2);
+	double sinthe = -_Homograph.at<double>(0, 2);
 	double costhe = sqrt(1.0-sinthe*sinthe);
-	double sinpsy = cvmGet(&_Homograph, 1, 2) / costhe;
-	double sinfai = cvmGet(&_Homograph, 0, 1) / costhe;
-	double cospsy = cvmGet(&_Homograph, 2, 2) / costhe;
-	double cosfai = cvmGet(&_Homograph, 0, 0) / costhe;
+	double sinpsy = _Homograph.at<double>(1, 2) / costhe;
+	double sinfai = _Homograph.at<double>(0, 1) / costhe;
+	double cospsy = _Homograph.at<double>(2, 2) / costhe;
+	double cosfai = _Homograph.at<double>(0, 0) / costhe;
 
 	sinfai = -sinfai;
 	sinthe = -sinthe;
 
-	cvmSet(&_Homograph, 0, 0, cosfai * costhe);
-	cvmSet(&_Homograph, 0, 1, sinfai * costhe);
-	cvmSet(&_Homograph, 0, 2, -sinthe);
-	cvmSet(&_Homograph, 1, 0, cosfai * sinthe * sinpsy - sinfai * cospsy);
-	cvmSet(&_Homograph, 1, 1, sinfai * sinthe * sinpsy + cosfai * cospsy);
-	cvmSet(&_Homograph, 1, 2, costhe * sinpsy);
-	cvmSet(&_Homograph, 2, 0, cosfai * sinthe * cospsy + sinfai * sinpsy);
-	cvmSet(&_Homograph, 2, 1, sinfai * sinthe * cospsy - cosfai * sinpsy);
-	cvmSet(&_Homograph, 2, 2, costhe * cospsy);
+	_Homograph.at<double>(0, 0) = cosfai * costhe;
+	_Homograph.at<double>(0, 1) = sinfai * costhe;
+	_Homograph.at<double>(0, 2) = -sinthe;
+	_Homograph.at<double>(1, 0) = cosfai * sinthe * sinpsy - sinfai * cospsy;
+	_Homograph.at<double>(1, 1) = sinfai * sinthe * sinpsy + cosfai * cospsy;
+	_Homograph.at<double>(1, 2) = costhe * sinpsy;
+	_Homograph.at<double>(2, 0) = cosfai * sinthe * cospsy + sinfai * sinpsy;
+	_Homograph.at<double>(2, 1) = sinfai * sinthe * cospsy - cosfai * sinpsy;
+	_Homograph.at<double>(2, 2) = costhe * cospsy;
 	
 	for ( int i = 0; i < 3; i++ ) {
-		tranceParam[0+i] = cvmGet(&_Homograph, i, 0);
-		tranceParam[4+i] = cvmGet(&_Homograph, i, 1);
-		tranceParam[8+i] = cvmGet(&_Homograph, i, 2);
-		tranceParam[12+i] = trans[i];
+		tranceParam[0+i] = (float)_Homograph.at<double>(i, 0);
+		tranceParam[4+i] = (float)_Homograph.at<double>(i, 1);
+		tranceParam[8+i] = (float)_Homograph.at<double>(i, 2);
+		tranceParam[12+i] = (float)trans[i];
 	}
 	tranceParam[3] = 0.0;
 	tranceParam[7] = 0.0;
 	tranceParam[11] = 0.0;
 	tranceParam[15] = 1.0;
-
-	delete[] object;
-	delete[] image;
 }
 
 double normalize ( Vec3f&  vec )
@@ -286,19 +270,19 @@ double normalize ( Vec3f&  vec )
 
 void ExtractRAndTFromP2(strProjParam param, float *tranceParam)
 {
-	double data_H[3][3] = {{param.a1, param.b1, param.c1}, {param.a2, param.b2, param.c2}, {param.a3, param.b3, 1.0}};	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ
+	double data_H[3][3] = {{param.a1, param.b1, param.c1}, {param.a2, param.b2, param.c2}, {param.a3, param.b3, 1.0}};	// ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—
 
-	// A[0][2]‚ÆA[1][2]‚ğ0.0‚É•ÏX‚µ‚Ä‚İ‚Ä‚­‚¾‚³‚¢D
-	double data_A[3][3] = {{569.65435791, 0.0, 0.0}, {0.0, 568.74615479, 0.0}, {0.0, 0.0, 1.0}};		// ƒJƒƒ‰“à•”ƒpƒ‰ƒ[ƒ^
-	//double data_A[3][3] = {{2.51902783e+003, 0.0, 1.29164893e+003}, {0.0, 2.51729639e+003, 9.62208679e+002}, {0.0, 0.0, 1.0}};		// ƒJƒƒ‰“à•”ƒpƒ‰ƒ[ƒ^
-	//double data_A[3][3] = {{569.65435791, 0.0, 321.98031616}, {0.0, 568.74615479, 237.28897095}, {0.0, 0.0, 1.0}};		// ƒJƒƒ‰“à•”ƒpƒ‰ƒ[ƒ^
+	// A[0][2]ã¨A[1][2]ã‚’0.0ã«å¤‰æ›´ã—ã¦ã¿ã¦ãã ã•ã„ï¼
+	double data_A[3][3] = {{569.65435791, 0.0, 0.0}, {0.0, 568.74615479, 0.0}, {0.0, 0.0, 1.0}};		// ã‚«ãƒ¡ãƒ©å†…éƒ¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+	//double data_A[3][3] = {{2.51902783e+003, 0.0, 1.29164893e+003}, {0.0, 2.51729639e+003, 9.62208679e+002}, {0.0, 0.0, 1.0}};		// ã‚«ãƒ¡ãƒ©å†…éƒ¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+	//double data_A[3][3] = {{569.65435791, 0.0, 321.98031616}, {0.0, 568.74615479, 237.28897095}, {0.0, 0.0, 1.0}};		// ã‚«ãƒ¡ãƒ©å†…éƒ¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	
 	data_A[0][2] = 0.0;
 	data_A[1][2] = 0.0;
 
 
-	Mat HL(3, 3, CV_64F, data_H);	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ
-	Mat A(3, 3, CV_64F, data_A);	// ƒJƒƒ‰“à•”ƒpƒ‰ƒ[ƒ^
+	Mat HL(3, 3, CV_64F, data_H);	// ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—
+	Mat A(3, 3, CV_64F, data_A);	// ã‚«ãƒ¡ãƒ©å†…éƒ¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 
 	Mat RT = A.inv() * HL;
 
@@ -375,134 +359,110 @@ void ExtractRAndTFromP2(strProjParam param, float *tranceParam)
 
 
 void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *tranceParam2)
-// Ë‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚©‚ç‰ñ“]s—ñR‚Æ•¹is—ñT‚ğ’Šo‚·‚é
+// å°„å½±å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‹ã‚‰å›è»¢è¡Œåˆ—Rã¨ä½µé€²è¡Œåˆ—Tã‚’æŠ½å‡ºã™ã‚‹
 {
 	double data_A[] = {param.a1, param.b1, param.c1, param.a2, param.b2, param.c2, param.a3, param.b3, 1.0};
-	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ
-	CvMat *Hl			= cvCreateMat(3, 3, CV_64F);	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ
-	CvMat *Hl_tenchi	= cvCreateMat(3, 3, CV_64F);	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ‚Ì“]’us—ñ
-	CvMat *HlHl			= cvCreateMat(3, 3, CV_64F);	// ƒzƒ‚ƒOƒ‰ƒtƒB‚ÌÏ
-	CvMat *eigenVec		= cvCreateMat(3, 3, CV_64F);	// ŒÅ—LƒxƒNƒgƒ‹is‚ÉŠi”[j
-	CvMat *eigenVal		= cvCreateMat(3, 1, CV_64F);	// ŒÅ—L’li~‡j
-	CvMat *v1			= cvCreateMat(3, 1, CV_64F);	// ‘æ1ŒÅ—LƒxƒNƒgƒ‹
-	CvMat *v2			= cvCreateMat(3, 1, CV_64F);	// ‘æ2ŒÅ—LƒxƒNƒgƒ‹
-	CvMat *v3			= cvCreateMat(3, 1, CV_64F);	// ‘æ3ŒÅ—LƒxƒNƒgƒ‹
-	CvMat *u1			= cvCreateMat(3, 1, CV_64F);	
-	CvMat *u2			= cvCreateMat(3, 1, CV_64F);
-	CvMat *v2u1			= cvCreateMat(3, 1, CV_64F);	// v2‚Æu1‚ÌŠOÏ
-	CvMat *v2u2			= cvCreateMat(3, 1, CV_64F);	// v2‚Æu2‚ÌŠOÏ
-	CvMat *U1			= cvCreateMat(3, 3, CV_64F);	// s—ñ(v2, u1, v2u1)
-	CvMat *U2			= cvCreateMat(3, 3, CV_64F);	// s—ñ(v2, u2, v2u2)
-	CvMat *H			= cvCreateMat(3, 3, CV_64F);	// ^‚Ìƒzƒ‚ƒOƒ‰ƒtƒBs—ñ
-	CvMat *Hv2			= cvCreateMat(3, 1, CV_64F);
-	CvMat *Hu1			= cvCreateMat(3, 1, CV_64F);
-	CvMat *Hu2			= cvCreateMat(3, 1, CV_64F);
-	CvMat *Hv2Hu1		= cvCreateMat(3, 1, CV_64F);
-	CvMat *Hv2Hu2		= cvCreateMat(3, 1, CV_64F);
-	CvMat *W1			= cvCreateMat(3, 3, CV_64F);	// s—ñ(Hv2, Hu1, Hv2Hu1)
-	CvMat *W2			= cvCreateMat(3, 3, CV_64F);	// s—ñ(Hv2, Hu2, Hv2Hu2)
-	CvMat *U1tenchi		= cvCreateMat(3, 3, CV_64F);
-	CvMat *R1			= cvCreateMat(3, 3, CV_64F);
-	CvMat *T1tmp		= cvCreateMat(3, 3, CV_64F);
-	CvMat *T1			= cvCreateMat(3, 1, CV_64F);
-	CvMat *U2tenchi		= cvCreateMat(3, 3, CV_64F);
-	CvMat *R2			= cvCreateMat(3, 3, CV_64F);
-	CvMat *T2tmp		= cvCreateMat(3, 3, CV_64F);
-	CvMat *T2			= cvCreateMat(3, 1, CV_64F);
-	double sigma1=0.0, sigma2=0.0, sigma3=0.0;	// ŒÅ—L’l
+	// ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—
+	cv::Mat Hl(3, 3, CV_64F, data_A);
+	cv::Mat Hl_tenchi, HlHl;
+	cv::Mat eigenVec(3, 3, CV_64F), eigenVal(3, 1, CV_64F);
+	cv::Mat v1(3, 1, CV_64F), v2(3, 1, CV_64F), v3(3, 1, CV_64F);
+	cv::Mat u1(3, 1, CV_64F), u2(3, 1, CV_64F);
+	cv::Mat v2u1(3, 1, CV_64F), v2u2(3, 1, CV_64F);
+	cv::Mat U1(3, 3, CV_64F), U2(3, 3, CV_64F);
+	cv::Mat H(3, 3, CV_64F);
+	cv::Mat Hv2(3, 1, CV_64F), Hu1(3, 1, CV_64F), Hu2(3, 1, CV_64F);
+	cv::Mat Hv2Hu1(3, 1, CV_64F), Hv2Hu2(3, 1, CV_64F);
+	cv::Mat W1(3, 3, CV_64F), W2(3, 3, CV_64F);
+	cv::Mat U1tenchi, U2tenchi;
+	cv::Mat R1(3, 3, CV_64F), R2(3, 3, CV_64F);
+	cv::Mat T1tmp(3, 3, CV_64F), T2tmp(3, 3, CV_64F);
+	cv::Mat T1(3, 1, CV_64F), T2(3, 1, CV_64F);
+	double sigma1=0.0, sigma2=0.0, sigma3=0.0;
 
-	// Ë‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚ğs—ñ‚ÉŠi”[
+	// Hl is already initialized from data_A
+
+	// ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—ã®è»¢ç½®è¡Œåˆ—
+	Hl_tenchi = Hl.t();
+	HlHl = Hl_tenchi * Hl;
+	// HlHlã®å›ºæœ‰å€¤åˆ†è§£
+	cv::eigen(HlHl, eigenVal, eigenVec);
+
+	// è¡Œåˆ—ã‹ã‚‰å›ºæœ‰ãƒ™ã‚¯ãƒˆãƒ«ã®æŠ½å‡º
 	for ( int i = 0; i < 3; i++ ) {
-		for ( int j = 0; j < 3; j++ ) 
-			cvmSet(Hl, i, j, data_A[i*3+j]);
-	}
-
-	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ‚Ì“]’us—ñ
-	cvTranspose(Hl, Hl_tenchi);
-	// Hl_tenchi*Hl
-	cvMatMul(Hl_tenchi, Hl, HlHl);
-	// HlHl‚ÌŒÅ—L’l•ª‰ğ
-	cvEigenVV(HlHl, eigenVec, eigenVal, 0.0, -1, -1);
-
-	// s—ñ‚©‚çŒÅ—LƒxƒNƒgƒ‹‚Ì’Šo
-	for ( int i = 0; i < 3; i++ ) {
-		cvmSet(v1, i, 0, cvmGet(eigenVec, i, 0) );
-		cvmSet(v2, i, 0, cvmGet(eigenVec, i, 1) );
-		cvmSet(v3, i, 0, cvmGet(eigenVec, i, 2) );
+		v1.at<double>(i, 0) = eigenVec.at<double>(i, 0);
+		v2.at<double>(i, 0) = eigenVec.at<double>(i, 1);
+		v3.at<double>(i, 0) = eigenVec.at<double>(i, 2);
 	}
 
 	//for ( int i = 0; i < 3; i++ ) {
 	//	for ( int j = 0; j < 3; j++ ) {
-	//		printf("%lf\t", cvmGet(eigenVec, i, j));
+	//		printf("%lf\t", eigenVec.at<double>(i, j));
 	//	}
 	//	puts("");
 	//}
 	//puts("");
 	puts("eigen");
 	for ( int i = 0; i < 3; i++ ) {
-		printf("%lf\t", cvmGet(eigenVal, i, 0));
+		printf("%lf\t", eigenVal.at<double>(i, 0));
 	}
 	puts("");
 	puts("v1");
 	for ( int i = 0; i < 3; i++ ) {
-		printf("%lf\t", cvmGet(v1, i, 0));
+		printf("%lf\t", v1.at<double>(i, 0));
 	}
 	puts("");
 	puts("v2");
 	for ( int i = 0; i < 3; i++ ) {
-		printf("%lf\t", cvmGet(v2, i, 0));
+		printf("%lf\t", v2.at<double>(i, 0));
 	}
 	puts("");
 	puts("v3");
 	for ( int i = 0; i < 3; i++ ) {
-		printf("%lf\t", cvmGet(v3, i, 0));
+		printf("%lf\t", v3.at<double>(i, 0));
 	}
 	puts("");
 	puts("");
-	// ƒxƒNƒgƒ‹‚©‚çŒÅ—L’l‚Ì’Šoi‘æ2ŒÅ—L’l‚Å³‹K‰»j
-	sigma2=cvmGet(eigenVal,1,0);
-	sigma1=cvmGet(eigenVal,0,0)/sigma2;
-	sigma3=cvmGet(eigenVal,2,0)/sigma2;
+	sigma2=eigenVal.at<double>(1,0);
+	sigma1=eigenVal.at<double>(0,0)/sigma2;
+	sigma3=eigenVal.at<double>(2,0)/sigma2;
 
-	CvMat *tmp1 = cvCreateMat(3, 1, CV_64F);
-	CvMat *tmp2 = cvCreateMat(3, 1, CV_64F);
+	cv::Mat tmp1(3, 1, CV_64F), tmp2(3, 1, CV_64F);
 
-	// u1‚ÌŒvZ
-	cvAddWeighted( v1, sqrt(1-sigma3), v1, 0, 0, tmp1);
-	cvAddWeighted( v3, sqrt(sigma1-1), v3, 0, 0, tmp2);
-	cvAdd(tmp1, tmp2, u1);
-	cvAddWeighted( u1, 1.0/sqrt(sigma1-sigma3), u1, 0, 0, u1);
+	// u1
+	cv::addWeighted( v1, sqrt(1-sigma3), v1, 0, 0, tmp1);
+	cv::addWeighted( v3, sqrt(sigma1-1), v3, 0, 0, tmp2);
+	u1 = tmp1 + tmp2;
+	cv::addWeighted( u1, 1.0/sqrt(sigma1-sigma3), u1, 0, 0, u1);
 
-	// u2‚ÌŒvZ
-	cvSub(tmp1, tmp2, u2);
-	cvAddWeighted( u2, 1.0/sqrt(sigma1-sigma3), u2, 0, 0, u2);
+	// u2
+	u2 = tmp1 - tmp2;
+	cv::addWeighted( u2, 1.0/sqrt(sigma1-sigma3), u2, 0, 0, u2);
 
-	// ŠOÏ‚ÌŒvZ
-	cvCrossProduct(v2,u1,v2u1);
-	cvCrossProduct(v2,u2,v2u2);
+	// cross product
+	v2u1 = v2.cross(u1);
+	v2u2 = v2.cross(u2);
 	
 	for ( int i = 0; i < 3; i++ ) {
-		// U1(v2,u1,v2u1)
-		cvmSet(U1,i,0,cvmGet(v2, i, 0));
-		cvmSet(U1,i,1,cvmGet(u1, i, 0));
-		cvmSet(U1,i,2,cvmGet(v2u1, i, 0));
-		
-		// U1(v2,u2,v2u2)
-		cvmSet(U2,i,0,cvmGet(v2, i, 0));
-		cvmSet(U2,i,1,cvmGet(u2, i, 0));
-		cvmSet(U2,i,2,cvmGet(v2u2, i, 0));
+		U1.at<double>(i,0) = v2.at<double>(i, 0);
+		U1.at<double>(i,1) = u1.at<double>(i, 0);
+		U1.at<double>(i,2) = v2u1.at<double>(i, 0);
+
+		U2.at<double>(i,0) = v2.at<double>(i, 0);
+		U2.at<double>(i,1) = u2.at<double>(i, 0);
+		U2.at<double>(i,2) = v2u2.at<double>(i, 0);
 	}
 	double dv2 = 0.0;
 	for ( int i = 0; i < 3; i++ ) {
-		dv2 += cvmGet(v2, i, 0) *cvmGet(v2, i, 0);
+		dv2 += v2.at<double>(i, 0) * v2.at<double>(i, 0);
 	}
 	printf("v2 : %lf\n", sqrt(dv2));
 	puts("v2 : ");
 	for ( int i = 0; i < 3; i++ ) {
-		printf("%lf\t", cvmGet(v2, i, 0));
+		printf("%lf\t", v2.at<double>(i, 0));
 	}
 	puts("");
-	double du = cvDet(U1);
+	double du = cv::determinant(U1);
 	printf("U1 : %lf\n", du);
 	//puts("u1");
 	//for ( int i = 0; i < 3; i++ ) {
@@ -519,130 +479,125 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	//	puts("");
 	//}
 	//puts("");
-	// ^‚Ìƒzƒ‚ƒOƒ‰ƒtƒBs—ñiHl‚Ì³‹K‰»Hj
-	cvAddWeighted( Hl, 1.0/sqrt(sigma2), Hl, 0, 0, H);
+	// çœŸã®ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—ï¼ˆHlã®æ­£è¦åŒ–ï¼Ÿï¼‰
+	cv::addWeighted( Hl, 1.0/sqrt(sigma2), Hl, 0, 0, H);
 
-	CvMat *H_tenchi = cvCreateMat(3, 3, CV_64F);
-	CvMat *HH		= cvCreateMat(3, 3, CV_64F);
-	// ƒzƒ‚ƒOƒ‰ƒtƒBs—ñ‚Ì“]’us—ñ
-	cvTranspose(H, H_tenchi);
-	// Hl_tenchi*Hl
-	cvMatMul(H_tenchi, H, HH);
-	// HlHl‚ÌŒÅ—L’l•ª‰ğ
-	cvEigenVV(HH, eigenVec, eigenVal, 0.0, -1, -1);
+	cv::Mat H_tenchi, HH;
+	H_tenchi = H.t();
+	HH = H_tenchi * H;
+	cv::eigen(HH, eigenVal, eigenVec);
 
-	printf("v2 : %lf\n", cvmGet(eigenVal,1,0));
+	// HlHlã®å›ºæœ‰å€¤åˆ†è§£
+	printf("v2 : %lf\n", eigenVal.at<double>(1,0));
 
 	puts("H : ");
 	for ( int i = 0; i < 3; i++ ) {
 		for ( int j = 0; j < 3; j++ ) {
-			printf("%lf\t", cvmGet(H, i, j));
+			printf("%lf\t", H.at<double>(i, j));
 		}
 		puts("");
 	}
 	puts("");
 	
 	
-	double dh = cvDet(H);
+	double dh = cv::determinant(H);
 	printf("H : %lf\n", dh);
 
-	cvMatMul(H, v2, Hv2);
-	cvMatMul(H, u1, Hu1);
-	cvMatMul(H, u2, Hu2);
-	cvCrossProduct(Hv2,Hu1,Hv2Hu1);
-	cvCrossProduct(Hv2,Hu2,Hv2Hu2);
+	Hv2 = H * v2;
+	Hu1 = H * u1;
+	Hu2 = H * u2;
+	Hv2Hu1 = Hv2.cross(Hu1);
+	Hv2Hu2 = Hv2.cross(Hu2);
 
 	puts("Hv2");
 	for ( int i = 0; i < 3; i++ ) {
-			printf("%lf\t", cvmGet(Hv2, i, 0));
+			printf("%lf\t", Hv2.at<double>(i, 0));
 	}
 	puts("");
 
 	puts("Hu1");
 	for ( int i = 0; i < 3; i++ ) {
-			printf("%lf\t", cvmGet(Hu1, i, 0));
+			printf("%lf\t", Hu1.at<double>(i, 0));
 	}
 	puts("");
 
 	puts("Hv2Hu1");
 	for ( int i = 0; i < 3; i++ ) {
-			printf("%lf\t", cvmGet(Hv2Hu1, i, 0));
+			printf("%lf\t", Hv2Hu1.at<double>(i, 0));
 	}
 	puts("");
 
 	double dHv2 = 0.0;
 	for ( int i = 0; i < 3; i++ ) {
-		dHv2 += cvmGet(Hv2, i, 0) *cvmGet(Hv2, i, 0);
+		dHv2 += Hv2.at<double>(i, 0) * Hv2.at<double>(i, 0);
 	}
 	printf("Hv2 : %lf\n", sqrt(dHv2));
 
 	double dHu1 = 0.0;
 	for ( int i = 0; i < 3; i++ ) {
-		dHu1 += cvmGet(Hu1, i, 0) *cvmGet(Hu1, i, 0);
+		dHu1 += Hu1.at<double>(i, 0) * Hu1.at<double>(i, 0);
 	}
 	printf("Hu1 : %lf\n", sqrt(dHu1));
 
 	double dHu2 = 0.0;
 	for ( int i = 0; i < 3; i++ ) {
-		dHu2 += cvmGet(Hu2, i, 0) *cvmGet(Hu2, i, 0);
+		dHu2 += Hu2.at<double>(i, 0) * Hu2.at<double>(i, 0);
 	}
 	printf("Hu2 : %lf\n", sqrt(dHu2));
 
 	double dHv2Hu1 = 0.0;
 	for ( int i = 0; i < 3; i++ ) {
-		dHv2Hu1 += cvmGet(Hv2Hu1, i, 0) *cvmGet(Hv2Hu1, i, 0);
+		dHv2Hu1 += Hv2Hu1.at<double>(i, 0) * Hv2Hu1.at<double>(i, 0);
 	}
 	printf("Hv2Hu1 : %lf\n", sqrt(dHv2Hu1));
 
 	double dHv2Hu2 = 0.0;
 	for ( int i = 0; i < 3; i++ ) {
-		dHv2Hu2 += cvmGet(Hv2Hu2, i, 0) *cvmGet(Hv2Hu2, i, 0);
+		dHv2Hu2 += Hv2Hu2.at<double>(i, 0) * Hv2Hu2.at<double>(i, 0);
 	}
 	printf("Hv2Hu2 : %lf\n", sqrt(dHv2Hu2));
 
 	for ( int i = 0; i < 3; i++ ) {
-		// (Hv2, Hu1, Hv2Hu1)
-		cvmSet(W1,i,0,cvmGet(Hv2, i, 0));
-		cvmSet(W1,i,1,cvmGet(Hu1, i, 0));
-		cvmSet(W1,i,2,cvmGet(Hv2Hu1, i, 0));
+		W1.at<double>(i,0) = Hv2.at<double>(i, 0);
+		W1.at<double>(i,1) = Hu1.at<double>(i, 0);
+		W1.at<double>(i,2) = Hv2Hu1.at<double>(i, 0);
 
-		// (Hv2, Hu2, Hv2Hu2)
-		cvmSet(W2,i,0,cvmGet(Hv2, i, 0));
-		cvmSet(W2,i,1,cvmGet(Hu2, i, 0));
-		cvmSet(W2,i,2,cvmGet(Hv2Hu2, i, 0));
+		W2.at<double>(i,0) = Hv2.at<double>(i, 0);
+		W2.at<double>(i,1) = Hu2.at<double>(i, 0);
+		W2.at<double>(i,2) = Hv2Hu2.at<double>(i, 0);
 	}
 	//puts("W1 : ");
 
 	for ( int i = 0; i < 3; i++ ) {
 		for ( int j = 0; j < 3; j++ ) {
-			printf("%lf\t", cvmGet(W1, i, j));
+			printf("%lf\t", W1.at<double>(i, j));
 		}
 		puts("");
 	}
 	puts("");
-	double dw = cvDet(W1);
+	double dw = cv::determinant(W1);
 	printf("W1 : %lf\n", dw);
-	// ^‚Ìƒzƒ‚ƒOƒ‰ƒtƒBs—ñiHl‚Ì³‹K‰»Hj
-	cvAddWeighted( W1, 1.0/pow(dw, 1.0/3.0), W1, 0, 0, W1);
-	dw = cvDet(W1);
+	// çœŸã®ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—ï¼ˆHlã®æ­£è¦åŒ–ï¼Ÿï¼‰
+	cv::addWeighted( W1, 1.0/pow(dw, 1.0/3.0), W1, 0, 0, W1);
+	dw = cv::determinant(W1);
 	printf("W1 : %lf\n", dw);
 
 	for ( int i = 0; i < 3; i++ ) {
 		for ( int j = 0; j < 3; j++ ) {
-			printf("%lf\t", cvmGet(W1, i, j));
+			printf("%lf\t", W1.at<double>(i, j));
 		}
 		puts("");
 	}
 	puts("");
-	double dw2 = cvDet(W2);
+	double dw2 = cv::determinant(W2);
 	printf("W2 : %lf\n", dw2);
-	// ^‚Ìƒzƒ‚ƒOƒ‰ƒtƒBs—ñiHl‚Ì³‹K‰»Hj
-	cvAddWeighted( W2, 1.0/dw2, W2, 0, 0, W2);
-	dw2 = cvDet(W2);
+	// çœŸã®ãƒ›ãƒ¢ã‚°ãƒ©ãƒ•ã‚£è¡Œåˆ—ï¼ˆHlã®æ­£è¦åŒ–ï¼Ÿï¼‰
+	cv::addWeighted( W2, 1.0/dw2, W2, 0, 0, W2);
+	dw2 = cv::determinant(W2);
 	printf("W2 : %lf\n", dw2);
 	for ( int i = 0; i < 3; i++ ) {
 		for ( int j = 0; j < 3; j++ ) {
-			printf("%lf\t", cvmGet(W1, i, j));
+			printf("%lf\t", W1.at<double>(i, j));
 		}
 		puts("");
 	}
@@ -655,52 +610,52 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	//	puts("");
 	//}
 	//puts("");
-	// R1,T1‚Ì’ŠoiR,T‚Í2‚Â‚Å‚«‚éj
+	// R1,T1ã®æŠ½å‡ºï¼ˆR,Tã¯2ã¤ã§ãã‚‹ï¼‰
 
-	cvTranspose(U1, U1tenchi);
+	U1tenchi = U1.t();
 	// R1 = W1U1
-	cvMatMul(W1, U1tenchi, R1);
+	R1 = W1 * U1tenchi;
 	// T1 = (H-R1)N1
-	cvSub(H, R1, T1tmp);
-	cvMatMul(T1tmp, v2u1, T1);
+	T1tmp = H - R1;
+	T1 = T1tmp * v2u1;
 
-	// R2,T2‚Ì’ŠoiR,T‚Í2‚Â‚Å‚«‚éj
-	cvTranspose(U2, U2tenchi);
+	// R2,T2ã®æŠ½å‡ºï¼ˆR,Tã¯2ã¤ã§ãã‚‹ï¼‰
+	U2tenchi = U2.t();
 	// R2 = W2U2
-	cvMatMul(W2, U2tenchi, R2);
+	R2 = W2 * U2tenchi;
 	// T2 = (H-R2)N2
-	cvSub(H, R2, T2tmp);
-	cvMatMul(T1tmp, v2u2, T2);
+	T2tmp = H - R2;
+	T2 = T1tmp * v2u2;
 
-	// ”z—ñ‚ÉŠi”[
+	// é…åˆ—ã«æ ¼ç´
 	for ( int i = 0; i < 3; i++ ) {
-		tranceParam1[0+4*i] = (float)cvmGet(R1,0,i);
-		tranceParam1[1+4*i] = (float)cvmGet(R1,1,i);
-		tranceParam1[2+4*i] = (float)cvmGet(R1,2,i);
+		tranceParam1[0+4*i] = (float)R1.at<double>(0,i);
+		tranceParam1[1+4*i] = (float)R1.at<double>(1,i);
+		tranceParam1[2+4*i] = (float)R1.at<double>(2,i);
 	}
 	for ( int i = 0; i < 3; i++ ) {
-		tranceParam1[12+i] = (float)cvmGet(T1,i,0);
+		tranceParam1[12+i] = (float)T1.at<double>(i,0);
 	}
 	tranceParam1[3] = 0.0;
 	tranceParam1[7] = 0.0;
 	tranceParam1[11] = 0.0;
 	tranceParam1[15] = 1.0;
 
-	// ”z—ñ‚ÉŠi”[
+	// é…åˆ—ã«æ ¼ç´
 	for ( int i = 0; i < 3; i++ ) {
-		tranceParam2[0+4*i] = (float)cvmGet(R2,0,i);
-		tranceParam2[1+4*i] = (float)cvmGet(R2,1,i);
-		tranceParam2[2+4*i] = (float)cvmGet(R2,2,i);
+		tranceParam2[0+4*i] = (float)R2.at<double>(0,i);
+		tranceParam2[1+4*i] = (float)R2.at<double>(1,i);
+		tranceParam2[2+4*i] = (float)R2.at<double>(2,i);
 	}
 	for ( int i = 0; i < 3; i++ ) {
-		tranceParam2[12+i] = (float)cvmGet(T2,i,0);
+		tranceParam2[12+i] = (float)T2.at<double>(i,0);
 	}
 	tranceParam2[3] = 0.0;
 	tranceParam2[7] = 0.0;
 	tranceParam2[11] = 0.0;
 	tranceParam2[15] = 1.0;
 
-	////R,T‚Ì•\¦
+	////R,Tã®è¡¨ç¤º
 	//puts("R1 :\t\t\t\t\t\tT1 :");
 	//for ( int i = 0; i < 3; i++ ) {
 	//	for ( int j = 0; j < 3; j++ ) {
@@ -711,13 +666,10 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 	//puts("");
 
 
-	// H‚Ì•œŒ³
-	CvMat *N1tenchi = cvCreateMat(1,3,CV_64F);
-	CvMat *_H = cvCreateMat(3,3,CV_64F);
-
-	cvTranspose(v2u1, N1tenchi);
-	cvMatMul(T1, N1tenchi, _H);
-	cvAdd(R1, _H, _H);
+	// Hã®å¾©å…ƒ
+	cv::Mat N1tenchi = v2u1.t();
+	cv::Mat _H = T1 * N1tenchi;
+	_H = R1 + _H;
 
 	//for ( int i = 0; i < 3; i++ ) {
 	//	for ( int j = 0; j < 3; j++ ) {
@@ -737,17 +689,17 @@ void ExtractRAndTFromP(strProjParam param, float *tranceParam1, float *trancePar
 
 
 int RecvComSetting( SOCKET sid, int *ptc, int *pt_port, int *res_port, char *cl_name )
-	// ’ÊMİ’è‚ğóM
+	// é€šä¿¡è¨­å®šã‚’å—ä¿¡
 {
 	int ret;
 
-	ret = recv( sid, (char *)ptc, sizeof(int), RECV_FLAG );	// ƒvƒƒgƒRƒ‹
+	ret = recv( sid, (char *)ptc, sizeof(int), RECV_FLAG );	// ãƒ—ãƒ­ãƒˆã‚³ãƒ«
 	if ( ret <= 0 )	return -1;
-	ret = recv( sid, (char *)pt_port, sizeof(int), RECV_FLAG );	// “Á’¥“_ƒ|[ƒg
+	ret = recv( sid, (char *)pt_port, sizeof(int), RECV_FLAG );	// ç‰¹å¾´ç‚¹ãƒãƒ¼ãƒˆ
 	if ( ret <= 0 )	return -1;
-	ret = recv( sid, (char *)res_port, sizeof(int), RECV_FLAG );	// ŒŸõŒ‹‰Êƒ|[ƒg
+	ret = recv( sid, (char *)res_port, sizeof(int), RECV_FLAG );	// æ¤œç´¢çµæœãƒãƒ¼ãƒˆ
 	if ( ret <= 0 )	return -1;
-	ret = recv( sid, cl_name, kMaxNameLen, RECV_FLAG );	// ƒNƒ‰ƒCƒAƒ“ƒg–¼
+	ret = recv( sid, cl_name, kMaxNameLen, RECV_FLAG );	// ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆå
 	if ( ret <= 0 )	return -1;
 
 	return 1;
@@ -758,43 +710,43 @@ void SendResultName( SOCKET sock, char *result_name )
 	send ( sock, result_name, kFileNameLen, SEND_FLAG );
 }
 
-int SendResultParam( SOCKET sid, char *doc_name, int len, strProjParam *param, CvSize *img_size, struct sockaddr_in *addr, int ptc )
-	// •¶‘–¼‚ÆË‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚ğ‘—M
+int SendResultParam( SOCKET sid, char *doc_name, int len, strProjParam *param, cv::Size *img_size, struct sockaddr_in *addr, int ptc )
+	// æ–‡æ›¸åã¨å°„å½±å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’é€ä¿¡
 {
 	int ret;
 	char buff[kSendBuffSize];
 
 	memcpy( buff, doc_name, kMaxDocNameLen );
 	memcpy( buff + kMaxDocNameLen, param, sizeof(strProjParam) );
-	memcpy( buff + kMaxDocNameLen + sizeof(strProjParam), img_size, sizeof(CvSize) );
+	memcpy( buff + kMaxDocNameLen + sizeof(strProjParam), img_size, sizeof(cv::Size) );
 
 	ret = send ( sid, buff, kSendBuffSize, SEND_FLAG );
 
 	return ret;
 }
 
-int SendResultParam3D( SOCKET sid, char *doc_name, int len, strProjParam *param, float *tranceParam1, float *tranceParam2, CvSize *img_size, struct sockaddr_in *addr, int ptc )
-	// •¶‘–¼‚ÆË‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚ğ‘—M
+int SendResultParam3D( SOCKET sid, char *doc_name, int len, strProjParam *param, float *tranceParam1, float *tranceParam2, cv::Size *img_size, struct sockaddr_in *addr, int ptc )
+	// æ–‡æ›¸åã¨å°„å½±å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’é€ä¿¡
 {
 	int ret;
 	char buff[kSendBuffSize3D];
 
 	memcpy( buff, doc_name, kMaxDocNameLen );
 	memcpy( buff + kMaxDocNameLen, param, sizeof(strProjParam) );
-	memcpy( buff + kMaxDocNameLen + sizeof(strProjParam), img_size, sizeof(CvSize) );
-	memcpy( buff + kMaxDocNameLen + sizeof(strProjParam) + sizeof(CvSize), tranceParam1, sizeof(float)*16 );
+	memcpy( buff + kMaxDocNameLen + sizeof(strProjParam), img_size, sizeof(cv::Size) );
+	memcpy( buff + kMaxDocNameLen + sizeof(strProjParam) + sizeof(cv::Size), tranceParam1, sizeof(float)*16 );
 
 	ret = send ( sid, buff, kSendBuffSize3D, SEND_FLAG );
 
 	return ret;
 }
 
-int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, CvSize size, int pcor[][2], int pcornum, CvPoint *ps, CvPoint *psall, struct sockaddr_in *addr, int ptc )
-	// •¶‘–¼‚Æ‘Î‰“_‚ğ‘—M
+int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, cv::Size size, int pcor[][2], int pcornum, cv::Point *ps, cv::Point *psall, struct sockaddr_in *addr, int ptc )
+	// æ–‡æ›¸åã¨å¯¾å¿œç‚¹ã‚’é€ä¿¡
 {
 	int i, buff_cur=0, ret;
 	char buff[kSendBuffSizeCor];
-	CvPoint corps[kMaxPointNum][2];
+	cv::Point corps[kMaxPointNum][2];
 
 	puts(doc_name);
 
@@ -802,16 +754,16 @@ int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, CvS
 	buff_cur += kMaxDocNameLen;
 	memcpy( buff + buff_cur, param, sizeof(strProjParam) );
 	buff_cur += sizeof(strProjParam);
-	memcpy( buff + buff_cur, &size, sizeof(CvSize) );
-	buff_cur += sizeof(CvSize);
+	memcpy( buff + buff_cur, &size, sizeof(cv::Size) );
+	buff_cur += sizeof(cv::Size);
 	memcpy( buff + buff_cur, &pcornum, sizeof(int) );
 	buff_cur += sizeof(int);
 	for ( i = 0; i < pcornum; i++ ) {
-		memcpy( buff + buff_cur, &(ps[pcor[i][0]]), sizeof(CvPoint) );
+		memcpy( buff + buff_cur, &(ps[pcor[i][0]]), sizeof(cv::Point) );
 		buff_cur += 8;
 	}
 	for ( i = 0; i < pcornum; i++ ) {
-		memcpy( buff + buff_cur, &(psall[pcor[i][1]]), sizeof(CvPoint) );
+		memcpy( buff + buff_cur, &(psall[pcor[i][1]]), sizeof(cv::Point) );
 		buff_cur += 8;
 	}
 
@@ -823,37 +775,35 @@ int SendResultCor( SOCKET sid, char *doc_name, int len, strProjParam *param, CvS
 	return ret;
 }
 
-int RecvPointsAreas( SOCKET sid, CvPoint **ps0, double **areas0, CvSize *size )
-	// “_ƒf[ƒ^‚ğóM
+int RecvPointsAreas( SOCKET sid, cv::Point **ps0, double **areas0, cv::Size *size )
+	// ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’å—ä¿¡
 {
 	int i, num = 0, ret=0, buff_cur, total=0;
 	char buff[kRecvBuffSizeAreas];
-	CvPoint *ps;
+	cv::Point *ps;
 	double *areas;
 	unsigned short areas_us[kMaxPointNum];
 
-	// ƒoƒbƒtƒ@‚ÉóM
+	// receive to buffer
 	while (total < 25012) {
 		ret = recv( sid, &buff[total], 25012-total, RECV_FLAG );
 		total += ret;
-		//printf("%dbyte[%d/25012]\n", ret, total);
 	}
-	//printf("%d\n", ret);
-	if ( ret <= 0 )	return -1;	// óM¸”s
-	// ƒoƒbƒtƒ@‚©‚ç‰æ‘œƒTƒCƒY‚ğ“¾‚é
-	for ( i = 0, buff_cur = 0; i < (int)sizeof(CvSize); i++, buff_cur++ ) {
+	if ( ret <= 0 )	return -1;
+	// ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰ç”»åƒã‚µã‚¤ã‚ºã‚’å¾—ã‚‹
+	for ( i = 0, buff_cur = 0; i < (int)sizeof(cv::Size); i++, buff_cur++ ) {
 		((char *)size)[i] = buff[buff_cur];
 	}
 	//printf("%d\n",sizeof(CvSize));
 	//printf("Mat size: %d, %d\n", (*size).width, (*size).height);
-	// ƒoƒbƒtƒ@‚©‚ç“Á’¥“_”‚ğ“¾‚é
+	// ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰ç‰¹å¾´ç‚¹æ•°ã‚’å¾—ã‚‹
 	for ( i = 0; i < (int)sizeof(int); i++, buff_cur++ ) {
 		((char *)&num)[i] = buff[buff_cur];
 	}
 	//printf("Point Num: %d\n", num);
-	// “Á’¥“_”‚ª1ˆÈã‚È‚çƒƒ‚ƒŠ‚ğŠm•Û
+	// ç‰¹å¾´ç‚¹æ•°ãŒ1ä»¥ä¸Šãªã‚‰ãƒ¡ãƒ¢ãƒªã‚’ç¢ºä¿
 	if ( num > 0 )	{
-		ps = (CvPoint *)calloc( num, sizeof(CvPoint) );
+		ps = (cv::Point *)calloc( num, sizeof(cv::Point) );
 		areas = (double *)calloc( num, sizeof(double) );
 	}
 	else {
@@ -862,14 +812,14 @@ int RecvPointsAreas( SOCKET sid, CvPoint **ps0, double **areas0, CvSize *size )
 	}
 	*ps0 = ps;
 	*areas0 = areas;
-	// ƒoƒbƒtƒ@‚©‚ç“Á’¥“_ƒf[ƒ^‚ğ“¾‚é
-	for ( i = 0; i < (int)(sizeof(CvPoint) * num); i++, buff_cur++ ) {
+	// ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰ç‰¹å¾´ç‚¹ãƒ‡ãƒ¼ã‚¿ã‚’å¾—ã‚‹
+	for ( i = 0; i < (int)(sizeof(cv::Point) * num); i++, buff_cur++ ) {
 		((char *)ps)[i] = buff[buff_cur];
 	}
 	//for ( i = 0; i < num; i++ )	printf("Point: %d, %d\n", ps[i].x, ps[i].y);
 
-	// ƒoƒbƒtƒ@‚©‚ç–ÊÏƒf[ƒ^‚ğ“¾‚é
-	buff_cur = sizeof(CvSize) + sizeof(int) + sizeof(CvPoint) * kMaxPointNum;
+	// ãƒãƒƒãƒ•ã‚¡ã‹ã‚‰é¢ç©ãƒ‡ãƒ¼ã‚¿ã‚’å¾—ã‚‹
+	buff_cur = sizeof(cv::Size) + sizeof(int) + sizeof(cv::Point) * kMaxPointNum;
 	for ( i = 0; i < (int)(sizeof(unsigned short) * num); i++, buff_cur++ ) {
 		((char *)areas_us)[i] = buff[buff_cur];
 	}
@@ -883,21 +833,21 @@ int RecvPointsAreas( SOCKET sid, CvPoint **ps0, double **areas0, CvSize *size )
 
 
 int RecvFlag( SOCKET sid )
-	// ŠJnƒtƒ‰ƒO‚ğ‚ğóM
+	// é–‹å§‹ãƒ•ãƒ©ã‚°ã‚’ã‚’å—ä¿¡
 {
 	int i, num = 0, ret, buff_cur;
 	char buff[kRecvBuffSizeAreas];
 
-	// ƒoƒbƒtƒ@‚ÉóM
+	// ãƒãƒƒãƒ•ã‚¡ã«å—ä¿¡
 	ret = recv( sid, buff, 5, RECV_FLAG );
 
-	if ( ret <= 0 )	return -1;	// óM¸”s
+	if ( ret <= 0 )	return -1;	// å—ä¿¡å¤±æ•—
 	printf("Android LLAH %s!\n", buff);
 	return ret;
 }
 
 int SendDoc( SOCKET sid, char *doc_name, struct sockaddr_in *addr, int ptc )
-	// •¶‘–¼‚ÆË‰e•ÏŠ·ƒpƒ‰ƒ[ƒ^‚ğ‘—M
+	// æ–‡æ›¸åã¨å°„å½±å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’é€ä¿¡
 {
 	int ret, length=0, buff_cur=0;
 	char buff[20]="";
