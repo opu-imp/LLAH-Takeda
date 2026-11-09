@@ -57,10 +57,10 @@ This creates 5 database images in `test/db_images/` and 3 query images in `test/
 
 ```bash
 mkdir -p test/db_data
-./llahdoc -c test/db_images/ jpg -h test/db_data/
+./llahdoc -z -c test/db_images/ jpg -h test/db_data/
 ```
 
-`llahdoc` does not create the database directory, so create it first. This creates `config.dat`, `disc.dat`, `hash.dat`, and `point.dat` in `test/db_data/`.
+`llahdoc` does not create the database directory, so create it first. `-z` stores the hash table in the compressed list format, which is the only format that retrieval can load. This creates `config.dat`, `disc.dat`, `hash.dat`, and `point.dat` in `test/db_data/`.
 
 ### Compress the feature point file
 
@@ -73,8 +73,10 @@ This creates `test/db_data/point_comp.dat`, which retrieval requires.
 ### Run a query
 
 ```bash
-./llahdoc -h test/db_data/ test/query_images/query_doc005.jpg
+./llahdoc -g 53 5 15 -h test/db_data/ test/query_images/query_doc005.jpg
 ```
+
+`-g` sets the block size and the constant C of the adaptive binarization, and the mask size of the Gaussian smoothing applied to the query image. The mask size has no default value, so `-g` is required for retrieval.
 
 Output like the following means that everything is working:
 
@@ -85,16 +87,16 @@ Disc File ... Loaded
 Hash File ... Loaded
 1692, 1689, 1.001776
 test/query_images/query_doc005.jpg
-retrieval time : 323[milisec]
+retrieval time : 451[milisec]
 test/db_images/doc005.jpg : 39
 
 test/query_images/query_doc005.jpg
-retrieval time : 278[milisec]
-test/db_images/doc005.jpg : 78
+retrieval time : 226[milisec]
+test/db_images/doc005.jpg : 39
 ...
 ```
 
-The query is processed 8 times in a row (the `eMultiNum` loop in `llahdoc.cpp`, kept from the original experiment code), so the result is printed 8 times and the score grows with each repetition. The command should finish within a few seconds, and every result should be the same document as the query (doc005 in this example) with a score greater than 0.
+The query is processed 8 times in a row (the `eMultiNum` loop in `llahdoc.cpp`, kept from the original experiment code), so the result is printed 8 times. The command should finish within a few seconds, and every result should be the same document as the query (doc005 in this example) with a score greater than 0.
 
 ### Run all steps at once
 
@@ -108,4 +110,5 @@ This runs every step above (build, test image generation, database construction,
 
 - The default hash table size (512M entries) uses about 4 GB of memory.
 - macOS has no `timeout` command. If you need a timeout, use `perl -e 'alarm 30; exec @ARGV' ./llahdoc ...` instead.
+- The code keeps the behaviour of the original OpenCV 2.x version, including two limitations: retrieval without `-g` aborts in `GaussianBlur`, and retrieval from a database built without `-z` crashes while loading the hash table.
 - Paths are limited to 128 bytes (`kMaxPathLen` in `def_general.h`). `llahdoc` crashes if an image or database path is longer, so work in a directory with a short path.
