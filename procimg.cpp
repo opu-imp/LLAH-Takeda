@@ -7,6 +7,9 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#if CV_VERSION_MAJOR >= 5
+#include <opencv2/geometry.hpp>	// OpenCV 5 で cv::moments は imgproc から geometry モジュールに移った
+#endif
 
 #ifdef WIN32
 #ifdef _DEBUG
