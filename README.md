@@ -27,11 +27,16 @@ Representative References:
 
 ### Prerequisites
 
-```bash
-# Install OpenCV 4 with Homebrew
-brew install opencv
+The code builds with either OpenCV 5 or OpenCV 4, and needs a C++17 compiler.
 
-# Check the installation
+```bash
+# OpenCV 5 (Homebrew's `opencv` formula is OpenCV 5)
+brew install opencv
+pkg-config --modversion opencv5
+
+# Or OpenCV 4. Homebrew's `opencv@4` is keg-only, so tell pkg-config where it is.
+brew install opencv@4
+export PKG_CONFIG_PATH="$(brew --prefix opencv@4)/lib/pkgconfig:$PKG_CONFIG_PATH"
 pkg-config --modversion opencv4
 ```
 
@@ -44,6 +49,8 @@ make clean && make
 ```
 
 The build has succeeded if the `llahdoc` binary is produced without errors (warnings can be ignored).
+
+The Makefile uses OpenCV 5 when `pkg-config` finds `opencv5`, and OpenCV 4 otherwise. To choose explicitly, run `make clean && make OPENCV_PC=opencv4` (or `opencv5`). Run `make clean` whenever you switch versions, so that no object files built against the other version are reused.
 
 ### Generate test images
 
